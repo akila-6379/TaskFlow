@@ -1,0 +1,5 @@
+/* Hide the native password reveal button in Edge and IE */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
