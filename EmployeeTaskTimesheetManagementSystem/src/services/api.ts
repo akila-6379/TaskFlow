@@ -11,7 +11,7 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const token =
     typeof window !== 'undefined'
-      ? localStorage.getItem('token')
+      ? (localStorage.getItem('token') || sessionStorage.getItem('token'))
       : null;
 
   if (token) {
@@ -26,6 +26,7 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
+      sessionStorage.removeItem('token');
       window.location.href = '/login';
     }
 

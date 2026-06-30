@@ -25,6 +25,7 @@ const buildTaskPayload = (data: Omit<Task, "id"> | Task) => {
   }
 
   return {
+    id: ("id" in data) ? Number(data.id) : 0,
     title,
     description,
     employeeId,

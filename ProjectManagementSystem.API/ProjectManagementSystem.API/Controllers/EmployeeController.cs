@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProjectManagementSystem.API.Data;
 using ProjectManagementSystem.API.Models;
@@ -26,6 +26,17 @@ namespace ProjectManagementSystem.API.Controllers
         [HttpPost]
         public async Task<IActionResult> AddEmployee(Employee employee)
         {
+            var nextValParam = new Microsoft.Data.SqlClient.SqlParameter
+            {
+                ParameterName = "@result",
+                SqlDbType = System.Data.SqlDbType.Int,
+                Direction = System.Data.ParameterDirection.Output
+            };
+            await _context.Database.ExecuteSqlRawAsync("SET @result = NEXT VALUE FOR EmployeeIdSequence", nextValParam);
+            int nextVal = (int)nextValParam.Value;
+
+            employee.EmployeeId = $"EMP{nextVal:D3}";
+
             _context.Employees.Add(employee);
             await _context.SaveChangesAsync();
 
@@ -47,7 +58,7 @@ namespace ProjectManagementSystem.API.Controllers
             existingEmployee.Status = employee.Status;
             existingEmployee.Phone = employee.Phone;
             existingEmployee.JoinDate = employee.JoinDate;
-            existingEmployee.EmployeeId = employee.EmployeeId;
+            // existingEmployee.EmployeeId = employee.EmployeeId; // Employee ID must remain unchanged when editing
 
             await _context.SaveChangesAsync();
 

@@ -3700,23 +3700,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\kavya\\.nuget\\packages\\": {},
+    "C:\\Users\\AKILA\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\UI IMPROVEMENT\\ProjectManagementSystemBackend\\TaskFlow\\ProjectManagementSystem.API\\ProjectManagementSystem.API\\ProjectManagementSystem.API.csproj",
+      "projectUniqueName": "D:\\TaskFlow\\ProjectManagementSystem.API\\ProjectManagementSystem.API\\ProjectManagementSystem.API.csproj",
       "projectName": "ProjectManagementSystem.API",
-      "projectPath": "D:\\UI IMPROVEMENT\\ProjectManagementSystemBackend\\TaskFlow\\ProjectManagementSystem.API\\ProjectManagementSystem.API\\ProjectManagementSystem.API.csproj",
-      "packagesPath": "C:\\Users\\kavya\\.nuget\\packages\\",
-      "outputPath": "D:\\UI IMPROVEMENT\\ProjectManagementSystemBackend\\TaskFlow\\ProjectManagementSystem.API\\ProjectManagementSystem.API\\obj\\",
+      "projectPath": "D:\\TaskFlow\\ProjectManagementSystem.API\\ProjectManagementSystem.API\\ProjectManagementSystem.API.csproj",
+      "packagesPath": "C:\\Users\\AKILA\\.nuget\\packages\\",
+      "outputPath": "D:\\TaskFlow\\ProjectManagementSystem.API\\ProjectManagementSystem.API\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\kavya\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\AKILA\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -3801,7 +3801,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.300/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.301/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.AspNetCore": "(,10.0.32767]",
           "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",

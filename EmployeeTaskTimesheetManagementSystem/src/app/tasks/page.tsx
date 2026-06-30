@@ -1,7 +1,8 @@
 'use client';
+import { capDateYear } from '@/utils/dateUtils';
 import { useState, useEffect, useMemo } from 'react';
 import {
-  Autocomplete, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle,
+  Autocomplete, Avatar, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle,
   TextField, MenuItem, IconButton, Tooltip, Paper, Divider, Typography, InputAdornment, Stack,
 } from '@mui/material';
 import { DataGrid, GridColDef, GridToolbarContainer, GridToolbarQuickFilter } from '@mui/x-data-grid';
@@ -21,6 +22,9 @@ import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
 import TaskAltRoundedIcon from '@mui/icons-material/TaskAltRounded';
 import PendingActionsRoundedIcon from '@mui/icons-material/PendingActionsRounded';
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
+import InfoRoundedIcon from '@mui/icons-material/InfoRounded';
 import MainLayout    from '@/components/layout/MainLayout';
 import PageHeader    from '@/components/common/PageHeader';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
@@ -36,12 +40,12 @@ const STATUS_STYLE: Record<string, { bg: string; color: string }> = {
 };
 
 const TASK_TYPE_META: Record<string, { icon: JSX.Element; color: string }> = {
-  registration: { icon: <DescriptionRoundedIcon sx={{ fontSize: 18 }} />, color: '#2563eb' },
-  api: { icon: <CodeRoundedIcon sx={{ fontSize: 18 }} />, color: '#7c3aed' },
-  dashboard: { icon: <DashboardRoundedIcon sx={{ fontSize: 18 }} />, color: '#0f766e' },
-  stock: { icon: <Inventory2RoundedIcon sx={{ fontSize: 18 }} />, color: '#b45309' },
-  salary: { icon: <AnalyticsRoundedIcon sx={{ fontSize: 18 }} />, color: '#db2777' },
-  payslip: { icon: <PersonRoundedIcon sx={{ fontSize: 18 }} />, color: '#1d4ed8' },
+  registration: { icon: <DescriptionRoundedIcon sx={{ fontSize: 16 }} />, color: '#2563eb' },
+  api: { icon: <CodeRoundedIcon sx={{ fontSize: 16 }} />, color: '#7c3aed' },
+  dashboard: { icon: <DashboardRoundedIcon sx={{ fontSize: 16 }} />, color: '#0f766e' },
+  stock: { icon: <Inventory2RoundedIcon sx={{ fontSize: 16 }} />, color: '#b45309' },
+  salary: { icon: <AnalyticsRoundedIcon sx={{ fontSize: 16 }} />, color: '#db2777' },
+  payslip: { icon: <PersonRoundedIcon sx={{ fontSize: 16 }} />, color: '#1d4ed8' },
 };
 
 const EMPTY: Omit<Task, 'id'> = {
@@ -143,6 +147,60 @@ function getDueDateInfo(value: string) {
   return { label: `${diffDays} days left`, isOverdue: false };
 }
 
+function getStatusColor(status: string) {
+  switch (status) {
+    case 'Pending': return '#f59e0b';
+    case 'In Progress': return '#3b82f6';
+    case 'Completed': return '#10b981';
+    case 'Blocked': return '#ef4444';
+    default: return '#64748b';
+  }
+}
+
+const fieldLabel = (icon: React.ReactNode, text: string) => (
+  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, color: '#334155', fontSize: 13, fontWeight: 600 }}>
+    {icon}
+    <Typography component="span" sx={{ fontSize: 13, fontWeight: 600 }}>{text}</Typography>
+  </Box>
+);
+
+const fieldStyles = {
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '14px',
+    minHeight: 52,
+    backgroundColor: '#ffffff',
+    '& fieldset': {
+      borderColor: '#cbd5e1',
+    },
+    '&:hover fieldset': {
+      borderColor: '#94a3b8',
+    },
+    '&.Mui-focused fieldset': {
+      borderColor: '#2563EB',
+      boxShadow: '0 0 0 4px rgba(37,99,235,0.08)',
+    },
+  },
+  '& .MuiInputLabel-root': {
+    color: '#334155',
+    fontWeight: 600,
+  },
+  '& .MuiInputBase-input': {
+    fontSize: '15px',
+    fontWeight: 500,
+    color: '#111827',
+  },
+  '& .MuiOutlinedInput-input': {
+    fontSize: '15px',
+    fontWeight: 500,
+    color: '#111827',
+  },
+  '& .MuiSelect-select': {
+    fontSize: '15px',
+    fontWeight: 500,
+    color: '#111827',
+  },
+};
+
 export default function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -152,6 +210,8 @@ export default function TasksPage() {
   const employeeOptions = useMemo(
     () => employees.map(emp => ({
       id: Number(emp.id),
+      name: emp.name,
+      employeeId: emp.employeeId,
       label: `${emp.name} (${emp.employeeId})`,
     })),
     [employees],
@@ -215,20 +275,18 @@ export default function TasksPage() {
   {
     field: 'title',
     headerName: 'Task Title',
-    flex: 1,
-    minWidth: 260,
+    width: 220,
     renderCell: ({ row }) => {
       const meta = getTaskTypeMeta(row.title);
       return (
         <Tooltip title={row.title}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, height: '100%', minHeight: 72, width: '100%' }}>
-            <Box sx={{ width: 44, height: 44, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: `${meta.color}14`, color: meta.color, flexShrink: 0 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, height: '100%', width: '100%' }}>
+            <Box sx={{ width: 32, height: 32, borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: `${meta.color}14`, color: meta.color, flexShrink: 0 }}>
               {meta.icon}
             </Box>
-            <Box sx={{ minWidth: 0, flex: 1 }}>
-              <Typography sx={{ fontSize: 15, fontWeight: 600, color: '#0f172a', lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.title}</Typography>
-              <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.1 }}>Enterprise workflow</Typography>
-            </Box>
+            <Typography sx={{ fontSize: 13.5, fontWeight: 500, color: '#0f172a', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flex: 1 }}>
+              {row.title}
+            </Typography>
           </Box>
         </Tooltip>
       );
@@ -240,14 +298,18 @@ export default function TasksPage() {
     width: 200,
     renderCell: ({ value }) => {
       const emp = employees.find(e => Number(e.id) === value);
+      const initial = emp?.name?.charAt(0)?.toUpperCase() ?? 'U';
+      const idx = (initial.charCodeAt(0) || 0) % 7;
+      const avatarBgs = ['#dbeafe','#ede9fe','#dcfce7','#fef3c7','#fce7f3','#e0f2fe','#ffedd5'];
+      const avatarColors = ['#1d4ed8','#6d28d9','#15803d','#b45309','#be185d','#0369a1','#c2410c'];
       return (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: '100%', minHeight: 72 }}>
-          <Box sx={{ width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#eff6ff', color: '#2563eb', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>
-            {emp?.name?.charAt(0) ?? 'U'}
-          </Box>
-          <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 700, color: '#0f172a', fontSize: 13, lineHeight: 1.3 }}>{emp ? emp.name : 'Unassigned'}</Typography>
-            <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.1 }}>{emp ? `(${emp.employeeId})` : `#${value}`}</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, height: '100%' }}>
+          <Avatar sx={{ width: 38, height: 38, bgcolor: avatarBgs[idx], color: avatarColors[idx], fontSize: 14, fontWeight: 800, flexShrink: 0 }}>
+            {initial}
+          </Avatar>
+          <Box>
+            <Typography sx={{ fontSize: 13.5, fontWeight: 500, color: '#0f172a', lineHeight: 1.3 }}>{emp ? emp.name : 'Unassigned'}</Typography>
+            <Typography sx={{ fontSize: 11.5, fontWeight: 400, color: '#64748b', lineHeight: 1.2 }}>{emp ? emp.employeeId : `#${value}`}</Typography>
           </Box>
         </Box>
       );
@@ -256,18 +318,15 @@ export default function TasksPage() {
   {
     field: 'projectId',
     headerName: 'Project',
-    width: 220,
+    width: 250,
     renderCell: ({ value }) => {
       const proj = projects.find(p => Number(p.id) === value);
       return (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: '100%', minHeight: 72 }}>
-          <Box sx={{ width: 40, height: 40, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#f5f3ff', color: '#6d28d9', flexShrink: 0 }}>
-            <FolderRoundedIcon sx={{ fontSize: 18 }} />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: '100%' }}>
+          <Box sx={{ width: 26, height: 26, borderRadius: '7px', bgcolor: '#f5f3ff', color: '#6d28d9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <FolderRoundedIcon sx={{ fontSize: 16 }} />
           </Box>
-          <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 700, color: '#0f172a', fontSize: 13, lineHeight: 1.3 }}>{proj ? proj.projectName : 'Unassigned'}</Typography>
-            <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.1 }}>{proj ? `(${proj.id})` : `#${value}`}</Typography>
-          </Box>
+          <Typography sx={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>{proj ? proj.projectName : 'Unassigned'}</Typography>
         </Box>
       );
     },
@@ -275,19 +334,19 @@ export default function TasksPage() {
   {
     field: 'dueDate',
     headerName: 'Due Date',
-    width: 170,
+    width: 160,
     renderCell: ({ value }) => {
       const info = getDueDateInfo(value);
       return (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: '100%', minHeight: 72 }}>
-          <Box sx={{ width: 40, height: 40, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: info.isOverdue ? '#fef2f2' : '#eff6ff', color: info.isOverdue ? '#dc2626' : '#2563eb', flexShrink: 0 }}>
-            <CalendarMonthRoundedIcon sx={{ fontSize: 18 }} />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: '100%' }}>
+          <Box sx={{ width: 26, height: 26, borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: info.isOverdue ? '#fef2f2' : '#f1f5f9', color: info.isOverdue ? '#dc2626' : '#64748b', flexShrink: 0 }}>
+            <CalendarMonthRoundedIcon sx={{ fontSize: 14 }} />
           </Box>
           <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 700, color: '#0f172a', fontSize: 13, lineHeight: 1.3 }}>
+            <Typography sx={{ fontSize: 13, fontWeight: 400, color: '#374151', lineHeight: 1.3 }}>
               {value ? new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'No date'}
             </Typography>
-            <Typography variant="caption" sx={{ color: info.isOverdue ? '#dc2626' : '#64748b', display: 'block', mt: 0.1 }}>{info.label}</Typography>
+            <Typography sx={{ fontSize: 11, fontWeight: 400, color: info.isOverdue ? '#dc2626' : '#94a3b8', lineHeight: 1.2 }}>{info.label}</Typography>
           </Box>
         </Box>
       );
@@ -297,36 +356,65 @@ export default function TasksPage() {
     field: 'status',
     headerName: 'Status',
     width: 130,
-    renderCell: ({ value }) => (
-      <Box sx={{ display: 'flex', alignItems: 'center', height: '100%', minHeight: 72 }}>
-        <StyleChip value={value} map={STATUS_STYLE} />
-      </Box>
-    ),
+    renderCell: ({ value }) => {
+      const s = STATUS_STYLE[value] ?? { bg: '#f3f4f6', color: '#4b5563' };
+      const dotColors: Record<string, string> = { Pending: '#f59e0b', 'In Progress': '#3b82f6', Completed: '#10b981' };
+      const dot = dotColors[value] ?? '#9ca3af';
+      return (
+        <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+          <Box sx={{
+            display: 'inline-flex', alignItems: 'center', gap: 0.65,
+            px: 1.25, py: 0.45,
+            borderRadius: '20px',
+            bgcolor: s.bg,
+            border: '1px solid rgba(15,23,42,0.06)',
+          }}>
+            <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: dot, flexShrink: 0 }} />
+            <Typography sx={{ fontSize: 12, fontWeight: 700, color: s.color, lineHeight: 1 }}>{value}</Typography>
+          </Box>
+        </Box>
+      );
+    },
   },
   {
     field: 'actions',
     headerName: 'Actions',
-    width: 110,
+    width: 100,
     sortable: false,
     renderCell: ({ row }) => (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: '100%', minHeight: 72 }}>
-        <Tooltip title="Edit">
+      <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center', height: '100%' }}>
+        <Tooltip title="Edit task">
           <IconButton
             size="small"
             onClick={() => openEdit(row)}
-            sx={{ color: '#2563eb', bgcolor: '#eff6ff', borderRadius: '10px', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', '&:hover': { bgcolor: '#dbeafe', transform: 'translateY(-1px)' }, transition: 'all 0.2s ease' }}
+            sx={{
+              width: 32, height: 32,
+              borderRadius: '9px',
+              bgcolor: '#eff6ff',
+              color: '#2563EB',
+              border: '1px solid rgba(37,99,235,0.15)',
+              transition: 'all 0.25s ease',
+              '&:hover': { bgcolor: '#dbeafe', transform: 'translateY(-2px)', boxShadow: '0 4px 10px rgba(37,99,235,0.20)' },
+            }}
           >
-            <EditRoundedIcon sx={{ fontSize: 16 }} />
+            <EditRoundedIcon sx={{ fontSize: 15 }} />
           </IconButton>
         </Tooltip>
-
-        <Tooltip title="Delete">
+        <Tooltip title="Delete task">
           <IconButton
             size="small"
             onClick={() => setDeleteId(row.id)}
-            sx={{ color: '#dc2626', bgcolor: '#fef2f2', borderRadius: '10px', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', '&:hover': { bgcolor: '#fee2e2', transform: 'translateY(-1px)' }, transition: 'all 0.2s ease' }}
+            sx={{
+              width: 32, height: 32,
+              borderRadius: '9px',
+              bgcolor: '#fff1f2',
+              color: '#dc2626',
+              border: '1px solid rgba(220,38,38,0.15)',
+              transition: 'all 0.25s ease',
+              '&:hover': { bgcolor: '#fee2e2', transform: 'translateY(-2px)', boxShadow: '0 4px 10px rgba(220,38,38,0.18)' },
+            }}
           >
-            <DeleteRoundedIcon sx={{ fontSize: 16 }} />
+            <DeleteRoundedIcon sx={{ fontSize: 15 }} />
           </IconButton>
         </Tooltip>
       </Box>
@@ -336,17 +424,71 @@ export default function TasksPage() {
 
   const gridSx = {
     border: 'none',
-    borderRadius: '20px',
-    overflow: 'hidden',
-    boxShadow: '0 18px 48px rgba(15, 23, 42, 0.08)',
-    background: '#fff',
-    '& .MuiDataGrid-columnHeaders': { bgcolor: '#f8fafc', fontSize: 12, fontWeight: 700, color: '#475569', borderBottom: '1px solid #e8ecf5' },
-    '& .MuiDataGrid-columnHeader': { textTransform: 'uppercase', letterSpacing: 0.4 },
-    '& .MuiDataGrid-row:hover': { bgcolor: '#f8fbff' },
-    '& .MuiDataGrid-cell': { borderColor: '#f0f2f5', fontSize: 13, py: 1.2, display: 'flex', alignItems: 'center' },
-    '& .MuiDataGrid-footerContainer': { borderTop: '1px solid #e8ecf5', background: '#fcfdff', px: 1.5, py: 1 },
-    '& .MuiTablePagination-root': { color: '#475569' },
-    '& .MuiTablePagination-actions button': { borderRadius: '999px' },
+    fontFamily: 'inherit',
+
+    /* ── Column headers ── */
+    '& .MuiDataGrid-columnHeaders': {
+      bgcolor: '#f8fafd',
+      borderBottom: '1px solid #e8edf2',
+    },
+    '& .MuiDataGrid-columnHeader': {
+      textTransform: 'uppercase',
+      letterSpacing: '0.06em',
+    },
+    '& .MuiDataGrid-columnHeaderTitle': {
+      fontSize: 11,
+      fontWeight: 700,
+      color: '#94a3b8',
+    },
+
+    /* ── Rows ── */
+    '& .MuiDataGrid-row': {
+      transition: 'all 0.2s ease',
+      cursor: 'default',
+      borderBottom: '1px solid #f1f5f9',
+    },
+    '& .MuiDataGrid-row:hover': {
+      bgcolor: '#fafcff',
+      transform: 'translateY(-1px)',
+      boxShadow: '0 4px 12px rgba(37,99,235,0.07)',
+      zIndex: 1,
+    },
+    '& .MuiDataGrid-row:last-child': {
+      borderBottom: 'none',
+    },
+
+    /* ── Cells ── */
+    '& .MuiDataGrid-cell': {
+      borderBottom: 'none',
+      fontSize: 13,
+      color: '#374151',
+      outline: 'none !important',
+    },
+    '& .MuiDataGrid-cell:focus': { outline: 'none' },
+    '& .MuiDataGrid-cell:focus-within': { outline: 'none' },
+
+    /* ── Footer / pagination ── */
+    '& .MuiDataGrid-footerContainer': {
+      borderTop: '1px solid #f1f5f9',
+      bgcolor: '#fafafa',
+      px: 1,
+    },
+    '& .MuiTablePagination-root': {
+      fontSize: 13,
+      color: '#6b7280',
+    },
+    '& .MuiTablePagination-select': {
+      borderRadius: '8px',
+      fontSize: 13,
+    },
+    '& .MuiIconButton-root': {
+      borderRadius: '8px',
+      transition: 'all 0.2s ease',
+    },
+
+    /* ── Separator lines ── */
+    '& .MuiDataGrid-columnSeparator': { display: 'none' },
+    '& .MuiDataGrid-withBorderColor': { borderColor: '#f1f5f9' },
   };
 
   return (
@@ -392,167 +534,307 @@ export default function TasksPage() {
             slots={{ toolbar: () => <Toolbar employees={employees} /> }}
             disableRowSelectionOnClick
             autoHeight
+            rowHeight={64}
+            columnHeaderHeight={48}
             sx={gridSx}
           />
         </Paper>
       </Box>
 
       {/* Add / Edit dialog */}
-      <Dialog open={open} onClose={() => { setOpen(false); setEditData(null); setForm({ ...EMPTY }); }} maxWidth="sm" fullWidth
+      <Dialog
+        open={open}
+        onClose={() => { setOpen(false); setEditData(null); setForm({ ...EMPTY }); }}
+        maxWidth="md"
+        fullWidth
         closeAfterTransition={false}
-        PaperProps={{ sx: { borderRadius: '12px' } }}>
-        <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>
-          {editData ? 'Edit Task' : 'Create New Task'}
-        </DialogTitle>
-        <Divider />
-        <DialogContent sx={{ pt: 2.5 }}>
-          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-
-  <TextField
-    size="small"
-    label="Task Title"
-    value={form.title}
-    onChange={(e) =>
-      setForm({
-        ...form,
-        title: e.target.value,
-      })
-    }
-    fullWidth
-    sx={{ gridColumn: '1 / -1', '& .MuiOutlinedInput-root': { borderRadius: '15px' } }}
-  />
-
-  <Autocomplete
-    size="small"
-    options={employeeOptions}
-    value={employeeOptions.find(option => option.id === form.employeeId) ?? null}
-    onChange={(_event, value) => {
-      setForm({ ...form, employeeId: value ? value.id : 0 });
-    }}
-    renderInput={(params) => (
-      <TextField
-        {...params}
-        label="Employee"
-        fullWidth
-        InputProps={{
-          ...params.InputProps,
-          startAdornment: (
-            <InputAdornment position="start">
-              <PersonRoundedIcon sx={{ color: '#64748b' }} />
-            </InputAdornment>
-          ),
+        PaperProps={{
+          sx: {
+            borderRadius: '20px',
+            boxShadow: '0 20px 60px rgba(15,23,42,.15)',
+            background: 'rgba(248,250,252,0.96)',
+            overflow: 'hidden',
+          },
         }}
-        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '15px', minHeight: 46 } }}
-      />
-    )}
-    renderOption={(props, option) => {
-      const { key, ...otherProps } = props;
-      return (
-        <Box component="li" key={key} {...otherProps} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <PersonRoundedIcon sx={{ fontSize: 18, color: '#64748b' }} />
-          <Typography>{option.label}</Typography>
+      >
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, px: 3.5, pt: 3, pb: 1.5 }}>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Avatar sx={{ width: 48, height: 48, bgcolor: '#dbeafe', color: '#1d4ed8' }}>
+              <TaskAltRoundedIcon />
+            </Avatar>
+            <Box>
+              <Typography sx={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+                {editData ? 'Edit Task' : 'Create New Task'}
+              </Typography>
+              <Typography sx={{ fontSize: 14, fontWeight: 400, color: '#64748B', mt: 0.5 }}>
+                Add task details and assign it to the right person.
+              </Typography>
+            </Box>
+          </Box>
+          <IconButton
+            onClick={() => { setOpen(false); setEditData(null); setForm({ ...EMPTY }); }}
+            sx={{
+              width: 40,
+              height: 40,
+              borderRadius: '12px',
+              bgcolor: 'rgba(255,255,255,0.88)',
+              color: '#475569',
+              transition: 'all 0.2s ease',
+              '&:hover': { bgcolor: '#e2e8f0', transform: 'translateY(-1px)' },
+            }}
+            aria-label="Close task dialog"
+          >
+            <CloseRoundedIcon />
+          </IconButton>
         </Box>
-      );
-    }}
-    isOptionEqualToValue={(option, value) => option.id === value.id}
-    noOptionsText="No employees found"
-  />
 
-  <Autocomplete
-    size="small"
-    options={projectOptions}
-    value={projectOptions.find(option => option.id === form.projectId) ?? null}
-    onChange={(_event, value) => {
-      setForm({ ...form, projectId: value ? value.id : 0 });
-    }}
-    renderInput={(params) => (
-      <TextField
-        {...params}
-        label="Project"
-        fullWidth
-        InputProps={{
-          ...params.InputProps,
-          startAdornment: (
-            <InputAdornment position="start">
-              <FolderRoundedIcon sx={{ color: '#64748b' }} />
-            </InputAdornment>
-          ),
-        }}
-        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '15px', minHeight: 46 } }}
-      />
-    )}
-    renderOption={(props, option) => {
-      const { key, ...otherProps } = props;
-      return (
-        <Box component="li" key={key} {...otherProps} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <FolderRoundedIcon sx={{ fontSize: 18, color: '#64748b' }} />
-          <Typography>{option.label}</Typography>
-        </Box>
-      );
-    }}
-    isOptionEqualToValue={(option, value) => option.id === value.id}
-    noOptionsText="No projects found"
-  />
+        <Divider sx={{ borderColor: '#e2e8f0' }} />
 
-  <TextField
-    size="small"
-    label="Due Date"
-    type="date"
-    value={form.dueDate}
-    onChange={(e) =>
-      setForm({
-        ...form,
-        dueDate: e.target.value,
-      })
-    }
-    fullWidth
-    InputLabelProps={{ shrink: true }}
-  />
+        <DialogContent sx={{ pt: 3, pb: 2, px: 3.5 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+            
+            {/* Section: Task Details */}
+            <Box sx={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 1.25, mt: 0.5, mb: 0.25 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: '8px', bgcolor: 'rgba(37,99,235,0.1)', color: '#2563EB' }}>
+                <DescriptionRoundedIcon sx={{ fontSize: 16 }} />
+              </Box>
+              <Typography sx={{ fontSize: 15, fontWeight: 700, color: '#1e293b', letterSpacing: '0.01em' }}>
+                Task Details
+              </Typography>
+            </Box>
 
-  <TextField
-    size="small"
-    select
-    label="Status"
-    value={form.status}
-    onChange={(e) =>
-      setForm({
-        ...form,
-        status: e.target.value as Task['status'],
-      })
-    }
-    fullWidth
-    sx={{ gridColumn: '1 / -1' }}
-  >
-    <MenuItem value="Pending">Pending</MenuItem>
-    <MenuItem value="In Progress">In Progress</MenuItem>
-    <MenuItem value="Completed">Completed</MenuItem>
-  </TextField>
+            <TextField
+              size="small"
+              label={fieldLabel(<AssignmentRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Task Title')}
+              placeholder="Enter task title"
+              value={form.title}
+              onChange={(e) => setForm({ ...form, title: e.target.value })}
+              fullWidth
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <AssignmentRoundedIcon sx={{ color: '#64748b', fontSize: 18 }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={[fieldStyles, { gridColumn: '1 / -1' }]}
+            />
 
-  <TextField
-    size="small"
-    label="Description"
-    value={form.description}
-    onChange={(e) =>
-      setForm({
-        ...form,
-        description: e.target.value,
-      })
-    }
-    fullWidth
-    multiline
-    rows={3}
-    sx={{ gridColumn: '1 / -1' }}
-  />
+            <Autocomplete
+              size="small"
+              options={employeeOptions}
+              value={employeeOptions.find(option => option.id === form.employeeId) ?? null}
+              onChange={(_event, value) => {
+                setForm({ ...form, employeeId: value ? value.id : 0 });
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label={fieldLabel(<PersonRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Employee')}
+                  placeholder="Select employee"
+                  fullWidth
+                  InputProps={{
+                    ...params.InputProps,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonRoundedIcon sx={{ color: '#64748b', fontSize: 18 }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={fieldStyles}
+                />
+              )}
+              renderOption={(props, option) => {
+                const { key, ...otherProps } = props;
+                return (
+                  <Box component="li" key={key} {...otherProps} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.25, px: 2 }}>
+                    <Avatar sx={{ width: 28, height: 28, fontSize: 13, fontWeight: 700, bgcolor: 'rgba(37,99,235,0.1)', color: '#2563EB' }}>
+                      {option.name?.charAt(0) ?? 'U'}
+                    </Avatar>
+                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                      <Typography sx={{ fontWeight: 600, fontSize: 13.5, color: '#0f172a' }}>{option.name}</Typography>
+                      <Typography sx={{ fontSize: 11, color: '#64748b' }}>{option.employeeId}</Typography>
+                    </Box>
+                  </Box>
+                );
+              }}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              noOptionsText="No employees found"
+              sx={{ gridColumn: { xs: '1 / -1', md: 'span 1' } }}
+            />
 
-</Box>
+            <Autocomplete
+              size="small"
+              options={projectOptions}
+              value={projectOptions.find(option => option.id === form.projectId) ?? null}
+              onChange={(_event, value) => {
+                setForm({ ...form, projectId: value ? value.id : 0 });
+              }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label={fieldLabel(<FolderRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Project')}
+                  placeholder="Select project"
+                  fullWidth
+                  InputProps={{
+                    ...params.InputProps,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <FolderRoundedIcon sx={{ color: '#64748b', fontSize: 18 }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={fieldStyles}
+                />
+              )}
+              renderOption={(props, option) => {
+                const { key, ...otherProps } = props;
+                return (
+                  <Box component="li" key={key} {...otherProps} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.25, px: 2 }}>
+                    <Box sx={{ width: 28, height: 28, borderRadius: '8px', bgcolor: 'rgba(109, 93, 246, 0.1)', color: '#6D5DF6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <FolderRoundedIcon sx={{ fontSize: 16 }} />
+                    </Box>
+                    <Typography sx={{ fontWeight: 600, fontSize: 13.5, color: '#0f172a' }}>{option.label}</Typography>
+                  </Box>
+                );
+              }}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              noOptionsText="No projects found"
+              sx={{ gridColumn: { xs: '1 / -1', md: 'span 1' } }}
+            />
+
+            <TextField
+              size="small"
+              label={fieldLabel(<CalendarMonthRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Due Date')}
+              type="date"
+              value={form.dueDate}
+              onChange={(e) => setForm({ ...form, dueDate: capDateYear(e.target.value) })}
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <CalendarMonthRoundedIcon sx={{ color: '#64748b', fontSize: 18 }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={[fieldStyles, { gridColumn: { xs: '1 / -1', md: 'span 1' } }]}
+            />
+
+            <TextField
+              size="small"
+              select
+              label={fieldLabel(<TaskAltRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Status')}
+              value={form.status}
+              onChange={(e) => setForm({ ...form, status: e.target.value as Task['status'] })}
+              fullWidth
+              SelectProps={{
+                renderValue: (value: unknown) => {
+                  const selected = typeof value === 'string' ? value : '';
+                  return (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                      <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: getStatusColor(selected), flexShrink: 0 }} />
+                      <Typography sx={{ fontSize: 14.5, fontWeight: 500, color: '#0f172a' }}>{selected}</Typography>
+                    </Box>
+                  );
+                }
+              }}
+              sx={[fieldStyles, { gridColumn: { xs: '1 / -1', md: 'span 1' } }]}
+            >
+              <MenuItem value="Pending" sx={{ py: 1.25, minHeight: 52 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#f59e0b', flexShrink: 0 }} />
+                  <Typography sx={{ fontSize: 14.5, fontWeight: 500 }}>Pending</Typography>
+                </Box>
+              </MenuItem>
+              <MenuItem value="In Progress" sx={{ py: 1.25, minHeight: 52 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#3b82f6', flexShrink: 0 }} />
+                  <Typography sx={{ fontSize: 14.5, fontWeight: 500 }}>In Progress</Typography>
+                </Box>
+              </MenuItem>
+              <MenuItem value="Completed" sx={{ py: 1.25, minHeight: 52 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: '#10b981', flexShrink: 0 }} />
+                  <Typography sx={{ fontSize: 14.5, fontWeight: 500 }}>Completed</Typography>
+                </Box>
+              </MenuItem>
+            </TextField>
+
+            <TextField
+              size="small"
+              label={fieldLabel(<DescriptionRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Description')}
+              placeholder="Enter task description..."
+              value={form.description}
+              onChange={(e) => {
+                setForm({ ...form, description: e.target.value });
+                const ta = e.target as HTMLTextAreaElement;
+                ta.style.height = 'auto';
+                ta.style.height = `${Math.min(ta.scrollHeight, 160)}px`;
+                ta.style.overflowY = ta.scrollHeight > 160 ? 'auto' : 'hidden';
+              }}
+              fullWidth
+              multiline
+              sx={[
+                fieldStyles,
+                {
+                  gridColumn: '1 / -1',
+                  '& .MuiInputBase-root': {
+                    padding: '8px 14px',
+                    alignItems: 'flex-start',
+                  },
+                  '& textarea': {
+                    resize: 'none',
+                    minHeight: '1.4375em',
+                    height: '1.4375em',
+                    overflowY: 'hidden',
+                    transition: 'height 0.15s ease',
+                    boxSizing: 'content-box',
+                  }
+                }
+              ]}
+            />
+
+          </Box>
         </DialogContent>
-        <Divider />
-        <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
-          <Button onClick={() => setOpen(false)} variant="outlined" sx={{ borderRadius: '8px', textTransform: 'none' }}>
+
+        <Divider sx={{ borderColor: '#e2e8f0' }} />
+
+        <DialogActions sx={{ px: 3.5, py: 3, gap: 2, justifyContent: 'flex-end' }}>
+          <Button
+            onClick={() => setOpen(false)}
+            variant="outlined"
+            startIcon={<CloseRoundedIcon />}
+            sx={{
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              borderColor: '#cbd5e1',
+              color: '#475569',
+              px: 2.5,
+              py: 1.25,
+              transition: 'all 0.2s ease',
+              '&:hover': { borderColor: '#94a3b8', bgcolor: '#f8fafc' }
+            }}
+          >
             Cancel
           </Button>
-          <Button onClick={handleSave} variant="contained" disableElevation
-            sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 600 }}>
+          <Button
+            onClick={handleSave}
+            variant="contained"
+            disableElevation
+            startIcon={<TaskAltRoundedIcon />}
+            sx={{
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3,
+              py: 1.25,
+              bgcolor: '#2563EB',
+              '&:hover': { bgcolor: '#1D4ED8', boxShadow: '0 4px 12px rgba(37,99,235,0.2)' },
+              transition: 'all 0.2s ease'
+            }}
+          >
             {editData ? 'Save Changes' : 'Create Task'}
           </Button>
         </DialogActions>

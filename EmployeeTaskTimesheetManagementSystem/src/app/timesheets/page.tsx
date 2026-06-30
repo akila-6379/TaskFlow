@@ -1,4 +1,5 @@
 'use client';
+import { capDateYear } from '@/utils/dateUtils';
 import { useState, useMemo, useEffect } from 'react';
 import { timesheetService } from '@/services/timesheetService';
 import { employeeService } from '@/services/employeeService';
@@ -6,7 +7,7 @@ import { projectService } from '@/services/projectService';
 import {
   Autocomplete, Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
   TextField, Typography, IconButton, Tooltip, Paper, Divider,
-  Card, CardContent, Grid, Stack, Chip, Avatar,
+  Card, CardContent, Grid, Stack, Chip, Avatar, InputAdornment, Fade, MenuItem,
 } from '@mui/material';
 import { DataGrid, GridColDef, GridToolbarContainer } from '@mui/x-data-grid';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
@@ -19,6 +20,10 @@ import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
 import GroupRoundedIcon from '@mui/icons-material/GroupRounded';
 import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
 import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
+import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
+import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded';
 import MainLayout    from '@/components/layout/MainLayout';
 import PageHeader    from '@/components/common/PageHeader';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
@@ -95,7 +100,7 @@ function Toolbar({
             type="date"
             size="small"
             value={dateFrom}
-            onChange={(e) => onDateFromChange(e.target.value)}
+            onChange={(e) => onDateFromChange(capDateYear(e.target.value))}
             InputLabelProps={{ shrink: true }}
             sx={{ minWidth: 150, '& .MuiOutlinedInput-root': { borderRadius: '999px', background: '#fff' } }}
           />
@@ -104,7 +109,7 @@ function Toolbar({
             type="date"
             size="small"
             value={dateTo}
-            onChange={(e) => onDateToChange(e.target.value)}
+            onChange={(e) => onDateToChange(capDateYear(e.target.value))}
             InputLabelProps={{ shrink: true }}
             sx={{ minWidth: 150, '& .MuiOutlinedInput-root': { borderRadius: '999px', background: '#fff' } }}
           />
@@ -301,15 +306,25 @@ setOpen(false);
   {
     field: 'employeeId',
     headerName: 'Employee',
-    width: 220,
+    width: 210,
     renderCell: ({ value }) => {
       const emp = employees.find(e => Number(e.id) === value);
+      const initial = emp?.name?.charAt(0)?.toUpperCase() ?? 'U';
+      const idx = (initial.charCodeAt(0) || 0) % 7;
+      const avatarBgs   = ['#dbeafe','#ede9fe','#dcfce7','#fef3c7','#fce7f3','#e0f2fe','#ffedd5'];
+      const avatarColors = ['#1d4ed8','#6d28d9','#15803d','#b45309','#be185d','#0369a1','#c2410c'];
       return (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.1, height: '100%', minHeight: 72, width: '100%' }}>
-          <Avatar sx={{ width: 44, height: 44, bgcolor: '#eff6ff', color: '#2563eb', fontWeight: 700, flexShrink: 0 }}>{emp?.name?.charAt(0) ?? 'U'}</Avatar>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, height: '100%', width: '100%' }}>
+          <Avatar sx={{ width: 38, height: 38, bgcolor: avatarBgs[idx], color: avatarColors[idx], fontSize: 14, fontWeight: 700, flexShrink: 0 }}>
+            {initial}
+          </Avatar>
           <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 700, color: '#0f172a', fontSize: 13, lineHeight: 1.3 }}>{emp ? emp.name : `#${value}`}</Typography>
-            <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.1 }}>{emp ? `(${emp.employeeId})` : 'Unassigned'}</Typography>
+            <Typography sx={{ fontWeight: 500, color: '#0f172a', fontSize: 13.5, lineHeight: 1.3 }}>
+              {emp ? emp.name : `#${value}`}
+            </Typography>
+            <Typography sx={{ fontSize: 11.5, fontWeight: 400, color: '#64748b', lineHeight: 1.2 }}>
+              {emp ? emp.employeeId : 'Unassigned'}
+            </Typography>
           </Box>
         </Box>
       );
@@ -318,53 +333,60 @@ setOpen(false);
   {
     field: 'projectId',
     headerName: 'Project',
-    width: 220,
+    width: 240,
     renderCell: ({ value }) => {
       const proj = projects.find(p => Number(p.id) === value);
       return (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.1, height: '100%', minHeight: 72, width: '100%' }}>
-          <Box sx={{ width: 44, height: 44, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#f5f3ff', color: '#7c3aed', flexShrink: 0 }}>
-            <FolderRoundedIcon sx={{ fontSize: 18 }} />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, height: '100%', width: '100%' }}>
+          <Box sx={{ width: 26, height: 26, borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#f5f3ff', color: '#7c3aed', flexShrink: 0 }}>
+            <FolderRoundedIcon sx={{ fontSize: 16 }} />
+          </Box>
+          <Typography sx={{ fontWeight: 500, color: '#374151', fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {proj ? proj.projectName : `#${value}`}
+          </Typography>
+        </Box>
+      );
+    },
+  },
+  {
+    field: 'workDate',
+    headerName: 'Work Date',
+    width: 170,
+    renderCell: ({ value }) => {
+      const date = new Date(value);
+      const isValidDate = !Number.isNaN(date.getTime());
+      return (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, height: '100%', width: '100%' }}>
+          <Box sx={{ width: 26, height: 26, borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
+            <CalendarMonthRoundedIcon sx={{ fontSize: 14 }} />
           </Box>
           <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 700, color: '#0f172a', fontSize: 13, lineHeight: 1.3 }}>{proj ? proj.projectName : `#${value}`}</Typography>
-            <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.1 }}>{proj ? `(${proj.id})` : 'Unassigned'}</Typography>
+            <Typography sx={{ fontWeight: 400, color: '#374151', fontSize: 13, lineHeight: 1.3 }}>
+              {isValidDate ? new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Invalid date'}
+            </Typography>
+            <Typography sx={{ fontSize: 11, fontWeight: 400, color: '#94a3b8', lineHeight: 1.2 }}>
+              {isValidDate ? new Date(value).toLocaleDateString('en-GB', { weekday: 'short' }) : '—'}
+            </Typography>
           </Box>
         </Box>
       );
     },
   },
   {
-  field: 'workDate',
-  headerName: 'Work Date',
-  width: 180,
-  renderCell: ({ value }) => {
-    const date = new Date(value);
-    const isValidDate = !Number.isNaN(date.getTime());
-    return (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.1, height: '100%', minHeight: 72, width: '100%' }}>
-        <Box sx={{ width: 44, height: 44, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
-          <CalendarMonthRoundedIcon sx={{ fontSize: 18 }} />
-        </Box>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography sx={{ fontWeight: 700, color: '#0f172a', fontSize: 13, lineHeight: 1.3 }}>
-            {isValidDate ? new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Invalid date'}
-          </Typography>
-          <Typography variant="caption" sx={{ color: '#64748b', display: 'block', mt: 0.1 }}>
-            {isValidDate ? new Date(value).toLocaleDateString('en-GB', { weekday: 'short' }) : '—'}
-          </Typography>
-        </Box>
-      </Box>
-    );
-  },
-},
-  {
     field: 'hoursWorked',
-    headerName: 'Hours Worked',
-    width: 140,
+    headerName: 'Hours',
+    width: 100,
     renderCell: ({ value }) => (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', minHeight: 72, width: '100%' }}>
-        <Chip label={`${value}h`} sx={{ bgcolor: '#eff6ff', color: '#2563eb', fontWeight: 700, borderRadius: '999px', px: 0.75, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center' }} />
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%' }}>
+        <Box sx={{
+          display: 'inline-flex', alignItems: 'center', gap: 0.5,
+          px: 1.25, py: 0.45,
+          borderRadius: '20px',
+          bgcolor: '#eff6ff',
+          border: '1px solid rgba(37,99,235,0.12)',
+        }}>
+          <Typography sx={{ fontSize: 12.5, fontWeight: 600, color: '#2563eb', lineHeight: 1 }}>{value}h</Typography>
+        </Box>
       </Box>
     ),
   },
@@ -372,36 +394,41 @@ setOpen(false);
     field: 'description',
     headerName: 'Description',
     flex: 1,
-    minWidth: 260,
+    minWidth: 200,
     renderCell: ({ value }) => (
-      <Box sx={{ display: 'flex', alignItems: 'center', height: '100%', minHeight: 72, width: '100%' }}>
-        <Typography variant="body2" color="#475569" sx={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.5 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', height: '100%', width: '100%' }}>
+        <Typography sx={{ fontSize: 13, fontWeight: 400, color: '#475569', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: 1.5 }}>
           {value}
         </Typography>
       </Box>
     ),
   },
-  {
-    field: 'actions',
-    headerName: 'Actions',
-    width: 120,
-    sortable: false,
-    renderCell: ({ row }) => (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, height: '100%', minHeight: 72, width: '100%' }}>
-        <Tooltip title="Edit">
-          <IconButton size="small" onClick={() => openEdit(row)} sx={{ color: '#2563eb', bgcolor: '#eff6ff', borderRadius: '10px', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', '&:hover': { bgcolor: '#dbeafe', transform: 'translateY(-1px)' }, transition: 'all 0.2s ease' }}>
-            <EditRoundedIcon sx={{ fontSize: 16 }} />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Delete">
-          <IconButton size="small" onClick={() => setDeleteId(row.id)} sx={{ color: '#dc2626', bgcolor: '#fef2f2', borderRadius: '10px', width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center', '&:hover': { bgcolor: '#fee2e2', transform: 'translateY(-1px)' }, transition: 'all 0.2s ease' }}>
-            <DeleteRoundedIcon sx={{ fontSize: 16 }} />
-          </IconButton>
-        </Tooltip>
-      </Box>
-    ),
-  },
 ];
+
+  const fieldStyles = {
+    '& .MuiOutlinedInput-root': {
+      borderRadius: '14px',
+      minHeight: 52,
+      backgroundColor: '#ffffff',
+      '& fieldset': { borderColor: '#cbd5e1' },
+      '&:hover fieldset': { borderColor: '#94a3b8' },
+      '&.Mui-focused fieldset': {
+        borderColor: '#2563EB',
+        boxShadow: '0 0 0 4px rgba(37,99,235,0.08)',
+      },
+    },
+    '& .MuiInputLabel-root': { color: '#334155', fontWeight: 600 },
+    '& .MuiInputBase-input': { fontSize: '15px', fontWeight: 500, color: '#111827' },
+    '& .MuiOutlinedInput-input': { fontSize: '15px', fontWeight: 500, color: '#111827' },
+    '& .MuiSelect-select': { fontSize: '15px', fontWeight: 500, color: '#111827' },
+  };
+
+  const fieldLabel = (icon: React.ReactNode, text: string) => (
+    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, color: '#334155', fontSize: 13, fontWeight: 600 }}>
+      {icon}
+      <Typography component="span" sx={{ fontSize: 13, fontWeight: 600 }}>{text}</Typography>
+    </Box>
+  );
 
   const gridSx = {
     border: 'none',
@@ -458,7 +485,7 @@ setOpen(false);
             slots={{ toolbar: () => <Toolbar searchValue={searchValue} onSearchChange={setSearchValue} employeeValue={employeeFilter} onEmployeeChange={setEmployeeFilter} projectValue={projectFilter} onProjectChange={setProjectFilter} dateFrom={dateFrom} onDateFromChange={setDateFrom} dateTo={dateTo} onDateToChange={setDateTo} onExport={handleExport} employeeOptions={employeeOptions} projectOptions={projectOptions} /> }}
             disableRowSelectionOnClick
             autoHeight
-            getRowHeight={() => 74}
+            getRowHeight={() => 64}
             sx={gridSx}
           />
         </Paper>
@@ -466,56 +493,259 @@ setOpen(false);
 
       {/* Log time dialog */}
       <Dialog
-  open={open}
-  onClose={() => {
-    setOpen(false);
-    setForm(EMPTY);
-    setEditData(null);
-  }}
-      maxWidth="sm" fullWidth
+        open={open}
+        onClose={() => { setOpen(false); setForm(EMPTY); setEditData(null); }}
+        maxWidth="md"
+        fullWidth
         closeAfterTransition={false}
-        PaperProps={{ sx: { borderRadius: '12px' } }}>
-        <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>
-    {editData ? "Edit Time Entry" : "Log Time Entry"}
-</DialogTitle>
-        <Divider />
-        <DialogContent sx={{ pt: 2.5 }}>
-          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+        TransitionComponent={Fade}
+        TransitionProps={{ timeout: 180 }}
+        PaperProps={{
+          sx: {
+            borderRadius: '20px',
+            boxShadow: '0 20px 60px rgba(15,23,42,0.15)',
+            background: 'rgba(248,250,252,0.97)',
+            overflow: 'hidden',
+            maxWidth: 780,
+          },
+        }}
+      >
+        {/* ── Header ── */}
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, px: 3.5, pt: 3, pb: 1.5 }}>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Avatar sx={{ width: 48, height: 48, bgcolor: '#dbeafe', color: '#1d4ed8', borderRadius: '14px' }}>
+              <AccessTimeRoundedIcon sx={{ fontSize: 24 }} />
+            </Avatar>
+            <Box>
+              <Typography sx={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.2, color: '#0f172a' }}>
+                {editData ? 'Edit Time Entry' : 'Log Time Entry'}
+              </Typography>
+              <Typography sx={{ fontSize: 14, fontWeight: 400, color: '#64748b', mt: 0.4 }}>
+                Record the time you spent working on a project.
+              </Typography>
+            </Box>
+          </Box>
+          <IconButton
+            onClick={() => { setOpen(false); setForm(EMPTY); setEditData(null); }}
+            sx={{
+              width: 40, height: 40,
+              borderRadius: '12px',
+              bgcolor: 'rgba(255,255,255,0.88)',
+              color: '#475569',
+              transition: 'all 0.2s ease',
+              '&:hover': { bgcolor: '#e2e8f0', transform: 'translateY(-1px)' },
+            }}
+            aria-label="Close log time dialog"
+          >
+            <CloseRoundedIcon />
+          </IconButton>
+        </Box>
+
+        <Divider sx={{ borderColor: '#e2e8f0' }} />
+
+        {/* ── Form ── */}
+        <DialogContent sx={{ pt: 3, pb: 2, px: 3.5 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+
+            {/* Row 1 — Employee */}
             <Autocomplete
               size="small"
               options={employeeOptions}
               value={employeeOptions.find(o => o.id === form.employeeId) ?? null}
               onChange={(_, val) => val && setForm({ ...form, employeeId: val.id })}
               isOptionEqualToValue={(o, v) => o.id === v.id}
-              renderInput={(params) => <TextField {...params} label="Employee" />}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label={fieldLabel(<PersonRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Employee')}
+                  placeholder="Select employee"
+                  fullWidth
+                  InputProps={{
+                    ...params.InputProps,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PersonRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={fieldStyles}
+                />
+              )}
+              renderOption={(props, option) => {
+                const { key, ...rest } = props;
+                const emp = employees.find(e => Number(e.id) === option.id);
+                const initial = emp?.name?.charAt(0)?.toUpperCase() ?? 'U';
+                const idx = (initial.charCodeAt(0) || 0) % 7;
+                const bgs = ['#dbeafe','#ede9fe','#dcfce7','#fef3c7','#fce7f3','#e0f2fe','#ffedd5'];
+                const clrs = ['#1d4ed8','#6d28d9','#15803d','#b45309','#be185d','#0369a1','#c2410c'];
+                return (
+                  <Box component="li" key={key} {...rest} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.25, px: 2 }}>
+                    <Avatar sx={{ width: 28, height: 28, fontSize: 13, fontWeight: 700, bgcolor: bgs[idx], color: clrs[idx] }}>
+                      {initial}
+                    </Avatar>
+                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                      <Typography sx={{ fontWeight: 600, fontSize: 13.5, color: '#0f172a' }}>{emp?.name ?? option.label}</Typography>
+                      <Typography sx={{ fontSize: 11, color: '#64748b' }}>{emp?.employeeId ?? ''}</Typography>
+                    </Box>
+                  </Box>
+                );
+              }}
               noOptionsText="No employees found"
             />
+
+            {/* Row 1 — Project */}
             <Autocomplete
               size="small"
               options={projectOptions}
               value={projectOptions.find(o => o.id === form.projectId) ?? null}
               onChange={(_, val) => val && setForm({ ...form, projectId: val.id })}
               isOptionEqualToValue={(o, v) => o.id === v.id}
-              renderInput={(params) => <TextField {...params} label="Project" />}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label={fieldLabel(<FolderRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Project')}
+                  placeholder="Select project"
+                  fullWidth
+                  InputProps={{
+                    ...params.InputProps,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <FolderRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={fieldStyles}
+                />
+              )}
+              renderOption={(props, option) => {
+                const { key, ...rest } = props;
+                return (
+                  <Box component="li" key={key} {...rest} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.25, px: 2 }}>
+                    <Box sx={{ width: 28, height: 28, borderRadius: '8px', bgcolor: 'rgba(109,93,246,0.1)', color: '#6D5DF6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <FolderRoundedIcon sx={{ fontSize: 16 }} />
+                    </Box>
+                    <Typography sx={{ fontWeight: 600, fontSize: 13.5, color: '#0f172a' }}>{option.label}</Typography>
+                  </Box>
+                );
+              }}
               noOptionsText="No projects found"
             />
-            <TextField size="small" label="Work Date" type="date" value={form.workDate}
-              onChange={e => setForm({ ...form, workDate: e.target.value })} fullWidth InputLabelProps={{ shrink: true }} sx={{ gridColumn: '1/-1' }} />
-            <TextField size="small" label="Hours Worked" type="number" value={form.hoursWorked}
+
+            {/* Row 2 — Work Date (full width) */}
+            <TextField
+              size="small"
+              label={fieldLabel(<CalendarMonthRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Work Date')}
+              type="date"
+              value={form.workDate}
+              onChange={e => setForm({ ...form, workDate: capDateYear(e.target.value) })}
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <CalendarMonthRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={[fieldStyles, { gridColumn: '1 / -1' }]}
+            />
+
+            {/* Row 3 — Hours Worked */}
+            <TextField
+              size="small"
+              label={fieldLabel(<AccessTimeRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Hours Worked')}
+              type="number"
+              value={form.hoursWorked}
               onChange={e => setForm({ ...form, hoursWorked: Number(e.target.value) })}
-              fullWidth inputProps={{ min: 0.5, max: 24, step: 0.5 }} />
-            <TextField size="small" label="Description" value={form.description}
-              onChange={e => setForm({ ...form, description: e.target.value })}
-              fullWidth multiline rows={2} sx={{ gridColumn: '1/-1' }} />
+              fullWidth
+              inputProps={{ min: 0.5, max: 24, step: 0.5 }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <AccessTimeRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
+                  </InputAdornment>
+                ),
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <Typography sx={{ fontSize: 13, color: '#64748b', fontWeight: 500 }}>hrs</Typography>
+                  </InputAdornment>
+                ),
+              }}
+              sx={fieldStyles}
+            />
+
+            {/* Row 3 — Description (auto-expanding, starts compact) */}
+            <TextField
+              size="small"
+              label={fieldLabel(<DescriptionRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Description')}
+              placeholder="Briefly describe what you worked on…"
+              value={form.description}
+              onChange={(e) => {
+                setForm({ ...form, description: e.target.value });
+                const ta = e.target as HTMLTextAreaElement;
+                ta.style.height = 'auto';
+                ta.style.height = `${Math.min(ta.scrollHeight, 160)}px`;
+                ta.style.overflowY = ta.scrollHeight > 160 ? 'auto' : 'hidden';
+              }}
+              fullWidth
+              multiline
+              sx={[
+                fieldStyles,
+                {
+                  '& .MuiInputBase-root': { padding: '8px 14px', alignItems: 'flex-start' },
+                  '& textarea': {
+                    resize: 'none',
+                    minHeight: '1.4375em',
+                    height: '1.4375em',
+                    overflowY: 'hidden',
+                    transition: 'height 0.15s ease',
+                    boxSizing: 'content-box',
+                  },
+                },
+              ]}
+            />
+
           </Box>
         </DialogContent>
-        <Divider />
-        <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
-          <Button onClick={() => setOpen(false)} variant="outlined" sx={{ borderRadius: '8px', textTransform: 'none' }}>
+
+        <Divider sx={{ borderColor: '#e2e8f0' }} />
+
+        {/* ── Footer ── */}
+        <DialogActions sx={{ px: 3.5, py: 3, gap: 2, justifyContent: 'flex-end' }}>
+          <Button
+            onClick={() => { setOpen(false); setForm(EMPTY); setEditData(null); }}
+            variant="outlined"
+            startIcon={<CloseRoundedIcon />}
+            sx={{
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              borderColor: '#cbd5e1',
+              color: '#475569',
+              px: 2.5,
+              py: 1.25,
+              transition: 'all 0.2s ease',
+              '&:hover': { borderColor: '#94a3b8', bgcolor: '#f8fafc' },
+            }}
+          >
             Cancel
           </Button>
-          <Button onClick={handleSave} variant="contained" disableElevation
-            sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 600 }}>
+          <Button
+            onClick={handleSave}
+            variant="contained"
+            disableElevation
+            startIcon={<SaveRoundedIcon />}
+            sx={{
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3,
+              py: 1.25,
+              bgcolor: '#2563EB',
+              '&:hover': { bgcolor: '#1D4ED8', boxShadow: '0 4px 12px rgba(37,99,235,0.25)' },
+              transition: 'all 0.2s ease',
+            }}
+          >
             Save Entry
           </Button>
         </DialogActions>

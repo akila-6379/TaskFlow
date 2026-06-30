@@ -37,7 +37,8 @@ import MainLayout    from '@/components/layout/MainLayout';
 import PageHeader    from '@/components/common/PageHeader';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
 import { Employee } from '@/types';
-import { useEffect, useState } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { capDateYear } from '@/utils/dateUtils';
 import { employeeService } from '@/services/employeeService';
 
 const DEPARTMENTS  = ['Engineering', 'Design', 'Management', 'QA', 'DevOps', 'HR', 'Marketing'];
@@ -789,13 +790,8 @@ export default function EmployeesPage() {
             <TextField
               size="small"
               label={fieldLabel(<BadgeRoundedIcon sx={{ color: '#2563EB' }} />, 'Employee ID')}
-              value={form.employeeId ?? ''}
-              onChange={e => {
-                setForm({ ...form, employeeId: e.target.value });
-                if (errors.employeeId) {
-                  setErrors({ ...errors, employeeId: validateEmployeeId(e.target.value) });
-                }
-              }}
+              value={editData ? (form.employeeId ?? '') : 'Auto-generated'}
+              disabled={true}
               error={Boolean(errors.employeeId)}
               helperText={errors.employeeId || ''}
               fullWidth
@@ -912,7 +908,7 @@ export default function EmployeesPage() {
               label={fieldLabel(<CalendarTodayRoundedIcon sx={{ color: '#2563EB' }} />, 'Join Date')}
               type="date"
               value={form.joinDate ?? ''}
-              onChange={e => setForm({ ...form, joinDate: e.target.value })}
+              onChange={e => setForm({ ...form, joinDate: capDateYear(e.target.value) })}
               fullWidth
               InputLabelProps={{ shrink: true }}
               sx={fieldStyles}
@@ -924,7 +920,7 @@ export default function EmployeesPage() {
               value={form.status ?? 'Active'}
               onChange={e => setForm({ ...form, status: e.target.value as Employee['status'] })}
               fullWidth
-              sx={[fieldStyles, { gridColumn: '1/-1' }]}
+              sx={fieldStyles}
               SelectProps={{
                 renderValue: value => {
                   const selected = typeof value === 'string' ? value : '';

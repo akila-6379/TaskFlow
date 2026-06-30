@@ -1,4 +1,5 @@
 'use client';
+import { capDateYear } from '@/utils/dateUtils';
 import {
   Box,
   Button,
@@ -17,6 +18,10 @@ import {
   Stack,
   InputBase,
   Menu,
+  Avatar,
+  InputAdornment,
+  Slider,
+  Fade,
 } from '@mui/material';
 import LinearProgress from '@mui/material/LinearProgress';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
@@ -31,6 +36,11 @@ import AttachMoneyRoundedIcon from '@mui/icons-material/AttachMoneyRounded';
 import PeopleRoundedIcon from '@mui/icons-material/PeopleRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
+import CalendarMonthRoundedIcon from '@mui/icons-material/CalendarMonthRounded';
+import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded';
+import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded';
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
 import MainLayout from '@/components/layout/MainLayout';
@@ -118,6 +128,24 @@ const formatDate = (value: string) =>
     month: 'short',
     year: 'numeric',
   });
+
+const fieldStyles = {
+  '& .MuiOutlinedInput-root': {
+    borderRadius: '14px',
+    minHeight: 52,
+    backgroundColor: '#ffffff',
+    '& fieldset': { borderColor: '#cbd5e1' },
+    '&:hover fieldset': { borderColor: '#94a3b8' },
+    '&.Mui-focused fieldset': {
+      borderColor: '#2563EB',
+      boxShadow: '0 0 0 4px rgba(37,99,235,0.08)',
+    },
+  },
+  '& .MuiInputLabel-root': { color: '#334155', fontWeight: 600 },
+  '& .MuiInputBase-input': { fontSize: '15px', fontWeight: 500, color: '#111827' },
+  '& .MuiOutlinedInput-input': { fontSize: '15px', fontWeight: 500, color: '#111827' },
+  '& .MuiSelect-select': { fontSize: '15px', fontWeight: 500, color: '#111827' },
+};
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -547,76 +575,319 @@ export default function ProjectsPage() {
         </Box>
       </Paper>
 
-      <Dialog open={open} onClose={() => setOpen(false)} maxWidth="sm" fullWidth closeAfterTransition={false} PaperProps={{ sx: { borderRadius: '12px' } }}>
-        <DialogTitle sx={{ fontWeight: 700, pb: 1 }}>
-          {editData ? 'Edit Project' : 'Add New Project'}
-        </DialogTitle>
-        <Divider />
-        <DialogContent sx={{ pt: 2.5 }}>
-          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+      {/* ── Add / Edit Project Dialog ── */}
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        maxWidth="md"
+        fullWidth
+        closeAfterTransition={false}
+        TransitionComponent={Fade}
+        TransitionProps={{ timeout: 180 }}
+        PaperProps={{
+          sx: {
+            borderRadius: '20px',
+            boxShadow: '0 20px 60px rgba(15,23,42,0.15)',
+            background: 'rgba(248,250,252,0.97)',
+            overflow: 'hidden',
+            maxWidth: 860,
+          },
+        }}
+      >
+        {/* ── Header ── */}
+        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, px: 3.5, pt: 3, pb: 1.5 }}>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Avatar sx={{ width: 48, height: 48, bgcolor: '#dbeafe', color: '#1d4ed8', borderRadius: '14px' }}>
+              <FolderRoundedIcon sx={{ fontSize: 24 }} />
+            </Avatar>
+            <Box>
+              <Typography sx={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.2, color: '#0f172a' }}>
+                {editData ? 'Edit Project' : 'Add New Project'}
+              </Typography>
+              <Typography sx={{ fontSize: 14, fontWeight: 400, color: '#64748b', mt: 0.4 }}>
+                {editData ? 'Update project details and save your changes.' : 'Create a new project and track its progress.'}
+              </Typography>
+            </Box>
+          </Box>
+          <IconButton
+            onClick={() => setOpen(false)}
+            sx={{
+              width: 40, height: 40,
+              borderRadius: '12px',
+              bgcolor: 'rgba(255,255,255,0.88)',
+              color: '#475569',
+              transition: 'all 0.2s ease',
+              '&:hover': { bgcolor: '#e2e8f0', transform: 'translateY(-1px)' },
+            }}
+            aria-label="Close project dialog"
+          >
+            <CloseRoundedIcon />
+          </IconButton>
+        </Box>
+
+        <Divider sx={{ borderColor: '#e2e8f0' }} />
+
+        {/* ── Form Body ── */}
+        <DialogContent sx={{ pt: 3, pb: 2, px: 3.5 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+
+            {/* LEFT col, row 1 — Project Name */}
             <TextField
               size="small"
-              label="Project Name"
+              label={
+                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: '#334155' }}>
+                  <FolderRoundedIcon sx={{ fontSize: 15, color: '#2563EB' }} />
+                  <span>Project Name</span>
+                </Box>
+              }
+              placeholder="e.g. E-Commerce Platform"
               value={form.projectName}
               onChange={(e) => setForm({ ...form, projectName: e.target.value })}
               fullWidth
+              sx={[fieldStyles, { gridColumn: { xs: '1', md: '1' }, gridRow: { md: '1' } }]}
             />
 
+            {/* RIGHT col, row 1 — Start Date */}
             <TextField
               size="small"
-              label="Description"
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              fullWidth
-            />
-
-            <TextField
-              size="small"
-              label="Start Date"
+              label={
+                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: '#334155' }}>
+                  <CalendarMonthRoundedIcon sx={{ fontSize: 15, color: '#2563EB' }} />
+                  <span>Start Date</span>
+                </Box>
+              }
               type="date"
               value={form.startDate}
-              onChange={(e) => setForm({ ...form, startDate: e.target.value })}
+              onChange={(e) => setForm({ ...form, startDate: capDateYear(e.target.value) })}
+              fullWidth
               InputLabelProps={{ shrink: true }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <CalendarMonthRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={[fieldStyles, { gridColumn: { xs: '1', md: '2' }, gridRow: { md: '1' } }]}
             />
 
-            <TextField
-              size="small"
-              label="End Date"
-              type="date"
-              value={form.endDate}
-              onChange={(e) => setForm({ ...form, endDate: e.target.value })}
-              InputLabelProps={{ shrink: true }}
-            />
-
+            {/* LEFT col, row 2 — Status */}
             <TextField
               size="small"
               select
-              label="Status"
+              label={
+                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: '#334155' }}>
+                  <TrendingUpRoundedIcon sx={{ fontSize: 15, color: '#2563EB' }} />
+                  <span>Status</span>
+                </Box>
+              }
               value={form.status}
               onChange={(e) => setForm({ ...form, status: e.target.value as Project['status'] })}
+              fullWidth
+              SelectProps={{
+                renderValue: (val: unknown) => {
+                  const v = val as string;
+                  const dotMap: Record<string, string> = {
+                    Active: '#22c55e', Completed: '#16a34a', 'On Hold': '#f59e0b', Cancelled: '#ef4444',
+                  };
+                  return (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dotMap[v] ?? '#94a3b8', flexShrink: 0 }} />
+                      <Typography sx={{ fontSize: 14.5, fontWeight: 500, color: '#0f172a' }}>{v}</Typography>
+                    </Box>
+                  );
+                },
+              }}
+              sx={[fieldStyles, { gridColumn: { xs: '1', md: '1' }, gridRow: { md: '2' } }]}
             >
-              {STATUS_OPTIONS.map((s) => (
-                <MenuItem key={s} value={s} sx={{ textTransform: 'none' }}>
-                  {s}
-                </MenuItem>
-              ))}
+              {STATUS_OPTIONS.map((s) => {
+                const dotMap: Record<string, string> = {
+                  Active: '#22c55e', Completed: '#16a34a', 'On Hold': '#f59e0b', Cancelled: '#ef4444',
+                };
+                return (
+                  <MenuItem key={s} value={s} sx={{ py: 1.25, minHeight: 48 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dotMap[s], flexShrink: 0 }} />
+                      <Typography sx={{ fontSize: 14, fontWeight: 500 }}>{s}</Typography>
+                    </Box>
+                  </MenuItem>
+                );
+              })}
             </TextField>
+
+            {/* RIGHT col, row 2 — End Date */}
             <TextField
               size="small"
-              label="Progress (%)"
-              type="number"
-              value={form.progress}
-              onChange={(e) => setForm({ ...form, progress: Number(e.target.value) })}
+              label={
+                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: '#334155' }}>
+                  <CalendarMonthRoundedIcon sx={{ fontSize: 15, color: '#2563EB' }} />
+                  <span>End Date</span>
+                </Box>
+              }
+              type="date"
+              value={form.endDate}
+              onChange={(e) => setForm({ ...form, endDate: capDateYear(e.target.value) })}
               fullWidth
+              InputLabelProps={{ shrink: true }}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <CalendarMonthRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={[fieldStyles, { gridColumn: { xs: '1', md: '2' }, gridRow: { md: '2' } }]}
             />
+
+            {/* LEFT col, row 3 — Description (auto-expanding, starts compact) */}
+            <TextField
+              size="small"
+              label={
+                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: '#334155' }}>
+                  <DescriptionRoundedIcon sx={{ fontSize: 15, color: '#2563EB' }} />
+                  <span>Description</span>
+                </Box>
+              }
+              placeholder="Briefly describe the project scope and goals…"
+              value={form.description}
+              onChange={(e) => {
+                setForm({ ...form, description: e.target.value });
+                const ta = e.target as HTMLTextAreaElement;
+                ta.style.height = 'auto';
+                ta.style.height = `${Math.min(ta.scrollHeight, 160)}px`;
+                ta.style.overflowY = ta.scrollHeight > 160 ? 'auto' : 'hidden';
+              }}
+              fullWidth
+              multiline
+              sx={[
+                fieldStyles,
+                {
+                  gridColumn: { xs: '1', md: '1' },
+                  gridRow: { md: '3' },
+                  '& .MuiInputBase-root': { padding: '8px 14px', alignItems: 'flex-start' },
+                  '& textarea': {
+                    resize: 'none',
+                    minHeight: '1.4375em',
+                    height: '1.4375em',
+                    overflowY: 'hidden',
+                    transition: 'height 0.15s ease',
+                    boxSizing: 'content-box',
+                  },
+                },
+              ]}
+            />
+
+            {/* RIGHT col, row 3 — Progress (numeric + slider) */}
+            <Box sx={{
+              gridColumn: { xs: '1', md: '2' },
+              gridRow: { md: '3' },
+              '& .MuiOutlinedInput-root': {
+                borderRadius: '14px',
+                minHeight: 52,
+                backgroundColor: '#ffffff',
+                '& fieldset': { borderColor: '#cbd5e1' },
+                '&:hover fieldset': { borderColor: '#94a3b8' },
+                '&.Mui-focused fieldset': { borderColor: '#2563EB', boxShadow: '0 0 0 4px rgba(37,99,235,0.08)' },
+              },
+              '& .MuiInputLabel-root': { color: '#334155', fontWeight: 600 },
+              '& .MuiInputBase-input': { fontSize: '15px', fontWeight: 500, color: '#111827' },
+            }}>
+              <TextField
+                size="small"
+                label={
+                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: '#334155' }}>
+                    <TrendingUpRoundedIcon sx={{ fontSize: 15, color: '#2563EB' }} />
+                    <span>Progress (%)</span>
+                  </Box>
+                }
+                type="number"
+                value={form.progress}
+                onChange={(e) => {
+                  const v = Math.min(100, Math.max(0, Number(e.target.value)));
+                  setForm({ ...form, progress: v });
+                }}
+                fullWidth
+                inputProps={{ min: 0, max: 100 }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <Typography sx={{ fontSize: 13, color: '#64748b', fontWeight: 500 }}>%</Typography>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <Box sx={{ px: 0.5, mt: 1.5 }}>
+                <Slider
+                  value={Number(form.progress)}
+                  onChange={(_e, v) => setForm({ ...form, progress: v as number })}
+                  min={0}
+                  max={100}
+                  step={1}
+                  marks={[
+                    { value: 0, label: '0%' },
+                    { value: 25, label: '25%' },
+                    { value: 50, label: '50%' },
+                    { value: 75, label: '75%' },
+                    { value: 100, label: '100%' },
+                  ]}
+                  sx={{
+                    color: '#2563EB',
+                    '& .MuiSlider-thumb': {
+                      width: 18, height: 18,
+                      boxShadow: '0 2px 8px rgba(37,99,235,0.35)',
+                      '&:hover': { boxShadow: '0 2px 12px rgba(37,99,235,0.50)' },
+                    },
+                    '& .MuiSlider-track': { height: 6, borderRadius: 999 },
+                    '& .MuiSlider-rail': { height: 6, borderRadius: 999, bgcolor: '#e2e8f0' },
+                    '& .MuiSlider-markLabel': { fontSize: 11, color: '#94a3b8', fontWeight: 500 },
+                    '& .MuiSlider-mark': { bgcolor: '#cbd5e1' },
+                  }}
+                />
+              </Box>
+            </Box>
+
           </Box>
+
         </DialogContent>
-        <Divider />
-        <DialogActions sx={{ px: 3, py: 2, gap: 1 }}>
-          <Button onClick={() => setOpen(false)} variant="outlined" sx={{ borderRadius: '8px', textTransform: 'none' }}>
+
+        <Divider sx={{ borderColor: '#e2e8f0' }} />
+
+        {/* ── Footer buttons ── */}
+        <DialogActions sx={{ px: 3.5, py: 3, gap: 2, justifyContent: 'flex-end' }}>
+          <Button
+            onClick={() => setOpen(false)}
+            variant="outlined"
+            startIcon={<CloseRoundedIcon />}
+            sx={{
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              borderColor: '#cbd5e1',
+              color: '#475569',
+              px: 2.5,
+              py: 1.25,
+              transition: 'all 0.2s ease',
+              '&:hover': { borderColor: '#94a3b8', bgcolor: '#f8fafc' },
+            }}
+          >
             Cancel
           </Button>
-          <Button onClick={handleSave} variant="contained" disableElevation sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 600 }}>
+          <Button
+            onClick={handleSave}
+            variant="contained"
+            disableElevation
+            startIcon={editData ? <SaveRoundedIcon /> : <AddRoundedIcon />}
+            sx={{
+              borderRadius: '12px',
+              textTransform: 'none',
+              fontWeight: 600,
+              px: 3,
+              py: 1.25,
+              bgcolor: '#2563EB',
+              '&:hover': { bgcolor: '#1D4ED8', boxShadow: '0 4px 12px rgba(37,99,235,0.25)' },
+              transition: 'all 0.2s ease',
+            }}
+          >
             {editData ? 'Save Changes' : 'Add Project'}
           </Button>
         </DialogActions>

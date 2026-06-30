@@ -34,7 +34,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     setLoading(true);
-    const success = await login(email, password);
+    const success = await login(email, password, rememberMe);
     setLoading(false);
     if (success) {
       router.push('/dashboard');
