@@ -661,6 +661,7 @@ export default function ProjectsPage() {
               onChange={(e) => setForm({ ...form, startDate: capDateYear(e.target.value) })}
               fullWidth
               InputLabelProps={{ shrink: true }}
+              inputProps={{ max: '9999-12-31' }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -729,6 +730,7 @@ export default function ProjectsPage() {
               onChange={(e) => setForm({ ...form, endDate: capDateYear(e.target.value) })}
               fullWidth
               InputLabelProps={{ shrink: true }}
+              inputProps={{ max: '9999-12-31' }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">

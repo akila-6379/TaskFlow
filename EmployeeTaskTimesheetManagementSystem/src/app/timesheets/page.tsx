@@ -102,6 +102,7 @@ function Toolbar({
             value={dateFrom}
             onChange={(e) => onDateFromChange(capDateYear(e.target.value))}
             InputLabelProps={{ shrink: true }}
+            inputProps={{ max: '9999-12-31' }}
             sx={{ minWidth: 150, '& .MuiOutlinedInput-root': { borderRadius: '999px', background: '#fff' } }}
           />
           <TextField
@@ -111,6 +112,7 @@ function Toolbar({
             value={dateTo}
             onChange={(e) => onDateToChange(capDateYear(e.target.value))}
             InputLabelProps={{ shrink: true }}
+            inputProps={{ max: '9999-12-31' }}
             sx={{ minWidth: 150, '& .MuiOutlinedInput-root': { borderRadius: '999px', background: '#fff' } }}
           />
           <Button variant="contained" startIcon={<DownloadRoundedIcon />} onClick={onExport} disableElevation sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, px: 2, background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)' }}>
@@ -403,6 +405,33 @@ setOpen(false);
       </Box>
     ),
   },
+  {
+    field: 'actions',
+    headerName: 'Actions',
+    width: 80,
+    sortable: false,
+    renderCell: ({ row }) => (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%' }}>
+        <Tooltip title="Edit">
+          <IconButton
+            size="small"
+            onClick={() => openEdit(row)}
+            sx={{
+              color: '#2563eb',
+              bgcolor: '#eff6ff',
+              borderRadius: '10px',
+              width: 36,
+              height: 36,
+              '&:hover': { bgcolor: '#dbeafe', transform: 'translateY(-1px)' },
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <EditRoundedIcon sx={{ fontSize: 16 }} />
+          </IconButton>
+        </Tooltip>
+      </Box>
+    ),
+  },
 ];
 
   const fieldStyles = {
@@ -631,15 +660,21 @@ setOpen(false);
               noOptionsText="No projects found"
             />
 
-            {/* Row 2 — Work Date (full width) */}
+            {/* Row 2 — Work Date (full width, no future dates) */}
             <TextField
               size="small"
               label={fieldLabel(<CalendarMonthRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Work Date')}
               type="date"
               value={form.workDate}
-              onChange={e => setForm({ ...form, workDate: capDateYear(e.target.value) })}
+              onChange={e => {
+                const capped = capDateYear(e.target.value);
+                // Reject future dates silently — clamp to today
+                const today = new Date().toISOString().slice(0, 10);
+                setForm({ ...form, workDate: capped > today ? today : capped });
+              }}
               fullWidth
               InputLabelProps={{ shrink: true }}
+              inputProps={{ max: new Date().toISOString().slice(0, 10) }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -650,7 +685,7 @@ setOpen(false);
               sx={[fieldStyles, { gridColumn: '1 / -1' }]}
             />
 
-            {/* Row 3 — Hours Worked */}
+            {/* Row 3 — Hours Worked (full width) */}
             <TextField
               size="small"
               label={fieldLabel(<AccessTimeRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Hours Worked')}
@@ -671,10 +706,10 @@ setOpen(false);
                   </InputAdornment>
                 ),
               }}
-              sx={fieldStyles}
+              sx={[fieldStyles, { gridColumn: '1 / -1' }]}
             />
 
-            {/* Row 3 — Description (auto-expanding, starts compact) */}
+            {/* Row 4 — Description (full width, auto-expanding) */}
             <TextField
               size="small"
               label={fieldLabel(<DescriptionRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Description')}
@@ -692,6 +727,7 @@ setOpen(false);
               sx={[
                 fieldStyles,
                 {
+                  gridColumn: '1 / -1',
                   '& .MuiInputBase-root': { padding: '8px 14px', alignItems: 'flex-start' },
                   '& textarea': {
                     resize: 'none',

@@ -60,6 +60,7 @@ export interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<boolean>;
   logout: () => void;
+  updateUser: (updates: Partial<User>) => void;
   isAuthenticated: boolean;
 }
 

@@ -1,8 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Box, Card, CardContent, Grid, Typography, TextField, Button,
-  Switch, Avatar, Tab, Tabs, Stack, Chip, IconButton,
+  Switch, Avatar, Tab, Tabs, Stack, Chip, IconButton, Snackbar, Alert,
 } from '@mui/material';
 import MainLayout from '@/components/layout/MainLayout';
 import { useAuth } from '@/contexts/AuthContext';
@@ -17,65 +17,222 @@ import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 
+// ─── Persistence keys ────────────────────────────────────────────────────────
+const PROFILE_KEY       = 'settings_profile';
+const NOTIF_KEY         = 'settings_notifications';
+const PASSWORD_KEY      = 'settings_password';
+const DEFAULT_PASSWORD  = 'admin123'; // initial password for demo
+
+// ─── Default values ──────────────────────────────────────────────────────────
+const DEFAULT_NOTIF = {
+  emailAlerts: true, taskUpdates: true, projectUpdates: false,
+  weeklyReport: true, systemAlerts: false,
+};
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function loadProfile(user: { name?: string; email?: string } | null) {
+  try {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch { /* ignore */ }
+  return { name: user?.name ?? '', email: user?.email ?? '', phone: '+1-555-0100', department: 'Management', bio: '' };
+}
+
+function loadNotif() {
+  try {
+    const raw = localStorage.getItem(NOTIF_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch { /* ignore */ }
+  return DEFAULT_NOTIF;
+}
+
+function getStoredPassword() {
+  return localStorage.getItem(PASSWORD_KEY) ?? DEFAULT_PASSWORD;
+}
+
+// ─── Types ───────────────────────────────────────────────────────────────────
 interface TabPanelProps { children: React.ReactNode; value: number; index: number; }
 function TabPanel({ children, value, index }: TabPanelProps) {
   return value === index ? <Box sx={{ pt: 3 }}>{children}</Box> : null;
 }
 
+// ─── Component ───────────────────────────────────────────────────────────────
 export default function SettingsPage() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [tab, setTab] = useState(0);
-  const [profile, setProfile] = useState({ name: user?.name ?? '', email: user?.email ?? '', phone: '+1-555-0100', department: 'Management', bio: '' });
-  const [notifications, setNotifications] = useState({ emailAlerts: true, taskUpdates: true, projectUpdates: false, weeklyReport: true, systemAlerts: false });
-  const [saved, setSaved] = useState(false);
 
+  // ── Profile state ──────────────────────────────────────────────────────────
+  const [savedProfile, setSavedProfile] = useState(() => loadProfile(user));
+  const [profile, setProfile]           = useState(() => loadProfile(user));
+
+  // ── Notification state ─────────────────────────────────────────────────────
+  const [savedNotif, setSavedNotif]       = useState(loadNotif);
+  const [notifications, setNotifications] = useState(loadNotif);
+
+  // ── Password state ─────────────────────────────────────────────────────────
+  const [pwForm, setPwForm] = useState({ current: '', newPw: '', confirm: '' });
+  const [pwErrors, setPwErrors] = useState({ current: '', newPw: '', confirm: '' });
+
+  // ── Validation errors ──────────────────────────────────────────────────────
+  const [profileErrors, setProfileErrors] = useState({ name: '', email: '', phone: '', department: '' });
+
+  // ── Snackbar ───────────────────────────────────────────────────────────────
+  const [snack, setSnack] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+    open: false, message: '', severity: 'success',
+  });
+  const showSnack = (message: string, severity: 'success' | 'error' = 'success') =>
+    setSnack({ open: true, message, severity });
+
+  // Sync profile from user when user changes (e.g. on first mount after auth)
+  useEffect(() => {
+    const loaded = loadProfile(user);
+    setSavedProfile(loaded);
+    setProfile(loaded);
+  }, [user?.name, user?.email]);
+
+  // ── Dirty check ────────────────────────────────────────────────────────────
+  const profileDirty = useMemo(
+    () => JSON.stringify(profile) !== JSON.stringify(savedProfile),
+    [profile, savedProfile],
+  );
+  const notifDirty = useMemo(
+    () => JSON.stringify(notifications) !== JSON.stringify(savedNotif),
+    [notifications, savedNotif],
+  );
+  const isDirty = profileDirty || notifDirty;
+
+  // ── Profile validation ─────────────────────────────────────────────────────
+  function validateProfile() {
+    const errors = { name: '', email: '', phone: '', department: '' };
+    let ok = true;
+    if (!profile.name.trim()) { errors.name = 'Full name is required.'; ok = false; }
+    if (!profile.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email)) {
+      errors.email = 'A valid email address is required.'; ok = false;
+    }
+    if (!profile.phone.trim()) { errors.phone = 'Phone number is required.'; ok = false; }
+    if (!profile.department.trim()) { errors.department = 'Department is required.'; ok = false; }
+    setProfileErrors(errors);
+    return ok;
+  }
+
+  // ── Save profile ───────────────────────────────────────────────────────────
   const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2200);
+    if (!validateProfile()) return;
+
+    // Persist extended profile
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+    setSavedProfile({ ...profile });
+
+    // Persist notifications
+    localStorage.setItem(NOTIF_KEY, JSON.stringify(notifications));
+    setSavedNotif({ ...notifications });
+
+    // Update user name/email in AuthContext (propagates to top-bar avatar etc.)
+    updateUser({ name: profile.name, email: profile.email });
+
+    showSnack('Profile updated successfully.');
   };
 
+  // ── Discard changes ────────────────────────────────────────────────────────
   const handleDiscard = () => {
-    setProfile({ name: user?.name ?? '', email: user?.email ?? '', phone: '+1-555-0100', department: 'Management', bio: '' });
-    setNotifications({ emailAlerts: true, taskUpdates: true, projectUpdates: false, weeklyReport: true, systemAlerts: false });
+    setProfile({ ...savedProfile });
+    setNotifications({ ...savedNotif });
+    setProfileErrors({ name: '', email: '', phone: '', department: '' });
   };
+
+  // ── Password validation & save ─────────────────────────────────────────────
+  const handlePasswordSave = () => {
+    const errors = { current: '', newPw: '', confirm: '' };
+    let ok = true;
+
+    if (!pwForm.current) { errors.current = 'Current password is required.'; ok = false; }
+    if (!pwForm.newPw)   { errors.newPw   = 'New password is required.'; ok = false; }
+    if (!pwForm.confirm) { errors.confirm  = 'Please confirm your new password.'; ok = false; }
+
+    if (ok && pwForm.current !== getStoredPassword()) {
+      errors.current = 'Current password is incorrect.'; ok = false;
+    }
+    if (ok && pwForm.newPw !== pwForm.confirm) {
+      errors.confirm = 'Passwords do not match.'; ok = false;
+    }
+
+    setPwErrors(errors);
+    if (!ok) return;
+
+    localStorage.setItem(PASSWORD_KEY, pwForm.newPw);
+    setPwForm({ current: '', newPw: '', confirm: '' });
+    showSnack('Password updated successfully.');
+  };
+
+  const fieldSx = { '& .MuiOutlinedInput-root': { borderRadius: '14px', minHeight: 48 } };
 
   const notificationItems = [
-    { key: 'emailAlerts', title: 'Email Alerts', description: 'Receive important email alerts.', icon: <EmailRoundedIcon /> },
-    { key: 'taskUpdates', title: 'Task Updates', description: 'Stay updated on task changes.', icon: <PersonRoundedIcon /> },
-    { key: 'projectUpdates', title: 'Project Updates', description: 'Track project milestone changes.', icon: <BusinessRoundedIcon /> },
-    { key: 'weeklyReport', title: 'Weekly Report', description: 'Get a weekly account summary.', icon: <DashboardRoundedIcon /> },
-    { key: 'systemAlerts', title: 'System Alerts', description: 'Receive system and security updates.', icon: <NotificationsRoundedIcon /> },
+    { key: 'emailAlerts',    title: 'Email Alerts',    description: 'Receive important email alerts.',        icon: <EmailRoundedIcon /> },
+    { key: 'taskUpdates',    title: 'Task Updates',    description: 'Stay updated on task changes.',          icon: <PersonRoundedIcon /> },
+    { key: 'projectUpdates', title: 'Project Updates', description: 'Track project milestone changes.',       icon: <BusinessRoundedIcon /> },
+    { key: 'weeklyReport',   title: 'Weekly Report',   description: 'Get a weekly account summary.',          icon: <DashboardRoundedIcon /> },
+    { key: 'systemAlerts',   title: 'System Alerts',   description: 'Receive system and security updates.',   icon: <NotificationsRoundedIcon /> },
   ];
 
   return (
     <MainLayout>
       <Box sx={{ px: { xs: 1, md: 2 }, py: 1 }}>
+        {/* ── Page header ── */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
           <Box>
             <Typography variant="h5" fontWeight={800} color="#0f172a">Settings</Typography>
             <Typography variant="body2" color="text.secondary">Manage your account preferences and workspace experience.</Typography>
           </Box>
           <Stack direction="row" spacing={1.25}>
-            <Button variant="outlined" startIcon={<CloseRoundedIcon />} onClick={handleDiscard} sx={{ borderRadius: '999px', textTransform: 'none', px: 2, py: 1, borderColor: '#e2e8f0', color: '#475569' }}>
+            <Button
+              variant="outlined"
+              startIcon={<CloseRoundedIcon />}
+              onClick={handleDiscard}
+              disabled={!isDirty}
+              sx={{ borderRadius: '999px', textTransform: 'none', px: 2, py: 1, borderColor: '#e2e8f0', color: '#475569' }}
+            >
               Discard Changes
             </Button>
-            <Button variant="contained" startIcon={<SaveRoundedIcon />} onClick={handleSave} sx={{ borderRadius: '999px', textTransform: 'none', px: 2.25, py: 1, background: 'linear-gradient(135deg, #2563EB 0%, #6D5DF6 100%)', boxShadow: '0 12px 24px rgba(37,99,235,0.22)', '&:hover': { transform: 'translateY(-1px)', boxShadow: '0 16px 30px rgba(37,99,235,0.26)' }, transition: 'all 0.2s ease' }}>
-              {saved ? 'Saved!' : 'Save Changes'}
+            <Button
+              variant="contained"
+              startIcon={<SaveRoundedIcon />}
+              onClick={handleSave}
+              disabled={!isDirty}
+              sx={{
+                borderRadius: '999px', textTransform: 'none', px: 2.25, py: 1,
+                background: 'linear-gradient(135deg, #2563EB 0%, #6D5DF6 100%)',
+                boxShadow: '0 12px 24px rgba(37,99,235,0.22)',
+                '&:hover': { transform: 'translateY(-1px)', boxShadow: '0 16px 30px rgba(37,99,235,0.26)' },
+                transition: 'all 0.2s ease',
+                '&.Mui-disabled': { background: '#e2e8f0', boxShadow: 'none', color: '#94a3b8' },
+              }}
+            >
+              {isDirty ? 'Save Changes' : 'No Changes'}
             </Button>
           </Stack>
         </Box>
 
+        {/* ── Tabs ── */}
         <Card sx={{ mb: 3, borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 18px 48px rgba(15, 23, 42, 0.06)' }}>
           <Box sx={{ borderBottom: '1px solid #e2e8f0', px: { xs: 2, md: 3 }, py: 1.25 }}>
-            <Tabs value={tab} onChange={(_, v) => setTab(v)} variant="fullWidth" sx={{ '& .MuiTabs-indicator': { height: 3, borderRadius: '999px' }, '& .MuiTab-root': { textTransform: 'none', fontWeight: 700, minHeight: 48, color: '#64748b' }, '& .Mui-selected': { color: '#2563EB !important' } }}>
+            <Tabs
+              value={tab} onChange={(_, v) => setTab(v)} variant="fullWidth"
+              sx={{
+                '& .MuiTabs-indicator': { height: 3, borderRadius: '999px' },
+                '& .MuiTab-root': { textTransform: 'none', fontWeight: 700, minHeight: 48, color: '#64748b' },
+                '& .Mui-selected': { color: '#2563EB !important' },
+              }}
+            >
               <Tab label="Profile" />
               <Tab label="Notifications" />
             </Tabs>
           </Box>
 
+          {/* ── Profile tab ── */}
           <TabPanel value={tab} index={0}>
             <CardContent sx={{ p: { xs: 2, md: 3 } }}>
               <Grid container spacing={3}>
+                {/* Profile Summary Card */}
                 <Grid item xs={12} lg={4}>
                   <Card sx={{ borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 14px 36px rgba(15, 23, 42, 0.06)', overflow: 'hidden' }}>
                     <Box sx={{ background: 'linear-gradient(135deg, #2563EB 0%, #6D5DF6 100%)', p: 3, color: '#fff' }}>
@@ -86,7 +243,7 @@ export default function SettingsPage() {
                         </Box>
                         <Box sx={{ position: 'relative' }}>
                           <Avatar sx={{ width: 76, height: 76, fontSize: 30, bgcolor: '#fff', color: '#2563EB', fontWeight: 800 }}>
-                            {user?.name?.charAt(0)}
+                            {(profile.name || user?.name)?.charAt(0)?.toUpperCase()}
                           </Avatar>
                           <IconButton sx={{ position: 'absolute', right: -4, bottom: -4, bgcolor: '#fff', color: '#2563EB', width: 32, height: 32, boxShadow: '0 8px 18px rgba(15,23,42,0.16)', '&:hover': { bgcolor: '#f8fafc' } }}>
                             <CameraAltRoundedIcon sx={{ fontSize: 16 }} />
@@ -110,39 +267,111 @@ export default function SettingsPage() {
                   </Card>
                 </Grid>
 
+                {/* Personal Details + Change Password */}
                 <Grid item xs={12} lg={8}>
                   <Card sx={{ borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 14px 36px rgba(15, 23, 42, 0.06)' }}>
                     <CardContent sx={{ p: { xs: 2, md: 3 } }}>
                       <Typography variant="subtitle1" fontWeight={700} color="#0f172a" mb={2}>Personal Details</Typography>
                       <Grid container spacing={2}>
                         <Grid item xs={12} md={6}>
-                          <TextField label="Full Name" value={profile.name} onChange={e => setProfile({ ...profile, name: e.target.value })} fullWidth InputProps={{ startAdornment: <PersonRoundedIcon sx={{ color: '#64748b', mr: 1 }} /> }} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px', minHeight: 48 } }} />
+                          <TextField
+                            label="Full Name" value={profile.name}
+                            onChange={e => setProfile({ ...profile, name: e.target.value })}
+                            fullWidth error={!!profileErrors.name} helperText={profileErrors.name}
+                            InputProps={{ startAdornment: <PersonRoundedIcon sx={{ color: '#64748b', mr: 1 }} /> }}
+                            sx={fieldSx}
+                          />
                         </Grid>
                         <Grid item xs={12} md={6}>
-                          <TextField label="Email Address" value={profile.email} onChange={e => setProfile({ ...profile, email: e.target.value })} fullWidth InputProps={{ startAdornment: <EmailRoundedIcon sx={{ color: '#64748b', mr: 1 }} /> }} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px', minHeight: 48 } }} />
+                          <TextField
+                            label="Email Address" value={profile.email}
+                            onChange={e => setProfile({ ...profile, email: e.target.value })}
+                            fullWidth error={!!profileErrors.email} helperText={profileErrors.email}
+                            InputProps={{ startAdornment: <EmailRoundedIcon sx={{ color: '#64748b', mr: 1 }} /> }}
+                            sx={fieldSx}
+                          />
                         </Grid>
                         <Grid item xs={12} md={6}>
-                          <TextField label="Phone Number" value={profile.phone} onChange={e => setProfile({ ...profile, phone: e.target.value })} fullWidth InputProps={{ startAdornment: <PhoneRoundedIcon sx={{ color: '#64748b', mr: 1 }} /> }} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px', minHeight: 48 } }} />
+                          <TextField
+                            label="Phone Number" value={profile.phone}
+                            onChange={e => setProfile({ ...profile, phone: e.target.value })}
+                            fullWidth error={!!profileErrors.phone} helperText={profileErrors.phone}
+                            InputProps={{ startAdornment: <PhoneRoundedIcon sx={{ color: '#64748b', mr: 1 }} /> }}
+                            sx={fieldSx}
+                          />
                         </Grid>
                         <Grid item xs={12} md={6}>
-                          <TextField label="Department" value={profile.department} onChange={e => setProfile({ ...profile, department: e.target.value })} fullWidth InputProps={{ startAdornment: <BusinessRoundedIcon sx={{ color: '#64748b', mr: 1 }} /> }} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px', minHeight: 48 } }} />
+                          <TextField
+                            label="Department" value={profile.department}
+                            onChange={e => setProfile({ ...profile, department: e.target.value })}
+                            fullWidth error={!!profileErrors.department} helperText={profileErrors.department}
+                            InputProps={{ startAdornment: <BusinessRoundedIcon sx={{ color: '#64748b', mr: 1 }} /> }}
+                            sx={fieldSx}
+                          />
                         </Grid>
                         <Grid item xs={12}>
-                          <TextField label="Bio" value={profile.bio} onChange={e => setProfile({ ...profile, bio: e.target.value })} fullWidth multiline rows={4} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px' } }} />
+                          <TextField
+                            label="Bio" value={profile.bio}
+                            onChange={e => setProfile({ ...profile, bio: e.target.value })}
+                            fullWidth multiline rows={4}
+                            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px' } }}
+                          />
                         </Grid>
                       </Grid>
 
+                      {/* Change Password */}
                       <Box sx={{ mt: 3, p: 2.5, borderRadius: '18px', border: '1px solid #e2e8f0', bgcolor: '#f8fafc' }}>
-                        <Typography variant="subtitle2" fontWeight={700} color="#0f172a" mb={2}>Change Password</Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 1 }}>
+                          <Typography variant="subtitle2" fontWeight={700} color="#0f172a">Change Password</Typography>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            disableElevation
+                            startIcon={<LockRoundedIcon />}
+                            onClick={handlePasswordSave}
+                            disabled={!pwForm.current && !pwForm.newPw && !pwForm.confirm}
+                            sx={{
+                              borderRadius: '999px', textTransform: 'none', fontWeight: 600,
+                              background: 'linear-gradient(135deg, #2563EB 0%, #6D5DF6 100%)',
+                              '&.Mui-disabled': { background: '#e2e8f0', color: '#94a3b8' },
+                            }}
+                          >
+                            Update Password
+                          </Button>
+                        </Box>
                         <Grid container spacing={2}>
                           <Grid item xs={12} md={4}>
-                            <TextField label="Current Password" type="password" fullWidth InputProps={{ startAdornment: <LockRoundedIcon sx={{ color: '#64748b', mr: 1 }} /> }} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px', minHeight: 48 } }} />
+                            <TextField
+                              label="Current Password" type="password"
+                              value={pwForm.current}
+                              onChange={e => setPwForm({ ...pwForm, current: e.target.value })}
+                              error={!!pwErrors.current} helperText={pwErrors.current}
+                              fullWidth
+                              InputProps={{ startAdornment: <LockRoundedIcon sx={{ color: '#64748b', mr: 1 }} /> }}
+                              sx={fieldSx}
+                            />
                           </Grid>
                           <Grid item xs={12} md={4}>
-                            <TextField label="New Password" type="password" fullWidth InputProps={{ startAdornment: <LockRoundedIcon sx={{ color: '#64748b', mr: 1 }} /> }} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px', minHeight: 48 } }} />
+                            <TextField
+                              label="New Password" type="password"
+                              value={pwForm.newPw}
+                              onChange={e => setPwForm({ ...pwForm, newPw: e.target.value })}
+                              error={!!pwErrors.newPw} helperText={pwErrors.newPw}
+                              fullWidth
+                              InputProps={{ startAdornment: <LockRoundedIcon sx={{ color: '#64748b', mr: 1 }} /> }}
+                              sx={fieldSx}
+                            />
                           </Grid>
                           <Grid item xs={12} md={4}>
-                            <TextField label="Confirm Password" type="password" fullWidth InputProps={{ startAdornment: <LockRoundedIcon sx={{ color: '#64748b', mr: 1 }} /> }} sx={{ '& .MuiOutlinedInput-root': { borderRadius: '14px', minHeight: 48 } }} />
+                            <TextField
+                              label="Confirm Password" type="password"
+                              value={pwForm.confirm}
+                              onChange={e => setPwForm({ ...pwForm, confirm: e.target.value })}
+                              error={!!pwErrors.confirm} helperText={pwErrors.confirm}
+                              fullWidth
+                              InputProps={{ startAdornment: <LockRoundedIcon sx={{ color: '#64748b', mr: 1 }} /> }}
+                              sx={fieldSx}
+                            />
                           </Grid>
                         </Grid>
                       </Box>
@@ -153,12 +382,20 @@ export default function SettingsPage() {
             </CardContent>
           </TabPanel>
 
+          {/* ── Notifications tab ── */}
           <TabPanel value={tab} index={1}>
             <CardContent sx={{ p: { xs: 2, md: 3 } }}>
               <Typography variant="subtitle1" fontWeight={700} color="#0f172a" mb={2}>Notification Preferences</Typography>
               <Stack spacing={1.5}>
                 {notificationItems.map((item) => (
-                  <Box key={item.key} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 2, borderRadius: '16px', border: '1px solid #e2e8f0', bgcolor: '#fff', transition: 'all 0.2s ease', '&:hover': { boxShadow: '0 10px 24px rgba(15,23,42,0.04)' } }}>
+                  <Box
+                    key={item.key}
+                    sx={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      p: 2, borderRadius: '16px', border: '1px solid #e2e8f0', bgcolor: '#fff',
+                      transition: 'all 0.2s ease', '&:hover': { boxShadow: '0 10px 24px rgba(15,23,42,0.04)' },
+                    }}
+                  >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                       <Box sx={{ width: 44, height: 44, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#f8fafc', color: '#2563EB' }}>{item.icon}</Box>
                       <Box>
@@ -166,7 +403,11 @@ export default function SettingsPage() {
                         <Typography variant="body2" color="text.secondary">{item.description}</Typography>
                       </Box>
                     </Box>
-                    <Switch checked={notifications[item.key as keyof typeof notifications]} onChange={e => setNotifications({ ...notifications, [item.key]: e.target.checked })} color="primary" />
+                    <Switch
+                      checked={notifications[item.key as keyof typeof notifications]}
+                      onChange={e => setNotifications({ ...notifications, [item.key]: e.target.checked })}
+                      color="primary"
+                    />
                   </Box>
                 ))}
               </Stack>
@@ -174,6 +415,23 @@ export default function SettingsPage() {
           </TabPanel>
         </Card>
       </Box>
+
+      {/* ── Snackbar ── */}
+      <Snackbar
+        open={snack.open}
+        autoHideDuration={3000}
+        onClose={() => setSnack(s => ({ ...s, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={() => setSnack(s => ({ ...s, open: false }))}
+          severity={snack.severity}
+          variant="filled"
+          sx={{ borderRadius: '14px', fontWeight: 600 }}
+        >
+          {snack.message}
+        </Alert>
+      </Snackbar>
     </MainLayout>
   );
 }

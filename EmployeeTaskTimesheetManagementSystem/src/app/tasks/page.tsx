@@ -711,6 +711,7 @@ export default function TasksPage() {
               onChange={(e) => setForm({ ...form, dueDate: capDateYear(e.target.value) })}
               fullWidth
               InputLabelProps={{ shrink: true }}
+              inputProps={{ max: '9999-12-31' }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">

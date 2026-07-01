@@ -62,8 +62,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push('/login');
   };
 
+  const updateUser = (updates: Partial<User>) => {
+    setUser(prev => {
+      if (!prev) return prev;
+      const updated = { ...prev, ...updates };
+      // Persist to whichever storage holds the current session
+      if (localStorage.getItem('auth_user')) {
+        localStorage.setItem('auth_user', JSON.stringify(updated));
+      } else if (sessionStorage.getItem('auth_user')) {
+        sessionStorage.setItem('auth_user', JSON.stringify(updated));
+      }
+      return updated;
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, updateUser, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );
