@@ -14,14 +14,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowNextJs", policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:3000",
-                "https://taskflow-nine-coral.vercel.app",
-                "https://taskflow-kt876d50u-aka16.vercel.app",
-                "https://taskflow-4okx9ozqp-aka16.vercel.app"
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod();
+        // Temporary for testing
+        policy.AllowAnyOrigin()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
     });
 });
 
@@ -37,8 +33,6 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-
-
 // Swagger
 if (app.Environment.IsDevelopment())
 {
@@ -46,7 +40,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseRouting();
+
 app.UseCors("AllowNextJs");
+
+app.UseAuthorization();
 
 app.MapControllers();
 
