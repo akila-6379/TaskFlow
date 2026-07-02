@@ -26,13 +26,16 @@ namespace ProjectManagementSystem.API.Controllers
 
         // POST: api/Project
         [HttpPost]
-        public async Task<IActionResult> AddProject(Project project)
-        {
-            _context.Projects.Add(project);
-            await _context.SaveChangesAsync();
+public async Task<IActionResult> AddProject(Project project)
+{
+    project.StartDate = DateTime.SpecifyKind(project.StartDate, DateTimeKind.Utc);
+    project.EndDate = DateTime.SpecifyKind(project.EndDate, DateTimeKind.Utc);
 
-            return Ok(project);
-        }
+    _context.Projects.Add(project);
+    await _context.SaveChangesAsync();
+
+    return Ok(project);
+}
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateProject(int id, Project project)
