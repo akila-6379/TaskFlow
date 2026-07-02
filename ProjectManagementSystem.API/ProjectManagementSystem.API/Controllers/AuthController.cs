@@ -36,4 +36,9 @@ namespace ProjectManagementSystem.API.Controllers
             });
         }
     }
+[HttpGet("users")]
+public async Task<IActionResult> GetUsers()
+{
+    return Ok(await _context.Users.ToListAsync());
+}
 }
