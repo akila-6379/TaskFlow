@@ -13,9 +13,16 @@ builder.Services.AddControllers()
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowNextJs", policy =>
-        policy.WithOrigins("http://localhost:3000")
-              .AllowAnyHeader()
-              .AllowAnyMethod());
+    {
+        policy.WithOrigins(
+                "http://localhost:3000",
+                "https://taskflow-nine-coral.vercel.app",
+                "https://taskflow-kt876d50u-aka16.vercel.app",
+                "https://taskflow-4okx9ozqp-aka16.vercel.app"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
 });
 
 // Database Connection
