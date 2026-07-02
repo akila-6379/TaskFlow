@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using ProjectManagementSystem.API.Data;
 using ProjectManagementSystem.API.DTOs;
+using ProjectManagementSystem.API.Models;
 
 namespace ProjectManagementSystem.API.Controllers
 {
@@ -39,5 +40,14 @@ namespace ProjectManagementSystem.API.Controllers
         {
             return Ok(await _context.Users.ToListAsync());
         }
+        
+        [HttpPost("register")]
+        public async Task<IActionResult> Register(User user)
+        {
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+
+            return Ok(user);
+}
     }
 }
