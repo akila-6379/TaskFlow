@@ -26,16 +26,19 @@ namespace ProjectManagementSystem.API.Controllers
         [HttpPost]
         public async Task<IActionResult> AddEmployee(Employee employee)
         {
-            var nextValParam = new Microsoft.Data.SqlClient.SqlParameter
-            {
-                ParameterName = "@result",
-                SqlDbType = System.Data.SqlDbType.Int,
-                Direction = System.Data.ParameterDirection.Output
-            };
-            await _context.Database.ExecuteSqlRawAsync("SET @result = NEXT VALUE FOR EmployeeIdSequence", nextValParam);
-            int nextVal = (int)nextValParam.Value;
+            var lastEmployee = await _context.Employees
+            .OrderByDescending(e => e.Id)
+            .FirstOrDefaultAsync();
 
-            employee.EmployeeId = $"EMP{nextVal:D3}";
+            int nextId = 8;
+
+            if (lastEmployee != null)
+            {
+                var number = int.Parse(lastEmployee.EmployeeId.Replace("EMP", ""));
+                nextId = number + 1;
+            }
+
+            employee.EmployeeId = $"EMP{nextId:D3}";
 
             _context.Employees.Add(employee);
             await _context.SaveChangesAsync();

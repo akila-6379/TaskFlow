@@ -27,7 +27,7 @@ builder.Services.AddCors(options =>
 
 // Database Connection
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(
+    options.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection")
     ));
 
@@ -37,32 +37,6 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Initialize DB Sequence if not exists
-using (var scope = app.Services.CreateScope())
-{
-    try
-    {
-        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        context.Database.ExecuteSqlRaw(@"
-            IF NOT EXISTS (SELECT * FROM sys.sequences WHERE name = 'EmployeeIdSequence')
-            BEGIN
-                DECLARE @MaxVal INT = 0;
-                SELECT @MaxVal = ISNULL(MAX(CAST(SUBSTRING(EmployeeId, 4, LEN(EmployeeId) - 3) AS INT)), 0)
-                FROM Employees
-                WHERE EmployeeId LIKE 'EMP%';
-
-                DECLARE @StartVal INT = CASE WHEN @MaxVal >= 7 THEN @MaxVal + 1 ELSE 8 END;
-                
-                DECLARE @Sql NVARCHAR(MAX) = 'CREATE SEQUENCE EmployeeIdSequence START WITH ' + CAST(@StartVal AS NVARCHAR(10)) + ' INCREMENT BY 1;';
-                EXEC sp_executesql @Sql;
-            END
-        ");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error creating sequence: {ex.Message}");
-    }
-}
 
 
 // Swagger
