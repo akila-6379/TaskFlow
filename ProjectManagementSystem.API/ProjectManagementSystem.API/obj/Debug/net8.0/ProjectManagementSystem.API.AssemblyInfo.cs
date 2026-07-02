@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ProjectManagementSystem.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+746c3c87a4f25e418ebdcf6cc31a05699cd702af")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f676da8e47c1a93e8317a8a8dee24b4240a64de8")]
 [assembly: System.Reflection.AssemblyProductAttribute("ProjectManagementSystem.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ProjectManagementSystem.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

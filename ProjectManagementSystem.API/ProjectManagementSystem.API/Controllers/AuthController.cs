@@ -24,9 +24,7 @@ namespace ProjectManagementSystem.API.Controllers
                 x.Password == loginDto.Password);
 
             if (user == null)
-            {
                 return Unauthorized("Invalid Email or Password");
-            }
 
             return Ok(new
             {
@@ -35,10 +33,11 @@ namespace ProjectManagementSystem.API.Controllers
                 Role = user.Role
             });
         }
+
+        [HttpGet("users")]
+        public async Task<IActionResult> GetUsers()
+        {
+            return Ok(await _context.Users.ToListAsync());
+        }
     }
-[HttpGet("users")]
-public async Task<IActionResult> GetUsers()
-{
-    return Ok(await _context.Users.ToListAsync());
-}
 }
