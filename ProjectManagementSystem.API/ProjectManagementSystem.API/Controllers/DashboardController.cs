@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using ProjectManagementSystem.API.Data;
 
 namespace ProjectManagementSystem.API.Controllers
@@ -15,7 +16,7 @@ namespace ProjectManagementSystem.API.Controllers
         }
 
         [HttpGet("stats")]
-        public IActionResult GetDashboardStats()
+        public async Task<IActionResult> GetDashboardStats()
         {
             var totalEmployees = _context.Employees.Count();
 
@@ -26,12 +27,21 @@ namespace ProjectManagementSystem.API.Controllers
             var totalHours =
                 _context.Timesheets.Sum(t => (decimal?)t.HoursWorked) ?? 0;
 
+            // COUNT(DISTINCT EmployeeId) where WorkDate == Today (UTC)
+            var todayUtc = DateTime.UtcNow.Date;
+            var employeesLoggedToday = await _context.Timesheets
+                .Where(t => t.WorkDate.Date == todayUtc)
+                .Select(t => t.EmployeeId)
+                .Distinct()
+                .CountAsync();
+
             return Ok(new
             {
                 TotalEmployees = totalEmployees,
                 ActiveProjects = activeProjects,
                 TotalTasks = totalTasks,
-                HoursLogged = totalHours
+                HoursLogged = totalHours,
+                EmployeesLoggedToday = employeesLoggedToday
             });
         }
     }
