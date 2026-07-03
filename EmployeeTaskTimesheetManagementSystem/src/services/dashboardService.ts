@@ -5,6 +5,7 @@ export interface DashboardStats {
   activeProjects: number;
   totalTasks: number;
   hoursLogged: number;
+  employeesLoggedToday: number;
 }
 
 /** Compute KPIs from the individual CRUD endpoints as a fallback. */
@@ -15,6 +16,15 @@ async function computeStatsFromEntities(): Promise<DashboardStats> {
     api.get("/Task").then(r => r.data).catch(() => []),
     api.get("/Timesheet").then(r => r.data).catch(() => []),
   ]);
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const employeesLoggedToday = Array.isArray(timesheets)
+    ? new Set(
+        timesheets
+          .filter((t: any) => (t.workDate ?? "").slice(0, 10) === todayStr)
+          .map((t: any) => t.employeeId)
+      ).size
+    : 0;
 
   return {
     totalEmployees: Array.isArray(employees) ? employees.length : 0,
@@ -27,6 +37,7 @@ async function computeStatsFromEntities(): Promise<DashboardStats> {
           timesheets.reduce((s: number, t: any) => s + (t.hoursWorked ?? 0), 0).toFixed(1)
         )
       : 0,
+    employeesLoggedToday,
   };
 }
 

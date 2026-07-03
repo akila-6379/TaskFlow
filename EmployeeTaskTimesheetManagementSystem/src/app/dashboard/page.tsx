@@ -19,6 +19,7 @@ export default function DashboardPage() {
     activeProjects: 0,
     totalTasks: 0,
     hoursLogged: 0,
+    employeesLoggedToday: 0,
   });
 
   useEffect(() => {
@@ -35,11 +36,11 @@ export default function DashboardPage() {
 
   const STAT_CARDS = [
     {
-      title: 'Total Employees',
-      value: stats.totalEmployees,
+      title: 'Employees Logged Today',
+      value: stats.employeesLoggedToday,
       icon: <PeopleRoundedIcon />,
       color: '#2563EB',
-      subtitle: 'All registered employees',
+      subtitle: 'Unique employees logged today',
       trend: '↑ 8%',
       trendColor: '#22C55E',
     },

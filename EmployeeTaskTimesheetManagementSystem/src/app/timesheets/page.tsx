@@ -198,6 +198,7 @@ useEffect(() => {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [editData, setEditData] = useState<Timesheet | null>(null);
   const [form, setForm]         = useState<Omit<Timesheet, 'id'>>(EMPTY);
+  const [formError, setFormError] = useState<string>('');
   const [searchValue, setSearchValue] = useState('');
   const [employeeFilter, setEmployeeFilter] = useState<number | null>(null);
   const [projectFilter, setProjectFilter] = useState<number | null>(null);
@@ -206,6 +207,7 @@ useEffect(() => {
   const openAdd = () => {
   setEditData(null);
   setForm(EMPTY);
+  setFormError('');
   setOpen(true);
 };
   const openEdit = (entry: Timesheet) => {
@@ -217,10 +219,12 @@ useEffect(() => {
       hoursWorked: entry.hoursWorked,
       description: entry.description,
     });
+    setFormError('');
     setOpen(true);
   };
 
   const handleSave = async () => {
+  setFormError('');
   try {
     if (editData) {
       await timesheetService.update(editData.id, {
@@ -233,10 +237,14 @@ useEffect(() => {
 
     await loadTimesheets();
     setForm(EMPTY);
-setEditData(null);
-setOpen(false);
-  } catch (error) {
-    console.error(error);
+    setEditData(null);
+    setOpen(false);
+  } catch (error: any) {
+    const msg =
+      error?.response?.data?.message ||
+      error?.response?.data ||
+      'An error occurred while saving the timesheet. Please try again.';
+    setFormError(typeof msg === 'string' ? msg : JSON.stringify(msg));
   }
 };
 
@@ -261,20 +269,26 @@ setOpen(false);
   const filteredTimesheets = useMemo(() => {
     const term = searchValue.trim().toLowerCase();
 
-    return timesheets.filter((entry) => {
-      const emp = employees.find((e) => Number(e.id) === entry.employeeId);
-      const proj = projects.find((p) => Number(p.id) === entry.projectId);
-      const employeeName = emp?.name?.toLowerCase() ?? '';
-      const projectName = proj?.projectName?.toLowerCase() ?? '';
-      const description = entry.description?.toLowerCase() ?? '';
-      const matchesSearch = !term || [employeeName, projectName, description].some((value) => value.includes(term));
-      const matchesEmployee = employeeFilter === null || entry.employeeId === employeeFilter;
-      const matchesProject = projectFilter === null || entry.projectId === projectFilter;
-      const matchesDateFrom = !dateFrom || entry.workDate >= dateFrom;
-      const matchesDateTo = !dateTo || entry.workDate <= dateTo;
+    return timesheets
+      .filter((entry) => {
+        const emp = employees.find((e) => Number(e.id) === entry.employeeId);
+        const proj = projects.find((p) => Number(p.id) === entry.projectId);
+        const employeeName = emp?.name?.toLowerCase() ?? '';
+        const projectName = proj?.projectName?.toLowerCase() ?? '';
+        const description = entry.description?.toLowerCase() ?? '';
+        const matchesSearch = !term || [employeeName, projectName, description].some((value) => value.includes(term));
+        const matchesEmployee = employeeFilter === null || entry.employeeId === employeeFilter;
+        const matchesProject = projectFilter === null || entry.projectId === projectFilter;
+        const matchesDateFrom = !dateFrom || entry.workDate >= dateFrom;
+        const matchesDateTo = !dateTo || entry.workDate <= dateTo;
 
-      return matchesSearch && matchesEmployee && matchesProject && matchesDateFrom && matchesDateTo;
-    });
+        return matchesSearch && matchesEmployee && matchesProject && matchesDateFrom && matchesDateTo;
+      })
+      .sort((a, b) => {
+        const da = a.workDate ?? '';
+        const db = b.workDate ?? '';
+        return db.localeCompare(da);
+      });
   }, [timesheets, employees, projects, searchValue, employeeFilter, projectFilter, dateFrom, dateTo]);
 
   const handleExport = () => {
@@ -660,7 +674,7 @@ setOpen(false);
               noOptionsText="No projects found"
             />
 
-            {/* Row 2 — Work Date (full width, no future dates) */}
+            {/* Row 2 — Work Date (full width, 3-day window, no weekends) */}
             <TextField
               size="small"
               label={fieldLabel(<CalendarMonthRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Work Date')}
@@ -668,9 +682,22 @@ setOpen(false);
               value={form.workDate}
               onChange={e => {
                 const capped = capDateYear(e.target.value);
-                // Reject future dates silently — clamp to today
                 const today = new Date().toISOString().slice(0, 10);
-                setForm({ ...form, workDate: capped > today ? today : capped });
+                // Clamp future dates to today
+                const selectedDate = capped > today ? today : capped;
+                // Frontend validation
+                const todayDate = new Date(today);
+                const pickedDate = new Date(selectedDate);
+                const daysDiff = Math.round((todayDate.getTime() - pickedDate.getTime()) / 86400000);
+                const dow = pickedDate.getDay();
+                if (dow === 0 || dow === 6) {
+                  setFormError('Timesheet entries are not allowed on weekends (Saturday or Sunday).');
+                } else if (daysDiff > 2) {
+                  setFormError('You can only log time for today, yesterday, or the day before yesterday.');
+                } else {
+                  setFormError('');
+                }
+                setForm({ ...form, workDate: selectedDate });
               }}
               fullWidth
               InputLabelProps={{ shrink: true }}
@@ -742,6 +769,15 @@ setOpen(false);
             />
 
           </Box>
+
+          {/* Validation / API error message */}
+          {formError && (
+            <Box sx={{ mt: 2, px: 1.5, py: 1.25, borderRadius: '12px', bgcolor: '#fef2f2', border: '1px solid #fecaca', display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+              <Typography sx={{ fontSize: 13, fontWeight: 500, color: '#dc2626', lineHeight: 1.5 }}>
+                ⚠ {formError}
+              </Typography>
+            </Box>
+          )}
         </DialogContent>
 
         <Divider sx={{ borderColor: '#e2e8f0' }} />
