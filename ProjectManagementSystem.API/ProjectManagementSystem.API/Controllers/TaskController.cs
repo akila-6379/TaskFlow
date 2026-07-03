@@ -25,7 +25,15 @@ namespace ProjectManagementSystem.API.Controllers
         [HttpPost]
         public async Task<IActionResult> AddTask(TaskItem task)
         {
+            Console.WriteLine("Received DueDate:");
+            Console.WriteLine(task.DueDate);
+            Console.WriteLine(task.DueDate.Kind);
+
             task.DueDate = DateTime.SpecifyKind(task.DueDate, DateTimeKind.Utc);
+
+            Console.WriteLine("After SpecifyKind:");
+            Console.WriteLine(task.DueDate);
+            Console.WriteLine(task.DueDate.Kind);
 
             _context.Tasks.Add(task);
             await _context.SaveChangesAsync();
@@ -56,7 +64,7 @@ namespace ProjectManagementSystem.API.Controllers
                 return NotFound();
 
             Console.WriteLine(task.DueDate.Kind);
-            
+
             _context.Tasks.Remove(task);
             await _context.SaveChangesAsync();
 
