@@ -28,6 +28,8 @@ namespace ProjectManagementSystem.API.Controllers
         [HttpPost]
         public async Task<IActionResult> AddTimesheet(Timesheet timesheet)
         {
+            timesheet.WorkDate = DateTime.SpecifyKind(timesheet.WorkDate, DateTimeKind.Utc);
+
             _context.Timesheets.Add(timesheet);
             await _context.SaveChangesAsync();
 
@@ -39,20 +41,16 @@ namespace ProjectManagementSystem.API.Controllers
         public async Task<IActionResult> UpdateTimesheet(int id, Timesheet timesheet)
         {
             if (id != timesheet.Id)
-            {
-                return BadRequest("Timesheet ID mismatch.");
-            }
+                return BadRequest();
 
             var existingTimesheet = await _context.Timesheets.FindAsync(id);
 
             if (existingTimesheet == null)
-            {
                 return NotFound();
-            }
 
             existingTimesheet.EmployeeId = timesheet.EmployeeId;
             existingTimesheet.ProjectId = timesheet.ProjectId;
-            existingTimesheet.WorkDate = timesheet.WorkDate;
+            existingTimesheet.WorkDate = DateTime.SpecifyKind(timesheet.WorkDate, DateTimeKind.Utc);
             existingTimesheet.HoursWorked = timesheet.HoursWorked;
             existingTimesheet.Description = timesheet.Description;
 
