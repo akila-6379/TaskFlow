@@ -25,6 +25,8 @@ namespace ProjectManagementSystem.API.Controllers
         [HttpPost]
         public async Task<IActionResult> AddTask(TaskItem task)
         {
+            task.DueDate = DateTime.SpecifyKind(task.DueDate, DateTimeKind.Utc);
+
             _context.Tasks.Add(task);
             await _context.SaveChangesAsync();
 
@@ -36,6 +38,8 @@ namespace ProjectManagementSystem.API.Controllers
         {
             if (id != task.Id)
                 return BadRequest();
+
+            task.DueDate = DateTime.SpecifyKind(task.DueDate, DateTimeKind.Utc);
 
             _context.Entry(task).State = EntityState.Modified;
             await _context.SaveChangesAsync();
