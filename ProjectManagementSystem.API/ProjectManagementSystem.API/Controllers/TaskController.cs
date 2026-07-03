@@ -55,6 +55,8 @@ namespace ProjectManagementSystem.API.Controllers
             if (task == null)
                 return NotFound();
 
+            Console.WriteLine(task.DueDate.Kind);
+            
             _context.Tasks.Remove(task);
             await _context.SaveChangesAsync();
 
