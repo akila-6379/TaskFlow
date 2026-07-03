@@ -16,24 +16,18 @@ namespace ProjectManagementSystem.API.Controllers
             _context = context;
         }
 
+        // GET: api/Task
         [HttpGet]
         public async Task<IActionResult> GetTasks()
         {
             return Ok(await _context.Tasks.ToListAsync());
         }
 
+        // POST: api/Task
         [HttpPost]
         public async Task<IActionResult> AddTask(TaskItem task)
         {
-            Console.WriteLine("Received DueDate:");
-            Console.WriteLine(task.DueDate);
-            Console.WriteLine(task.DueDate.Kind);
-
             task.DueDate = DateTime.SpecifyKind(task.DueDate, DateTimeKind.Utc);
-
-            Console.WriteLine("After SpecifyKind:");
-            Console.WriteLine(task.DueDate);
-            Console.WriteLine(task.DueDate.Kind);
 
             _context.Tasks.Add(task);
             await _context.SaveChangesAsync();
@@ -41,6 +35,7 @@ namespace ProjectManagementSystem.API.Controllers
             return Ok(task);
         }
 
+        // PUT: api/Task/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateTask(int id, TaskItem task)
         {
@@ -55,6 +50,7 @@ namespace ProjectManagementSystem.API.Controllers
             return Ok(task);
         }
 
+        // DELETE: api/Task/{id}
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteTask(int id)
         {
@@ -62,8 +58,6 @@ namespace ProjectManagementSystem.API.Controllers
 
             if (task == null)
                 return NotFound();
-
-            Console.WriteLine(task.DueDate.Kind);
 
             _context.Tasks.Remove(task);
             await _context.SaveChangesAsync();
