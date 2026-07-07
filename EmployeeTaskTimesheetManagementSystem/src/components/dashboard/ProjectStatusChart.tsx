@@ -29,7 +29,7 @@ export default function ProjectStatusChart() {
   }, []);
 
   const data = [
-    { name: 'In Progress', value: projects.filter(p => p.status === 'Active' || p.status === 'In Progress').length },
+    { name: 'In Progress', value: projects.filter(p => p.status === 'In Progress').length },
     { name: 'Completed', value: projects.filter(p => p.status === 'Completed').length },
     { name: 'On Hold', value: projects.filter(p => p.status === 'On Hold').length },
     { name: 'Cancelled', value: projects.filter(p => p.status === 'Cancelled').length },

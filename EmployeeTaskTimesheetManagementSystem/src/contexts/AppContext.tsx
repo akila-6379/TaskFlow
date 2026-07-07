@@ -14,9 +14,9 @@ import {
 
 // ─── Initial State (seeded from mock data) ───────────────────────────────────
 const initialState: AppState = {
-  employees:  seedEmployees,
-  projects:   seedProjects,
-  tasks:      seedTasks,
+  employees: seedEmployees,
+  projects: seedProjects,
+  tasks: seedTasks,
   timesheets: seedTimesheets,
   activities: seedActivities,
 };
@@ -82,10 +82,10 @@ export function useAppContext(): AppContextType {
 export function useDashboardStats() {
   const { state } = useAppContext();
   return useMemo(() => ({
-    totalEmployees:  state.employees.length,
-    activeProjects:  state.projects.filter(p => p.status === 'Active' || p.status === 'In Progress').length,
-    pendingTasks:    state.tasks.filter(t => t.status !== 'Completed').length,
-    completedTasks:  state.tasks.filter(t => t.status === 'Completed').length,
+    totalEmployees: state.employees.length,
+    activeProjects: state.projects.filter(p => p.status === 'In Progress').length,
+    pendingTasks: state.tasks.filter(t => t.status !== 'Completed').length,
+    completedTasks: state.tasks.filter(t => t.status === 'Completed').length,
     totalHoursLogged: parseFloat(
       state.timesheets.reduce((s, t) => s + t.hoursWorked, 0).toFixed(1)
     ),
@@ -97,7 +97,7 @@ export function useProjectStatusData() {
   const { state } = useAppContext();
   return useMemo(() => {
     const counts = state.projects.reduce<Record<string, number>>((acc, p) => {
-      const statusKey = p.status === 'Active' ? 'In Progress' : p.status;
+      const statusKey = p.status;
       acc[statusKey] = (acc[statusKey] ?? 0) + 1;
       return acc;
     }, {});
@@ -116,7 +116,7 @@ export function useHoursPerEmployee() {
       else acc.push({ name, hours: t.hoursWorked });
       return acc;
     }, []),
-  [state.timesheets]);
+    [state.timesheets]);
 }
 
 /** Task status breakdown for the pie chart */
@@ -147,34 +147,34 @@ export function useDeptData() {
 export function useEmployeeActions() {
   const { dispatch } = useAppContext();
   return {
-    add:    (e: Omit<Employee,  'id'>) => dispatch({ type: 'ADD_EMPLOYEE',    payload: { ...e, id: String(Date.now()) } }),
-    update: (e: Employee)              => dispatch({ type: 'UPDATE_EMPLOYEE', payload: e }),
-    remove: (id: string)               => dispatch({ type: 'DELETE_EMPLOYEE', payload: id }),
+    add: (e: Omit<Employee, 'id'>) => dispatch({ type: 'ADD_EMPLOYEE', payload: { ...e, id: String(Date.now()) } }),
+    update: (e: Employee) => dispatch({ type: 'UPDATE_EMPLOYEE', payload: e }),
+    remove: (id: string) => dispatch({ type: 'DELETE_EMPLOYEE', payload: id }),
   };
 }
 
 export function useProjectActions() {
   const { dispatch } = useAppContext();
   return {
-    add:    (p: Omit<Project,  'id'>) => dispatch({ type: 'ADD_PROJECT',    payload: { ...p, id: String(Date.now()) } }),
-    update: (p: Project)              => dispatch({ type: 'UPDATE_PROJECT', payload: p }),
-    remove: (id: string)              => dispatch({ type: 'DELETE_PROJECT', payload: id }),
+    add: (p: Omit<Project, 'id'>) => dispatch({ type: 'ADD_PROJECT', payload: { ...p, id: String(Date.now()) } }),
+    update: (p: Project) => dispatch({ type: 'UPDATE_PROJECT', payload: p }),
+    remove: (id: string) => dispatch({ type: 'DELETE_PROJECT', payload: id }),
   };
 }
 
 export function useTaskActions() {
   const { dispatch } = useAppContext();
   return {
-    add:    (t: Omit<Task,  'id'>) => dispatch({ type: 'ADD_TASK',    payload: { ...t, id: (Date.now()) } }),
-    update: (t: Task)              => dispatch({ type: 'UPDATE_TASK', payload: t }),
-    remove: (id: number)           => dispatch({ type: 'DELETE_TASK', payload: id }),
+    add: (t: Omit<Task, 'id'>) => dispatch({ type: 'ADD_TASK', payload: { ...t, id: (Date.now()) } }),
+    update: (t: Task) => dispatch({ type: 'UPDATE_TASK', payload: t }),
+    remove: (id: number) => dispatch({ type: 'DELETE_TASK', payload: id }),
   };
 }
 
 export function useTimesheetActions() {
   const { dispatch } = useAppContext();
   return {
-    add:    (t: Omit<Timesheet, 'id'>) => dispatch({ type: 'ADD_TIMESHEET',    payload: { ...t, id: Date.now() } }),
-    remove: (id: string)               => dispatch({ type: 'DELETE_TIMESHEET', payload: id }),
+    add: (t: Omit<Timesheet, 'id'>) => dispatch({ type: 'ADD_TIMESHEET', payload: { ...t, id: Date.now() } }),
+    remove: (id: string) => dispatch({ type: 'DELETE_TIMESHEET', payload: id }),
   };
 }
