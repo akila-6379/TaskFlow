@@ -220,7 +220,8 @@ export default function TasksPage() {
   const projectOptions = useMemo(
     () => projects.map(project => ({
       id: Number(project.id),
-      label: project.projectName,
+      label: project.projectId || `PR${project.id}`,
+      projectName: project.projectName,
     })),
     [projects],
   );
@@ -285,7 +286,7 @@ export default function TasksPage() {
               {meta.icon}
             </Box>
             <Typography sx={{ fontSize: 13.5, fontWeight: 500, color: '#0f172a', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flex: 1 }}>
-              {row.title}
+              {row.taskId ? `[${row.taskId}] ` : ''}{row.title}
             </Typography>
           </Box>
         </Tooltip>
@@ -326,7 +327,9 @@ export default function TasksPage() {
           <Box sx={{ width: 26, height: 26, borderRadius: '7px', bgcolor: '#f5f3ff', color: '#6d28d9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <FolderRoundedIcon sx={{ fontSize: 16 }} />
           </Box>
-          <Typography sx={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>{proj ? proj.projectName : 'Unassigned'}</Typography>
+          <Typography sx={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>
+            {proj ? `${proj.projectId || `PR${proj.id}`} - ${proj.projectName}` : 'Unassigned'}
+          </Typography>
         </Box>
       );
     },
@@ -673,8 +676,8 @@ export default function TasksPage() {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label={fieldLabel(<FolderRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Project')}
-                  placeholder="Select project"
+                  label={fieldLabel(<FolderRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Project ID')}
+                  placeholder="Select project ID"
                   fullWidth
                   InputProps={{
                     ...params.InputProps,
@@ -702,6 +705,24 @@ export default function TasksPage() {
               noOptionsText="No projects found"
               sx={{ gridColumn: { xs: '1 / -1', md: 'span 1' } }}
             />
+
+            {form.projectId > 0 && (
+              <TextField
+                size="small"
+                label={fieldLabel(<FolderRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Project Name')}
+                value={projectOptions.find(option => option.id === form.projectId)?.projectName ?? ''}
+                fullWidth
+                InputProps={{
+                  readOnly: true,
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <FolderRoundedIcon sx={{ color: '#64748b', fontSize: 18 }} />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={[fieldStyles, { gridColumn: { xs: '1 / -1', md: 'span 1' } }]}
+              />
+            )}
 
             <TextField
               size="small"

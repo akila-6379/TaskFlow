@@ -20,6 +20,7 @@ export interface Employee {
 
 export interface Project {
   id: string;
+  projectId?: string;
   projectName: string;
   description: string;
   startDate: string;
@@ -30,6 +31,7 @@ export interface Project {
 
 export interface Task {
   id: number;
+  taskId?: string;
   title: string;
   description: string;
   employeeId: number;

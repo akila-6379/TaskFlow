@@ -550,7 +550,7 @@ export default function ProjectsPage() {
 
                       <Box sx={{ minWidth: 0 }}>
                         <Typography sx={{ fontSize: 16, fontWeight: 700, color: '#0f172a', lineHeight: 1.1, mb: 0.5 }}>
-                          {project.projectName}
+                          {project.projectId ? `${project.projectId} - ` : ''}{project.projectName}
                         </Typography>
                         <Typography sx={{ fontSize: 13, color: '#64748b', lineHeight: 1.6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {project.description || 'No description available'}
