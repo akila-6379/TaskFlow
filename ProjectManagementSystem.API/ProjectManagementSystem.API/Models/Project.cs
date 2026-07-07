@@ -1,4 +1,4 @@
-﻿namespace ProjectManagementSystem.API.Models
+namespace ProjectManagementSystem.API.Models
 {
     public class Project
     {
@@ -15,5 +15,8 @@
         public int Progress { get; set; }
 
         public string Status { get; set; } = "Active";
+
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+        public string ProjectId => $"PR{Id}";
     }
 }

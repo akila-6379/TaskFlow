@@ -40,7 +40,7 @@ namespace ProjectManagementSystem.API.Controllers
             _context.Employees.Add(employee);
             await _context.SaveChangesAsync(); // EF now populates employee.Id
 
-            employee.EmployeeId = $"EMP{employee.Id:D3}";
+            employee.EmployeeId = $"EMP{employee.Id}";
             await _context.SaveChangesAsync(); // persist the derived EmployeeId
 
             return Ok(employee);

@@ -1,4 +1,4 @@
-﻿namespace ProjectManagementSystem.API.Models
+namespace ProjectManagementSystem.API.Models
 {
     public class TaskItem
     {
@@ -15,5 +15,16 @@
         public string Status { get; set; } = "Pending";
 
         public DateTime DueDate { get; set; }
+
+        [System.ComponentModel.DataAnnotations.Schema.NotMapped]
+        public string TaskId
+        {
+            get
+            {
+                if (Id <= 0 || ProjectId <= 0) return string.Empty;
+                return Services.IdSequenceHelper.GetTaskId(Id, ProjectId);
+            }
+            set { }
+        }
     }
 }
