@@ -26,22 +26,22 @@ namespace ProjectManagementSystem.API.Controllers
         [HttpPost]
         public async Task<IActionResult> AddEmployee(Employee employee)
         {
-            var lastEmployee = await _context.Employees
-            .OrderByDescending(e => e.Id)
-            .FirstOrDefaultAsync();
+            // Bug 2 Fix: Do NOT derive the EmployeeId from the last remaining row's
+            // EmployeeId string, because deleted rows leave gaps and the old logic
+            // would reuse IDs (e.g. deleting EMP019 → next employee gets EMP019 again).
+            //
+            // Instead, save the row first so that EF / PostgreSQL assigns a fresh
+            // auto-increment Id from the sequence.  Sequences never reuse numbers after
+            // a delete, so employee.Id will always be strictly greater than every Id
+            // ever assigned in this table.  We then derive EmployeeId from that Id and
+            // persist the update — guaranteeing permanent uniqueness.
 
-            int nextId = 8;
-
-            if (lastEmployee != null)
-            {
-                var number = int.Parse(lastEmployee.EmployeeId.Replace("EMP", ""));
-                nextId = number + 1;
-            }
-
-            employee.EmployeeId = $"EMP{nextId:D3}";
-
+            employee.EmployeeId = string.Empty; // placeholder until we have the real Id
             _context.Employees.Add(employee);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(); // EF now populates employee.Id
+
+            employee.EmployeeId = $"EMP{employee.Id:D3}";
+            await _context.SaveChangesAsync(); // persist the derived EmployeeId
 
             return Ok(employee);
         }

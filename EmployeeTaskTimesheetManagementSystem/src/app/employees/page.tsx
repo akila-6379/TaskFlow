@@ -155,6 +155,8 @@ export default function EmployeesPage() {
   const [editData, setEditData] = useState<Employee | null>(null);
   const [form, setForm]         = useState<Omit<Employee, 'id'>>(EMPTY);
   const [touched, setTouched]   = useState<Record<string, boolean>>({});
+  // Bug 3: prevents duplicate submissions on rapid button clicks
+  const [isSaving, setIsSaving] = useState(false);
 
   const validationErrors = useMemo(() => {
     const errs: Record<string, string> = {};
@@ -180,7 +182,10 @@ export default function EmployeesPage() {
       errs.designation = 'Designation is required.';
     }
 
-    if (form.phone) {
+    // Bug 1: phone is now mandatory — check for empty first, then validate format
+    if (!form.phone || !form.phone.trim()) {
+      errs.phone = 'Phone Number is required.';
+    } else {
       const digits = form.phone.replace(/\D/g, '');
       if (digits.length !== 10) {
         errs.phone = 'Phone number must contain exactly 10 digits.';
@@ -203,7 +208,8 @@ export default function EmployeesPage() {
     return errs;
   }, [form, employees, editData]);
 
-  const isSaveDisabled = Object.keys(validationErrors).length > 0;
+  // Bug 3: also disable while a save is in-flight to block double-clicks
+  const isSaveDisabled = Object.keys(validationErrors).length > 0 || isSaving;
   const isStatusDisabled = editData === null || isFutureDate(form.joinDate);
 
   const handleFieldChange = (field: string, value: any) => {
@@ -276,6 +282,7 @@ export default function EmployeesPage() {
     setEditData(null);
     setForm(EMPTY);
     setTouched({});
+    setIsSaving(false);
     setOpen(true);
   };
 
@@ -300,20 +307,28 @@ export default function EmployeesPage() {
       phone: true,
       joinDate: true
     });
+    setIsSaving(false);
     setOpen(true);
   };
 
   const handleSave = async () => {
+    // Bug 3: guard against concurrent invocations caused by rapid button clicks
     if (isSaveDisabled) {
       return;
     }
 
+    setIsSaving(true);
     try {
       if (editData) { await employeeService.update(Number(editData.id), { ...form, id: editData.id }); }
       else          { await employeeService.create(form); }
       await loadEmployees();
       setOpen(false); setEditData(null); setForm(EMPTY); setTouched({});
-    } catch (error) { console.error('Error saving employee:', error); }
+      // isSaving is intentionally NOT reset here — the dialog closes on success
+    } catch (error) {
+      console.error('Error saving employee:', error);
+      // Bug 3: re-enable the button only if the request failed so the user can retry
+      setIsSaving(false);
+    }
   };
 
   const handleDelete = async (id: number) => {
