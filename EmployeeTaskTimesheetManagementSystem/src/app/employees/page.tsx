@@ -660,35 +660,6 @@ export default function EmployeesPage() {
           </List>
         </Popover>
 
-        {/* Department dropdown — synced with filterDept state */}
-        <TextField
-          select
-          size="small"
-          value={filterDept}
-          onChange={(e) =>
-            setForm({
-              ...form,
-              department: e.target.value,
-              designation: '',
-            })
-          }
-          sx={{
-            minWidth: 150,
-            '& .MuiOutlinedInput-root': {
-              borderRadius: '12px',
-              fontSize: 13,
-              height: 44,
-              bgcolor: '#fff',
-              '& fieldset': { borderColor: '#e2e8f0' },
-              '&:hover fieldset': { borderColor: '#cbd5e1' },
-            },
-          }}
-          SelectProps={{ displayEmpty: true }}
-        >
-          <MenuItem value=""><Typography sx={{ fontSize: 13, color: '#94a3b8' }}>All Departments</Typography></MenuItem>
-          {DEPARTMENTS.map((d) => <MenuItem key={d} value={d} sx={{ fontSize: 13 }}>{d}</MenuItem>)}
-        </TextField>
-
         {/* Export button — exports filtered rows to CSV */}
         <Button
           variant="outlined"

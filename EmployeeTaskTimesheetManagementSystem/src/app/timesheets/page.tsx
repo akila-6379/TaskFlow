@@ -251,7 +251,19 @@ useEffect(() => {
   // ── derived summary stats (always safe — timesheets is guaranteed array) ──
   const stats = useMemo(() => {
     const totalHours    = timesheets.reduce((s, r) => s + (r.hoursWorked ?? 0), 0);
-    const uniqueEmp     = new Set(timesheets.map(r => r.employeeId)).size;
+    
+    const localDate = new Date();
+    const year = localDate.getFullYear();
+    const month = String(localDate.getMonth() + 1).padStart(2, '0');
+    const day = String(localDate.getDate()).padStart(2, '0');
+    const todayLocal = `${year}-${month}-${day}`;
+
+    const uniqueEmp     = new Set(
+      timesheets
+        .filter(r => r.workDate === todayLocal)
+        .map(r => r.employeeId)
+    ).size;
+
     const today         = new Date().toISOString().slice(0, 10);
     const weekStart     = new Date();
     weekStart.setDate(weekStart.getDate() - weekStart.getDay());
@@ -260,9 +272,9 @@ useEffect(() => {
       .filter(r => r.workDate >= weekStartStr && r.workDate <= today)
       .reduce((s, r) => s + (r.hoursWorked ?? 0), 0);
     const monthStr      = today.slice(0, 7);
-   const monthlyHours = timesheets
-  .filter(r => r.workDate?.startsWith(monthStr))
-  .reduce((s, r) => s + (r.hoursWorked ?? 0), 0);
+    const monthlyHours = timesheets
+      .filter(r => r.workDate?.startsWith(monthStr))
+      .reduce((s, r) => s + (r.hoursWorked ?? 0), 0);
     return { totalHours, uniqueEmp, weeklyHours, monthlyHours };
   }, [timesheets]);
 
@@ -273,10 +285,23 @@ useEffect(() => {
       .filter((entry) => {
         const emp = employees.find((e) => Number(e.id) === entry.employeeId);
         const proj = projects.find((p) => Number(p.id) === entry.projectId);
+        
         const employeeName = emp?.name?.toLowerCase() ?? '';
+        const employeeId = emp?.employeeId?.toLowerCase() ?? '';
         const projectName = proj?.projectName?.toLowerCase() ?? '';
+        const projectId = proj?.projectId?.toLowerCase() ?? '';
         const description = entry.description?.toLowerCase() ?? '';
-        const matchesSearch = !term || [employeeName, projectName, description].some((value) => value.includes(term));
+        const workDate = entry.workDate ?? '';
+
+        const matchesSearch = !term || [
+          employeeName,
+          employeeId,
+          projectName,
+          projectId,
+          description,
+          workDate
+        ].some((value) => value.includes(term));
+
         const matchesEmployee = employeeFilter === null || entry.employeeId === employeeFilter;
         const matchesProject = projectFilter === null || entry.projectId === projectFilter;
         const matchesDateFrom = !dateFrom || entry.workDate >= dateFrom;
@@ -525,7 +550,24 @@ useEffect(() => {
             columns={columns}
             pageSizeOptions={[10, 25]}
             initialState={{ pagination: { paginationModel: { pageSize: 10 } } }}
-            slots={{ toolbar: () => <Toolbar searchValue={searchValue} onSearchChange={setSearchValue} employeeValue={employeeFilter} onEmployeeChange={setEmployeeFilter} projectValue={projectFilter} onProjectChange={setProjectFilter} dateFrom={dateFrom} onDateFromChange={setDateFrom} dateTo={dateTo} onDateToChange={setDateTo} onExport={handleExport} employeeOptions={employeeOptions} projectOptions={projectOptions} /> }}
+            slots={{ toolbar: Toolbar as any }}
+            slotProps={{
+              toolbar: {
+                searchValue,
+                onSearchChange: setSearchValue,
+                employeeValue: employeeFilter,
+                onEmployeeChange: setEmployeeFilter,
+                projectValue: projectFilter,
+                onProjectChange: setProjectFilter,
+                dateFrom,
+                onDateFromChange: setDateFrom,
+                dateTo,
+                onDateToChange: setDateTo,
+                onExport: handleExport,
+                employeeOptions,
+                projectOptions,
+              } as any
+            }}
             disableRowSelectionOnClick
             autoHeight
             getRowHeight={() => 64}

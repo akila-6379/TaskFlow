@@ -66,9 +66,6 @@ function Toolbar({ filterStatus, onStatusChange }: { filterStatus: string; onSta
           sx={{ flex: 1, '& .MuiInputBase-root': { fontSize: 13, borderRadius: '999px', background: '#fff', border: '1px solid #e2e8f0', minHeight: 42 } }}
         />
         <Stack direction='row' spacing={1} sx={{ flexWrap: 'wrap' }}>
-          <Button variant="outlined" size="small" startIcon={<FilterListRoundedIcon />} sx={{ borderRadius: '999px', textTransform: 'none', borderColor: '#dbe4f0', color: '#334155', px: 1.5 }}>
-            Filter
-          </Button>
           <TextField
             select
             size="small"
@@ -575,7 +572,13 @@ export default function TasksPage() {
                 paginationModel: { pageSize: 10 }
               }
             }}
-            slots={{ toolbar: () => <Toolbar filterStatus={filterStatus} onStatusChange={setFilterStatus} /> }}
+            slots={{ toolbar: Toolbar as any }}
+            slotProps={{
+              toolbar: {
+                filterStatus,
+                onStatusChange: setFilterStatus,
+              } as any
+            }}
             disableRowSelectionOnClick
             autoHeight
             rowHeight={64}
@@ -852,7 +855,7 @@ export default function TasksPage() {
               sx={[
                 fieldStyles,
                 {
-                  gridColumn: '1 / -1',
+                  gridColumn: { xs: '1 / -1', md: form.projectId > 0 ? 'span 1' : '1 / -1' },
                   '& .MuiInputBase-root': {
                     padding: '8px 14px',
                     alignItems: 'flex-start',
