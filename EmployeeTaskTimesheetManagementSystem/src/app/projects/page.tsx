@@ -127,12 +127,22 @@ const getProjectIcon = (name: string) => {
   };
 };
 
-const formatDate = (value: string) =>
-  new Date(value).toLocaleDateString('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
+// Bug 9: use a single consistent display format (dd-mm-yyyy) across all project cards
+const formatDate = (value: string) => {
+  if (!value) return '';
+  // Handles both 'YYYY-MM-DD' and ISO 'YYYY-MM-DDTHH:mm:ss' strings
+  const dateStr = value.substring(0, 10); // take YYYY-MM-DD part
+  const [year, month, day] = dateStr.split('-');
+  if (!year || !month || !day) return value;
+  return `${day}-${month}-${year}`;
+};
+
+// Bug 2 & 3: the backend returns ISO datetime strings (e.g. "2024-01-15T00:00:00").
+// HTML <input type="date"> requires exactly "YYYY-MM-DD".  This helper trims the time part.
+const toDateInputValue = (value: string): string => {
+  if (!value) return '';
+  return value.substring(0, 10); // keep only YYYY-MM-DD
+};
 
 const fieldStyles = {
   '& .MuiOutlinedInput-root': {
@@ -167,39 +177,60 @@ export default function ProjectsPage() {
   const [pageSize, setPageSize] = useState(10);
   const [animate, setAnimate] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  // Bug 4 & 5: prevents duplicate submissions from rapid button clicks
+  const [isSaving, setIsSaving] = useState(false);
 
   const validationErrors = useMemo(() => {
     const errs: Record<string, string> = {};
 
+    // Bug 13: Project Name required
     if (!form.projectName || !form.projectName.trim()) {
       errs.projectName = 'Project Name is required.';
+    } else {
+      // Bug 6: Duplicate project name check (allow same name for the project being edited)
+      const duplicate = projects.some(
+        (p) =>
+          p.projectName.trim().toLowerCase() === form.projectName.trim().toLowerCase() &&
+          p.id !== editData?.id
+      );
+      if (duplicate) {
+        errs.projectName = 'Project name already exists.';
+      }
     }
 
+    // Bug 13: Start Date required
     if (!form.startDate) {
       errs.startDate = 'Start Date is required.';
     }
 
+    // Bug 13: End Date required + End Date cannot be before Start Date
     if (!form.endDate) {
       errs.endDate = 'End Date is required.';
     } else if (form.startDate && form.endDate < form.startDate) {
-      // Case 1: End Date must not be earlier than Start Date
       errs.endDate = 'End Date cannot be earlier than Start Date.';
     }
 
+    // Bug 13: Description required
     if (!form.description || !form.description.trim()) {
       errs.description = 'Description is required.';
     }
 
-    // Case 4: Progress must be between 0 and 100 inclusive
+    // Bug 13: Progress must be 0–100
     const prog = Number(form.progress);
     if (isNaN(prog) || prog < 0 || prog > 100) {
       errs.progress = 'Progress must be between 0 and 100.';
     }
 
-    return errs;
-  }, [form]);
+    // Bug 12: Completed project must always have Progress = 100
+    if (form.status === 'Completed' && prog !== 100) {
+      errs.progress = 'Completed projects must have 100% progress.';
+    }
 
-  const isSaveDisabled = Object.keys(validationErrors).length > 0;
+    return errs;
+  }, [form, projects, editData]);
+
+  // Bug 4 & 5: also disabled while a save is in-flight to prevent double-click duplicates
+  const isSaveDisabled = Object.keys(validationErrors).length > 0 || isSaving;
 
   const handleFieldChange = (field: string, value: any) => {
     setForm(prev => ({ ...prev, [field]: value }));
@@ -241,9 +272,11 @@ export default function ProjectsPage() {
   }, [searchValue, filterStatus, pageSize]);
 
   const openAdd = () => {
+    // Bug 1: always reset to a fresh EMPTY state so progress, dates, etc. start clean
     setEditData(null);
-    setForm(EMPTY);
+    setForm({ ...EMPTY, progress: 0 }); // explicit spread prevents any accidental mutation
     setTouched({});
+    setIsSaving(false);
     setOpen(true);
   };
 
@@ -252,33 +285,46 @@ export default function ProjectsPage() {
     setForm({
       ...p,
       status: (p.status as string) === 'Active' ? 'In Progress' : p.status,
+      // Bug 2 & 3: trim ISO datetime to YYYY-MM-DD so <input type="date"> renders correctly
+      startDate: toDateInputValue(p.startDate),
+      endDate: toDateInputValue(p.endDate),
     });
+    // Bug 7: mark ALL fields touched so validation errors show immediately on open
     setTouched({
       projectName: true,
       startDate: true,
       endDate: true,
       description: true,
+      progress: true,
+      status: true,
     });
+    setIsSaving(false);
     setOpen(true);
   };
 
   const handleSave = async () => {
+    // Bug 4 & 5: isSaving guards against concurrent calls from rapid double-clicks
     if (isSaveDisabled) {
       return;
     }
+    setIsSaving(true);
     try {
       if (editData) {
         await projectService.update(Number(editData.id), { ...form, id: editData.id });
       } else {
         await projectService.create(form);
       }
+      // Bug 11: re-fetch the authoritative list from the server (no local duplication)
       await loadProjects();
       setOpen(false);
       setEditData(null);
-      setForm(EMPTY);
+      setForm({ ...EMPTY, progress: 0 });
       setTouched({});
+      // isSaving intentionally NOT reset here — dialog closes on success
     } catch (error) {
       console.error('Error saving project', error);
+      // Bug 5: re-enable Save button only on failure so user can retry
+      setIsSaving(false);
     }
   };
 
@@ -922,7 +968,11 @@ export default function ProjectsPage() {
               <Box sx={{ px: 0.5, mt: 1.5 }}>
                 <Slider
                   value={Number(form.progress)}
-                  onChange={(_e, v) => setForm({ ...form, progress: v as number })}
+                  onChange={(_e, v) => {
+                    // Bug 8: slider must update both form AND mark progress as touched for sync
+                    setForm(prev => ({ ...prev, progress: v as number }));
+                    setTouched(prev => ({ ...prev, progress: true }));
+                  }}
                   min={0}
                   max={100}
                   step={1}
