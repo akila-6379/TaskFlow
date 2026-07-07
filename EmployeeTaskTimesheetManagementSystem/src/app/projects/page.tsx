@@ -946,16 +946,20 @@ export default function ProjectsPage() {
                 type="number"
                 value={form.progress}
                 onChange={(e) => {
-                  // Case 4/6: allow any typed value through; validation catches out-of-range
+                  // Bug 2: clamp at the input level — never allow values outside 0-100
                   const raw = e.target.value;
-                  const v = raw === '' ? 0 : Number(raw);
-                  setForm({ ...form, progress: v });
+                  const parsed = raw === '' ? 0 : Number(raw);
+                  const v = Math.min(100, Math.max(0, parsed));
+                  setForm(prev => ({ ...prev, progress: v }));
                   setTouched(prev => ({ ...prev, progress: true }));
                 }}
                 onBlur={() => handleBlur('progress')}
                 error={Boolean(touched.progress && validationErrors.progress)}
                 helperText={touched.progress && validationErrors.progress ? validationErrors.progress : ''}
                 fullWidth
+                // Bug 1: Progress is always 0 and non-editable while adding a new project.
+                // It becomes editable only when editing an existing project.
+                disabled={!editData}
                 inputProps={{ min: 0, max: 100 }}
                 InputProps={{
                   endAdornment: (
@@ -976,6 +980,8 @@ export default function ProjectsPage() {
                   min={0}
                   max={100}
                   step={1}
+                  // Bug 1: slider is read-only (disabled) while adding a new project
+                  disabled={!editData}
                   marks={[
                     { value: 0, label: '0%' },
                     { value: 25, label: '25%' },
