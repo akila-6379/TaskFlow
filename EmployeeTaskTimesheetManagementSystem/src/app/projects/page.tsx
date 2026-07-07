@@ -72,10 +72,15 @@ const EMPTY: Omit<Project, 'id'> = {
 };
 
 const getStatusStyles = (status: string) => STATUS_CHIP[status] ?? STATUS_CHIP['In Progress'];
-const getProgressColor = (progress: number) => {
-  if (progress <= 40) return '#2563EB';
-  if (progress <= 70) return '#f59e0b';
-  return '#16a34a';
+// Case 3: progress bar color is driven by project status, not the percentage value
+const getProgressColorByStatus = (status: string) => {
+  switch (status) {
+    case 'In Progress': return '#2563EB';  // blue
+    case 'Completed':   return '#16a34a';  // green
+    case 'On Hold':     return '#f59e0b';  // orange
+    case 'Cancelled':   return '#ef4444';  // red
+    default:            return '#2563EB';
+  }
 };
 
 const getProjectIcon = (name: string) => {
@@ -176,10 +181,19 @@ export default function ProjectsPage() {
 
     if (!form.endDate) {
       errs.endDate = 'End Date is required.';
+    } else if (form.startDate && form.endDate < form.startDate) {
+      // Case 1: End Date must not be earlier than Start Date
+      errs.endDate = 'End Date cannot be earlier than Start Date.';
     }
 
     if (!form.description || !form.description.trim()) {
       errs.description = 'Description is required.';
+    }
+
+    // Case 4: Progress must be between 0 and 100 inclusive
+    const prog = Number(form.progress);
+    if (isNaN(prog) || prog < 0 || prog > 100) {
+      errs.progress = 'Progress must be between 0 and 100.';
     }
 
     return errs;
@@ -557,7 +571,8 @@ export default function ProjectsPage() {
                           bgcolor: '#e2e8f0',
                           '& .MuiLinearProgress-bar': {
                             borderRadius: 999,
-                            bgcolor: getProgressColor(Number(project.progress ?? 0)),
+                            // Case 3: bar color matches project status, not progress percentage
+                            bgcolor: getProgressColorByStatus(project.status),
                             transition: 'all 1s ease',
                           },
                         }}
@@ -750,13 +765,19 @@ export default function ProjectsPage() {
                 </Box>
               }
               value={form.status}
-              onChange={(e) => setForm({ ...form, status: e.target.value as Project['status'] })}
+              onChange={(e) => {
+                const newStatus = e.target.value as Project['status'];
+                // Case 7: Completed status must always have progress = 100
+                const newProgress = newStatus === 'Completed' ? 100 : form.progress;
+                setForm({ ...form, status: newStatus, progress: newProgress });
+              }}
               fullWidth
               SelectProps={{
                 renderValue: (val: unknown) => {
                   const v = val as string;
+                  // Case 2: correct dot colors — In Progress is blue, not green
                   const dotMap: Record<string, string> = {
-                    'In Progress': '#22c55e', Completed: '#16a34a', 'On Hold': '#f59e0b', Cancelled: '#ef4444',
+                    'In Progress': '#2563EB', Completed: '#16a34a', 'On Hold': '#f59e0b', Cancelled: '#ef4444',
                   };
                   return (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -769,8 +790,9 @@ export default function ProjectsPage() {
               sx={[fieldStyles, { gridColumn: { xs: '1', md: '1' }, gridRow: { md: '2' } }]}
             >
               {STATUS_OPTIONS.map((s) => {
+                // Case 2: correct dot colors — In Progress is blue, not green
                 const dotMap: Record<string, string> = {
-                  'In Progress': '#22c55e', Completed: '#16a34a', 'On Hold': '#f59e0b', Cancelled: '#ef4444',
+                  'In Progress': '#2563EB', Completed: '#16a34a', 'On Hold': '#f59e0b', Cancelled: '#ef4444',
                 };
                 return (
                   <MenuItem key={s} value={s} sx={{ py: 1.25, minHeight: 48 }}>
@@ -878,9 +900,15 @@ export default function ProjectsPage() {
                 type="number"
                 value={form.progress}
                 onChange={(e) => {
-                  const v = Math.min(100, Math.max(0, Number(e.target.value)));
+                  // Case 4/6: allow any typed value through; validation catches out-of-range
+                  const raw = e.target.value;
+                  const v = raw === '' ? 0 : Number(raw);
                   setForm({ ...form, progress: v });
+                  setTouched(prev => ({ ...prev, progress: true }));
                 }}
+                onBlur={() => handleBlur('progress')}
+                error={Boolean(touched.progress && validationErrors.progress)}
+                helperText={touched.progress && validationErrors.progress ? validationErrors.progress : ''}
                 fullWidth
                 inputProps={{ min: 0, max: 100 }}
                 InputProps={{
