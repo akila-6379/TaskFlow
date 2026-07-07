@@ -163,14 +163,6 @@ export default function ProjectsPage() {
   const [animate, setAnimate] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
 
-  const getTodayStr = () => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
   const validationErrors = useMemo(() => {
     const errs: Record<string, string> = {};
 
@@ -180,17 +172,10 @@ export default function ProjectsPage() {
 
     if (!form.startDate) {
       errs.startDate = 'Start Date is required.';
-    } else {
-      const todayStr = getTodayStr();
-      if (form.startDate < todayStr) {
-        errs.startDate = 'Start Date cannot be in the past.';
-      }
     }
 
     if (!form.endDate) {
       errs.endDate = 'End Date is required.';
-    } else if (form.startDate && form.endDate < form.startDate) {
-      errs.endDate = 'End Date cannot be earlier than Project Start Date.';
     }
 
     if (!form.description || !form.description.trim()) {
@@ -216,7 +201,7 @@ export default function ProjectsPage() {
       const data = await projectService.getAll();
       const mappedProjects = data.map((p: Project) => ({
         ...p,
-        status: p.status === 'Active' ? 'In Progress' : p.status,
+        status: (p.status as string) === 'Active' ? 'In Progress' : p.status,
       }));
       const tasksData = await taskService.getAll();
       setProjects(mappedProjects);
@@ -252,7 +237,7 @@ export default function ProjectsPage() {
     setEditData(p);
     setForm({
       ...p,
-      status: p.status === 'Active' ? 'In Progress' : p.status,
+      status: (p.status as string) === 'Active' ? 'In Progress' : p.status,
     });
     setTouched({
       projectName: true,
@@ -743,7 +728,7 @@ export default function ProjectsPage() {
               helperText={touched.startDate && validationErrors.startDate ? validationErrors.startDate : ''}
               fullWidth
               InputLabelProps={{ shrink: true }}
-              inputProps={{ min: getTodayStr(), max: '9999-12-31' }}
+              inputProps={{ max: '9999-12-31' }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -765,7 +750,7 @@ export default function ProjectsPage() {
                 </Box>
               }
               value={form.status}
-              onChange={e => handleFieldChange('status', e.target.value as Project['status'])}
+              onChange={(e) => setForm({ ...form, status: e.target.value as Project['status'] })}
               fullWidth
               SelectProps={{
                 renderValue: (val: unknown) => {
@@ -815,7 +800,7 @@ export default function ProjectsPage() {
               helperText={touched.endDate && validationErrors.endDate ? validationErrors.endDate : ''}
               fullWidth
               InputLabelProps={{ shrink: true }}
-              inputProps={{ min: form.startDate || getTodayStr(), max: '9999-12-31' }}
+              inputProps={{ max: '9999-12-31' }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">

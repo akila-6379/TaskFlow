@@ -45,7 +45,7 @@ export default function DashboardPage() {
       trendColor: '#22C55E',
     },
     {
-      title: 'Total Projects',
+      title: 'Active Projects',
       value: stats.activeProjects,
       icon: <FolderRoundedIcon />,
       color: '#7C3AED',
