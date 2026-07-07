@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ProjectManagementSystem.API.Data;
 using ProjectManagementSystem.API.Models;
@@ -42,6 +42,13 @@ public async Task<IActionResult> AddProject(Project project)
         {
             if (id != project.Id)
                 return BadRequest();
+
+            // Bug 3: PostgreSQL (Npgsql) requires DateTimeKind.Utc.
+            // Date-only strings from the frontend ("YYYY-MM-DD") are parsed as
+            // DateTimeKind.Unspecified, causing a save failure identical to the
+            // one AddProject already fixed with SpecifyKind.
+            project.StartDate = DateTime.SpecifyKind(project.StartDate, DateTimeKind.Utc);
+            project.EndDate   = DateTime.SpecifyKind(project.EndDate,   DateTimeKind.Utc);
 
             _context.Entry(project).State = EntityState.Modified;
             await _context.SaveChangesAsync();
