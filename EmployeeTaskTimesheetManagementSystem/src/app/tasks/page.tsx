@@ -57,7 +57,7 @@ const EMPTY: Omit<Task, 'id'> = {
   status: 'Pending',
   dueDate: '',
 };
-function Toolbar() {
+function Toolbar({ filterStatus, onStatusChange }: { filterStatus: string; onStatusChange: (status: string) => void }) {
   return (
     <GridToolbarContainer sx={{ px: 2.25, py: 1.75, borderBottom: '1px solid #e8ecf5', background: '#f8fafc' }}>
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.25} sx={{ width: '100%', alignItems: { xs: 'stretch', md: 'center' } }}>
@@ -72,7 +72,8 @@ function Toolbar() {
           <TextField
             select
             size="small"
-            defaultValue=""
+            value={filterStatus}
+            onChange={(e) => onStatusChange(e.target.value)}
             sx={{ minWidth: 140, '& .MuiOutlinedInput-root': { borderRadius: '999px', background: '#fff' } }}
           >
             <MenuItem value="">All Status</MenuItem>
@@ -207,6 +208,7 @@ export default function TasksPage() {
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [filterStatus, setFilterStatus] = useState<string>('');
 
   const employeeOptions = useMemo(
     () => employees.map(emp => ({
@@ -282,41 +284,46 @@ export default function TasksPage() {
     }
   };
 
+  const filteredTasks = useMemo(() => {
+    if (!filterStatus) return tasks;
+    return tasks.filter(t => t.status === filterStatus);
+  }, [tasks, filterStatus]);
+
+  const projectValidationError = useMemo(() => {
+    if (editData) return ''; // Only when creating a new task
+    if (!form.projectId) return '';
+    const proj = projects.find(p => Number(p.id) === form.projectId);
+    if (!proj) return '';
+    if (proj.status === 'On Hold') {
+      return 'This project is currently On Hold. New tasks cannot be created.';
+    }
+    if (proj.status === 'Completed') {
+      return 'This project has been completed. New tasks cannot be added.';
+    }
+    return '';
+  }, [form.projectId, editData, projects]);
+
   const columns: GridColDef[] = [
-  {
-    field: 'taskId',
-    headerName: 'Task ID',
-    width: 100,
-    renderCell: ({ row }) => (
-      <Typography 
-        onClick={() => openEdit(row)}
-        sx={{ 
-          fontSize: 13, 
-          fontWeight: 700, 
-          color: '#2563EB', 
-          cursor: 'pointer',
-          '&:hover': { textDecoration: 'underline' }
-        }}
-      >
-        {row.taskId}
-      </Typography>
-    )
-  },
   {
     field: 'title',
     headerName: 'Task Title',
-    width: 220,
+    width: 260,
     renderCell: ({ row }) => {
       const meta = getTaskTypeMeta(row.title);
       return (
         <Tooltip title={row.title}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, height: '100%', width: '100%' }}>
-            <Box sx={{ width: 32, height: 32, borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: `${meta.color}14`, color: meta.color, flexShrink: 0 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, height: '100%', py: 1 }}>
+            <Box sx={{ width: 34, height: 34, borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: `${meta.color}14`, color: meta.color, flexShrink: 0 }}>
               {meta.icon}
             </Box>
-            <Typography sx={{ fontSize: 13.5, fontWeight: 500, color: '#0f172a', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flex: 1 }}>
-              {row.title}
-            </Typography>
+            <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <Typography sx={{ fontSize: 13.5, fontWeight: 600, color: '#0f172a', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {row.title}
+              </Typography>
+              <Typography sx={{ fontSize: 11.5, fontWeight: 500, color: '#64748b', lineHeight: 1.2, mt: 0.25 }}>
+                {row.taskId}
+              </Typography>
+            </Box>
           </Box>
         </Tooltip>
       );
@@ -371,7 +378,7 @@ export default function TasksPage() {
   {
     field: 'dueDate',
     headerName: 'Due Date',
-    width: 160,
+    width: 150,
     renderCell: ({ value }) => {
       const info = getDueDateInfo(value);
       return (
@@ -560,7 +567,7 @@ export default function TasksPage() {
         <Paper sx={{ border: '1px solid #e8ecf5', boxShadow: '0 20px 50px rgba(15, 23, 42, 0.06)', borderRadius: '20px', overflow: 'hidden', background: '#fff' }}>
           <DataGrid
             loading={loading}
-            rows={tasks}
+            rows={filteredTasks}
             columns={columns}
             pageSizeOptions={[10, 25]}
             initialState={{
@@ -568,7 +575,7 @@ export default function TasksPage() {
                 paginationModel: { pageSize: 10 }
               }
             }}
-            slots={{ toolbar: () => <Toolbar /> }}
+            slots={{ toolbar: () => <Toolbar filterStatus={filterStatus} onStatusChange={setFilterStatus} /> }}
             disableRowSelectionOnClick
             autoHeight
             rowHeight={64}
@@ -722,6 +729,8 @@ export default function TasksPage() {
                   label={fieldLabel(<FolderRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Project ID')}
                   placeholder="Select project ID"
                   fullWidth
+                  error={Boolean(projectValidationError)}
+                  helperText={projectValidationError}
                   InputProps={{
                     ...params.InputProps,
                     startAdornment: (
@@ -886,6 +895,7 @@ export default function TasksPage() {
           </Button>
           <Button
             onClick={handleSave}
+            disabled={Boolean(projectValidationError)}
             variant="contained"
             disableElevation
             startIcon={<TaskAltRoundedIcon />}
@@ -897,7 +907,12 @@ export default function TasksPage() {
               py: 1.25,
               bgcolor: '#2563EB',
               '&:hover': { bgcolor: '#1D4ED8', boxShadow: '0 4px 12px rgba(37,99,235,0.2)' },
-              transition: 'all 0.2s ease'
+              transition: 'all 0.2s ease',
+              '&.Mui-disabled': {
+                background: '#cbd5e1',
+                color: '#94a3b8',
+                boxShadow: 'none',
+              }
             }}
           >
             {editData ? 'Save Changes' : 'Create Task'}

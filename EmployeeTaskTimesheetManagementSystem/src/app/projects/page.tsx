@@ -180,6 +180,8 @@ export default function ProjectsPage() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   // Bug 4 & 5: prevents duplicate submissions from rapid button clicks
   const [isSaving, setIsSaving] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
 
   const validationErrors = useMemo(() => {
     const errs: Record<string, string> = {};
@@ -333,6 +335,13 @@ export default function ProjectsPage() {
   };
 
   const handleDelete = async (id: number) => {
+    const hasLinkedTasks = tasks.some(t => Number(t.projectId) === id);
+    if (hasLinkedTasks) {
+      setAlertMessage("This project cannot be deleted because it contains linked tasks.");
+      setAlertOpen(true);
+      setDeleteId(null);
+      return;
+    }
     try {
       await projectService.remove(id);
       await loadProjects();
@@ -553,28 +562,11 @@ export default function ProjectsPage() {
                       </Box>
 
                       <Box sx={{ minWidth: 0 }}>
-                        <Typography sx={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1, mb: 0.5 }}>
-                          Project ID
-                        </Typography>
-                        <Typography 
-                          onClick={() => openEdit(project)}
-                          sx={{ 
-                            fontSize: 13, 
-                            fontWeight: 700, 
-                            color: '#2563EB', 
-                            cursor: 'pointer',
-                            display: 'inline-block',
-                            mb: 0.75,
-                            '&:hover': { textDecoration: 'underline' }
-                          }}
-                        >
-                          {project.projectId}
-                        </Typography>
-                        <Typography sx={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1, mb: 0.5 }}>
-                          Project Name
-                        </Typography>
-                        <Typography sx={{ fontSize: 16, fontWeight: 700, color: '#0f172a', lineHeight: 1.2, mb: 0.5 }}>
+                        <Typography sx={{ fontSize: 16, fontWeight: 700, color: '#0f172a', lineHeight: 1.2, mb: 0.25 }}>
                           {project.projectName}
+                        </Typography>
+                        <Typography sx={{ fontSize: 12.5, fontWeight: 500, color: '#64748b', mb: 0.75 }}>
+                          {project.projectId}
                         </Typography>
                         <Typography sx={{ fontSize: 13, color: '#64748b', lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {project.description || 'No description available'}
@@ -605,7 +597,8 @@ export default function ProjectsPage() {
                           onClick={() => {
                             const hasLinkedTasks = tasks.some(t => Number(t.projectId) === Number(project.id));
                             if (hasLinkedTasks) {
-                              alert("This project cannot be deleted because it contains linked tasks.");
+                              setAlertMessage("This project cannot be deleted because it contains linked tasks.");
+                              setAlertOpen(true);
                             } else {
                               setDeleteId(project.id);
                             }
@@ -874,53 +867,99 @@ export default function ProjectsPage() {
               sx={[fieldStyles, { gridColumn: { xs: '1', md: '2' }, gridRow: { md: '2' } }]}
             />
 
-            {/* LEFT col, row 3 — Status */}
-            <TextField
-              size="small"
-              select
-              label={
-                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: '#334155' }}>
-                  <TrendingUpRoundedIcon sx={{ fontSize: 15, color: '#2563EB' }} />
-                  <span>Status</span>
-                </Box>
-              }
-              value={form.status}
-              onChange={(e) => {
-                const newStatus = e.target.value as Project['status'];
-                const newProgress = newStatus === 'Completed' ? 100 : form.progress;
-                setForm({ ...form, status: newStatus, progress: newProgress });
-              }}
-              fullWidth
-              SelectProps={{
-                renderValue: (val: unknown) => {
-                  const v = val as string;
+            {/* LEFT col, row 3 — Status & Description grouped together to eliminate empty space */}
+            <Box sx={{
+              gridColumn: { xs: '1', md: '1' },
+              gridRow: { md: '3' },
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 3
+            }}>
+              <TextField
+                size="small"
+                select
+                label={
+                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: '#334155' }}>
+                    <TrendingUpRoundedIcon sx={{ fontSize: 15, color: '#2563EB' }} />
+                    <span>Status</span>
+                  </Box>
+                }
+                value={form.status}
+                onChange={(e) => {
+                  const newStatus = e.target.value as Project['status'];
+                  const newProgress = newStatus === 'Completed' ? 100 : form.progress;
+                  setForm({ ...form, status: newStatus, progress: newProgress });
+                }}
+                fullWidth
+                SelectProps={{
+                  renderValue: (val: unknown) => {
+                    const v = val as string;
+                    const dotMap: Record<string, string> = {
+                      'In Progress': '#2563EB', Completed: '#16a34a', 'On Hold': '#f59e0b', Cancelled: '#ef4444',
+                    };
+                    return (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dotMap[v] ?? '#94a3b8', flexShrink: 0 }} />
+                        <Typography sx={{ fontSize: 14.5, fontWeight: 500, color: '#0f172a' }}>{v}</Typography>
+                      </Box>
+                    );
+                  },
+                }}
+                sx={fieldStyles}
+              >
+                {STATUS_OPTIONS.map((s) => {
                   const dotMap: Record<string, string> = {
                     'In Progress': '#2563EB', Completed: '#16a34a', 'On Hold': '#f59e0b', Cancelled: '#ef4444',
                   };
                   return (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dotMap[v] ?? '#94a3b8', flexShrink: 0 }} />
-                      <Typography sx={{ fontSize: 14.5, fontWeight: 500, color: '#0f172a' }}>{v}</Typography>
-                    </Box>
+                    <MenuItem key={s} value={s} sx={{ py: 1.25, minHeight: 48 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dotMap[s], flexShrink: 0 }} />
+                        <Typography sx={{ fontSize: 14, fontWeight: 500 }}>{s}</Typography>
+                      </Box>
+                    </MenuItem>
                   );
-                },
-              }}
-              sx={[fieldStyles, { gridColumn: { xs: '1', md: '1' }, gridRow: { md: '3' } }]}
-            >
-              {STATUS_OPTIONS.map((s) => {
-                const dotMap: Record<string, string> = {
-                  'In Progress': '#2563EB', Completed: '#16a34a', 'On Hold': '#f59e0b', Cancelled: '#ef4444',
-                };
-                return (
-                  <MenuItem key={s} value={s} sx={{ py: 1.25, minHeight: 48 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dotMap[s], flexShrink: 0 }} />
-                      <Typography sx={{ fontSize: 14, fontWeight: 500 }}>{s}</Typography>
-                    </Box>
-                  </MenuItem>
-                );
-              })}
-            </TextField>
+                })}
+              </TextField>
+
+              <TextField
+                size="small"
+                label={
+                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: '#334155' }}>
+                    <DescriptionRoundedIcon sx={{ fontSize: 15, color: '#2563EB' }} />
+                    <span>Description</span>
+                  </Box>
+                }
+                placeholder="Briefly describe the project scope and goals…"
+                value={form.description}
+                onChange={(e) => {
+                  handleFieldChange('description', e.target.value);
+                  const ta = e.target as HTMLTextAreaElement;
+                  ta.style.height = 'auto';
+                  ta.style.height = `${Math.min(ta.scrollHeight, 160)}px`;
+                  ta.style.overflowY = ta.scrollHeight > 160 ? 'auto' : 'hidden';
+                }}
+                onBlur={() => handleBlur('description')}
+                error={Boolean(touched.description && validationErrors.description)}
+                helperText={touched.description && validationErrors.description ? validationErrors.description : ''}
+                fullWidth
+                multiline
+                sx={[
+                  fieldStyles,
+                  {
+                    '& .MuiInputBase-root': { padding: '8px 14px', alignItems: 'flex-start' },
+                    '& textarea': {
+                      resize: 'none',
+                      minHeight: '1.4375em',
+                      height: '1.4375em',
+                      overflowY: 'hidden',
+                      transition: 'height 0.15s ease',
+                      boxSizing: 'content-box',
+                    },
+                  },
+                ]}
+              />
+            </Box>
 
             {/* RIGHT col, row 3 — Progress (numeric + slider) */}
             <Box sx={{
@@ -1002,47 +1041,6 @@ export default function ProjectsPage() {
               </Box>
             </Box>
 
-            {/* LEFT col, row 4 — Description (auto-expanding, starts compact) */}
-            <TextField
-              size="small"
-              label={
-                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: '#334155' }}>
-                  <DescriptionRoundedIcon sx={{ fontSize: 15, color: '#2563EB' }} />
-                  <span>Description</span>
-                </Box>
-              }
-              placeholder="Briefly describe the project scope and goals…"
-              value={form.description}
-              onChange={(e) => {
-                handleFieldChange('description', e.target.value);
-                const ta = e.target as HTMLTextAreaElement;
-                ta.style.height = 'auto';
-                ta.style.height = `${Math.min(ta.scrollHeight, 160)}px`;
-                ta.style.overflowY = ta.scrollHeight > 160 ? 'auto' : 'hidden';
-              }}
-              onBlur={() => handleBlur('description')}
-              error={Boolean(touched.description && validationErrors.description)}
-              helperText={touched.description && validationErrors.description ? validationErrors.description : ''}
-              fullWidth
-              multiline
-              sx={[
-                fieldStyles,
-                {
-                  gridColumn: { xs: '1', md: '1' },
-                  gridRow: { md: '4' },
-                  '& .MuiInputBase-root': { padding: '8px 14px', alignItems: 'flex-start' },
-                  '& textarea': {
-                    resize: 'none',
-                    minHeight: '1.4375em',
-                    height: '1.4375em',
-                    overflowY: 'hidden',
-                    transition: 'height 0.15s ease',
-                    boxSizing: 'content-box',
-                  },
-                },
-              ]}
-            />
-
           </Box>
 
         </DialogContent>
@@ -1103,6 +1101,29 @@ export default function ProjectsPage() {
         onConfirm={() => handleDelete(Number(deleteId))}
         onCancel={() => setDeleteId(null)}
       />
+
+      <Dialog 
+        open={alertOpen} 
+        onClose={() => setAlertOpen(false)} 
+        maxWidth="xs" 
+        fullWidth 
+        closeAfterTransition={false} 
+        PaperProps={{ sx: { borderRadius: '12px' } }}
+      >
+        <DialogTitle sx={{ fontWeight: 700 }}>Cannot Delete Project</DialogTitle>
+        <Divider />
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary">
+            {alertMessage}
+          </Typography>
+        </DialogContent>
+        <Divider />
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button onClick={() => setAlertOpen(false)} variant="contained" disableElevation sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 600 }}>
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
     </MainLayout>
   );
 }
