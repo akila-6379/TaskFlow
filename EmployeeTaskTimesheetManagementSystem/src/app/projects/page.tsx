@@ -52,11 +52,11 @@ import { Project } from '@/types';
 import { taskService } from '@/services/taskService';
 import { Task } from '@/types';
 
-const STATUS_OPTIONS = ['Active', 'Completed', 'On Hold', 'Cancelled'] as const;
-const FILTER_OPTIONS = ['All', 'Active', 'On Hold', 'Completed'] as const;
+const STATUS_OPTIONS = ['In Progress', 'Completed', 'On Hold', 'Cancelled'] as const;
+const FILTER_OPTIONS = ['All', 'In Progress', 'On Hold', 'Completed'] as const;
 
 const STATUS_CHIP: Record<string, { bg: string; color: string; border: string }> = {
-  Active:    { bg: '#dbeafe', color: '#1d4ed8', border: 'rgba(59,130,246,0.20)' },
+  'In Progress': { bg: '#dbeafe', color: '#1d4ed8', border: 'rgba(59,130,246,0.20)' },
   Completed: { bg: '#dcfce7', color: '#15803d', border: 'rgba(34,197,94,0.20)' },
   'On Hold': { bg: '#ffedd5', color: '#c2410c', border: 'rgba(245,158,11,0.20)' },
   Cancelled: { bg: '#fee2e2', color: '#b91c1c', border: 'rgba(239,68,68,0.20)' },
@@ -67,11 +67,11 @@ const EMPTY: Omit<Project, 'id'> = {
   description: '',
   startDate: '',
   endDate: '',
-  status: 'Active',
+  status: 'In Progress',
   progress: 0,
 };
 
-const getStatusStyles = (status: string) => STATUS_CHIP[status] ?? STATUS_CHIP.Active;
+const getStatusStyles = (status: string) => STATUS_CHIP[status] ?? STATUS_CHIP['In Progress'];
 const getProgressColor = (progress: number) => {
   if (progress <= 40) return '#2563EB';
   if (progress <= 70) return '#f59e0b';
@@ -161,12 +161,65 @@ export default function ProjectsPage() {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [animate, setAnimate] = useState(false);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const getTodayStr = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
+  const validationErrors = useMemo(() => {
+    const errs: Record<string, string> = {};
+
+    if (!form.projectName || !form.projectName.trim()) {
+      errs.projectName = 'Project Name is required.';
+    }
+
+    if (!form.startDate) {
+      errs.startDate = 'Start Date is required.';
+    } else {
+      const todayStr = getTodayStr();
+      if (form.startDate < todayStr) {
+        errs.startDate = 'Start Date cannot be in the past.';
+      }
+    }
+
+    if (!form.endDate) {
+      errs.endDate = 'End Date is required.';
+    } else if (form.startDate && form.endDate < form.startDate) {
+      errs.endDate = 'End Date cannot be earlier than Project Start Date.';
+    }
+
+    if (!form.description || !form.description.trim()) {
+      errs.description = 'Description is required.';
+    }
+
+    return errs;
+  }, [form]);
+
+  const isSaveDisabled = Object.keys(validationErrors).length > 0;
+
+  const handleFieldChange = (field: string, value: any) => {
+    setForm(prev => ({ ...prev, [field]: value }));
+    setTouched(prev => ({ ...prev, [field]: true }));
+  };
+
+  const handleBlur = (field: string) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
+  };
 
   const loadProjects = async () => {
     try {
       const data = await projectService.getAll();
+      const mappedProjects = data.map((p: Project) => ({
+        ...p,
+        status: p.status === 'Active' ? 'In Progress' : p.status,
+      }));
       const tasksData = await taskService.getAll();
-      setProjects(data);
+      setProjects(mappedProjects);
       setTasks(tasksData);
     } catch (error) {
       console.error('Failed to load projects', error);
@@ -188,10 +241,32 @@ export default function ProjectsPage() {
     setPage(0);
   }, [searchValue, filterStatus, pageSize]);
 
-  const openAdd = () => { setEditData(null); setForm(EMPTY); setOpen(true); };
-  const openEdit = (p: Project) => { setEditData(p); setForm(p); setOpen(true); };
+  const openAdd = () => {
+    setEditData(null);
+    setForm(EMPTY);
+    setTouched({});
+    setOpen(true);
+  };
+
+  const openEdit = (p: Project) => {
+    setEditData(p);
+    setForm({
+      ...p,
+      status: p.status === 'Active' ? 'In Progress' : p.status,
+    });
+    setTouched({
+      projectName: true,
+      startDate: true,
+      endDate: true,
+      description: true,
+    });
+    setOpen(true);
+  };
 
   const handleSave = async () => {
+    if (isSaveDisabled) {
+      return;
+    }
     try {
       if (editData) {
         await projectService.update(Number(editData.id), { ...form, id: editData.id });
@@ -202,6 +277,7 @@ export default function ProjectsPage() {
       setOpen(false);
       setEditData(null);
       setForm(EMPTY);
+      setTouched({});
     } catch (error) {
       console.error('Error saving project', error);
     }
@@ -642,7 +718,10 @@ export default function ProjectsPage() {
               }
               placeholder="e.g. E-Commerce Platform"
               value={form.projectName}
-              onChange={(e) => setForm({ ...form, projectName: e.target.value })}
+              onChange={e => handleFieldChange('projectName', e.target.value)}
+              onBlur={() => handleBlur('projectName')}
+              error={Boolean(touched.projectName && validationErrors.projectName)}
+              helperText={touched.projectName && validationErrors.projectName ? validationErrors.projectName : ''}
               fullWidth
               sx={[fieldStyles, { gridColumn: { xs: '1', md: '1' }, gridRow: { md: '1' } }]}
             />
@@ -658,10 +737,13 @@ export default function ProjectsPage() {
               }
               type="date"
               value={form.startDate}
-              onChange={(e) => setForm({ ...form, startDate: capDateYear(e.target.value) })}
+              onChange={e => handleFieldChange('startDate', capDateYear(e.target.value))}
+              onBlur={() => handleBlur('startDate')}
+              error={Boolean(touched.startDate && validationErrors.startDate)}
+              helperText={touched.startDate && validationErrors.startDate ? validationErrors.startDate : ''}
               fullWidth
               InputLabelProps={{ shrink: true }}
-              inputProps={{ max: '9999-12-31' }}
+              inputProps={{ min: getTodayStr(), max: '9999-12-31' }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -683,13 +765,13 @@ export default function ProjectsPage() {
                 </Box>
               }
               value={form.status}
-              onChange={(e) => setForm({ ...form, status: e.target.value as Project['status'] })}
+              onChange={e => handleFieldChange('status', e.target.value as Project['status'])}
               fullWidth
               SelectProps={{
                 renderValue: (val: unknown) => {
                   const v = val as string;
                   const dotMap: Record<string, string> = {
-                    Active: '#22c55e', Completed: '#16a34a', 'On Hold': '#f59e0b', Cancelled: '#ef4444',
+                    'In Progress': '#22c55e', Completed: '#16a34a', 'On Hold': '#f59e0b', Cancelled: '#ef4444',
                   };
                   return (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -703,7 +785,7 @@ export default function ProjectsPage() {
             >
               {STATUS_OPTIONS.map((s) => {
                 const dotMap: Record<string, string> = {
-                  Active: '#22c55e', Completed: '#16a34a', 'On Hold': '#f59e0b', Cancelled: '#ef4444',
+                  'In Progress': '#22c55e', Completed: '#16a34a', 'On Hold': '#f59e0b', Cancelled: '#ef4444',
                 };
                 return (
                   <MenuItem key={s} value={s} sx={{ py: 1.25, minHeight: 48 }}>
@@ -727,10 +809,13 @@ export default function ProjectsPage() {
               }
               type="date"
               value={form.endDate}
-              onChange={(e) => setForm({ ...form, endDate: capDateYear(e.target.value) })}
+              onChange={e => handleFieldChange('endDate', capDateYear(e.target.value))}
+              onBlur={() => handleBlur('endDate')}
+              error={Boolean(touched.endDate && validationErrors.endDate)}
+              helperText={touched.endDate && validationErrors.endDate ? validationErrors.endDate : ''}
               fullWidth
               InputLabelProps={{ shrink: true }}
-              inputProps={{ max: '9999-12-31' }}
+              inputProps={{ min: form.startDate || getTodayStr(), max: '9999-12-31' }}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -753,12 +838,15 @@ export default function ProjectsPage() {
               placeholder="Briefly describe the project scope and goals…"
               value={form.description}
               onChange={(e) => {
-                setForm({ ...form, description: e.target.value });
+                handleFieldChange('description', e.target.value);
                 const ta = e.target as HTMLTextAreaElement;
                 ta.style.height = 'auto';
                 ta.style.height = `${Math.min(ta.scrollHeight, 160)}px`;
                 ta.style.overflowY = ta.scrollHeight > 160 ? 'auto' : 'hidden';
               }}
+              onBlur={() => handleBlur('description')}
+              error={Boolean(touched.description && validationErrors.description)}
+              helperText={touched.description && validationErrors.description ? validationErrors.description : ''}
               fullWidth
               multiline
               sx={[
@@ -876,6 +964,7 @@ export default function ProjectsPage() {
           </Button>
           <Button
             onClick={handleSave}
+            disabled={isSaveDisabled}
             variant="contained"
             disableElevation
             startIcon={editData ? <SaveRoundedIcon /> : <AddRoundedIcon />}
@@ -888,6 +977,11 @@ export default function ProjectsPage() {
               bgcolor: '#2563EB',
               '&:hover': { bgcolor: '#1D4ED8', boxShadow: '0 4px 12px rgba(37,99,235,0.25)' },
               transition: 'all 0.2s ease',
+              '&.Mui-disabled': {
+                background: '#cbd5e1',
+                color: '#94a3b8',
+                boxShadow: 'none',
+              }
             }}
           >
             {editData ? 'Save Changes' : 'Add Project'}

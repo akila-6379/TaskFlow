@@ -14,11 +14,12 @@ import { taskService } from '@/services/taskService';
 import { Project, Task } from '@/types';
 
 const STATUS_COLOR: Record<string, 'info' | 'success' | 'warning' | 'error'> = {
-  Active: 'info', Completed: 'success', 'On Hold': 'warning', Cancelled: 'error',
+  Active: 'info', 'In Progress': 'info', Completed: 'success', 'On Hold': 'warning', Cancelled: 'error',
 };
 
 const STATUS_STYLE: Record<string, { bg: string; color: string; border: string }> = {
   Active:    { bg: 'rgba(37,99,235,0.10)',  color: '#2563EB', border: 'rgba(37,99,235,0.20)'  },
+  'In Progress': { bg: 'rgba(37,99,235,0.10)',  color: '#2563EB', border: 'rgba(37,99,235,0.20)'  },
   Completed: { bg: 'rgba(34,197,94,0.10)',  color: '#16a34a', border: 'rgba(34,197,94,0.20)'  },
   'On Hold': { bg: 'rgba(245,158,11,0.10)', color: '#d97706', border: 'rgba(245,158,11,0.20)' },
   Cancelled: { bg: 'rgba(239,68,68,0.10)',  color: '#dc2626', border: 'rgba(239,68,68,0.20)'  },
@@ -26,6 +27,7 @@ const STATUS_STYLE: Record<string, { bg: string; color: string; border: string }
 
 const PROGRESS_GRADIENTS: Record<string, string> = {
   Active:    'linear-gradient(90deg, #2563EB 0%, #60a5fa 100%)',
+  'In Progress': 'linear-gradient(90deg, #2563EB 0%, #60a5fa 100%)',
   Completed: 'linear-gradient(90deg, #16a34a 0%, #4ade80 100%)',
   'On Hold': 'linear-gradient(90deg, #d97706 0%, #fbbf24 100%)',
   Cancelled: 'linear-gradient(90deg, #dc2626 0%, #f87171 100%)',

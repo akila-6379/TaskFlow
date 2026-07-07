@@ -12,12 +12,12 @@ export const seedEmployees: Employee[] = [
 ];
 
 export const seedProjects: Project[] = [
-  { id: '1', projectName: 'E-Commerce Platform',  startDate: '2024-01-15', endDate: '2024-12-31', progress: 72, status: 'Active',    description: 'Full-stack e-commerce solution' },
-  { id: '2', projectName: 'Mobile Banking App',   startDate: '2024-03-01', endDate: '2024-09-30', progress: 55, status: 'Active',    description: 'Cross-platform mobile banking application' },
+  { id: '1', projectName: 'E-Commerce Platform',  startDate: '2024-01-15', endDate: '2024-12-31', progress: 72, status: 'In Progress',    description: 'Full-stack e-commerce solution' },
+  { id: '2', projectName: 'Mobile Banking App',   startDate: '2024-03-01', endDate: '2024-09-30', progress: 55, status: 'In Progress',    description: 'Cross-platform mobile banking application' },
   { id: '3', projectName: 'HR Management System', startDate: '2023-06-01', endDate: '2024-06-01', progress: 100, status: 'Completed', description: 'Internal HR management platform' },
-  { id: '4', projectName: 'Analytics Dashboard',  startDate: '2024-05-01', endDate: '2025-02-28', progress: 38, status: 'Active',    description: 'Business intelligence dashboard' },
+  { id: '4', projectName: 'Analytics Dashboard',  startDate: '2024-05-01', endDate: '2025-02-28', progress: 38, status: 'In Progress',    description: 'Business intelligence dashboard' },
   { id: '5', projectName: 'API Gateway Redesign', startDate: '2024-02-15', endDate: '2024-08-15', progress: 30, status: 'On Hold',   description: 'Microservices API gateway' },
-  { id: '6', projectName: 'CRM Integration',      startDate: '2024-07-01', endDate: '2025-01-31', progress: 20, status: 'Active',    description: 'CRM system integration project' },
+  { id: '6', projectName: 'CRM Integration',      startDate: '2024-07-01', endDate: '2025-01-31', progress: 20, status: 'In Progress',    description: 'CRM system integration project' },
 ];
 
 export const seedTasks: Task[] = [

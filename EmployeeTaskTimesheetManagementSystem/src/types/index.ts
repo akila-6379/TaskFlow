@@ -25,7 +25,7 @@ export interface Project {
   startDate: string;
   endDate: string;
   progress: number;
-  status: 'Active' | 'Completed' | 'On Hold' | 'Cancelled';
+  status: 'In Progress' | 'Completed' | 'On Hold' | 'Cancelled';
 }
 
 export interface Task {

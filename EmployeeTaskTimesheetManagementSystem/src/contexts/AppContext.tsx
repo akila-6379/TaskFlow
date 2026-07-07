@@ -83,7 +83,7 @@ export function useDashboardStats() {
   const { state } = useAppContext();
   return useMemo(() => ({
     totalEmployees:  state.employees.length,
-    activeProjects:  state.projects.filter(p => p.status === 'Active').length,
+    activeProjects:  state.projects.filter(p => p.status === 'Active' || p.status === 'In Progress').length,
     pendingTasks:    state.tasks.filter(t => t.status !== 'Completed').length,
     completedTasks:  state.tasks.filter(t => t.status === 'Completed').length,
     totalHoursLogged: parseFloat(
@@ -97,7 +97,8 @@ export function useProjectStatusData() {
   const { state } = useAppContext();
   return useMemo(() => {
     const counts = state.projects.reduce<Record<string, number>>((acc, p) => {
-      acc[p.status] = (acc[p.status] ?? 0) + 1;
+      const statusKey = p.status === 'Active' ? 'In Progress' : p.status;
+      acc[statusKey] = (acc[statusKey] ?? 0) + 1;
       return acc;
     }, {});
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
