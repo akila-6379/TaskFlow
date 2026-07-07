@@ -7,7 +7,7 @@ import { projectService } from '@/services/projectService';
 import { Project } from '@/types';
 
 const COLORS: Record<string, string> = {
-  Active:    '#2563EB',
+  Active: '#2563EB',
   Completed: '#22C55E',
   'On Hold': '#F59E0B',
   Cancelled: '#EF4444',
@@ -29,9 +29,9 @@ export default function ProjectStatusChart() {
   }, []);
 
   const data = [
-    { name: 'Active',    value: projects.filter(p => p.status === 'Active').length },
+    { name: 'In Progress', value: projects.filter(p => p.status === 'In Progress').length },
     { name: 'Completed', value: projects.filter(p => p.status === 'Completed').length },
-    { name: 'On Hold',   value: projects.filter(p => p.status === 'On Hold').length },
+    { name: 'On Hold', value: projects.filter(p => p.status === 'On Hold').length },
     { name: 'Cancelled', value: projects.filter(p => p.status === 'Cancelled').length },
   ];
 
