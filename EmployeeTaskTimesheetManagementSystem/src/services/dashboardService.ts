@@ -29,7 +29,7 @@ async function computeStatsFromEntities(): Promise<DashboardStats> {
   return {
     totalEmployees: Array.isArray(employees) ? employees.length : 0,
     activeProjects: Array.isArray(projects)
-      ? projects.filter((p: any) => p.status === "Active").length
+      ? projects.filter((p: any) => p.status === "Active" || p.status === "In Progress").length
       : 0,
     totalTasks: Array.isArray(tasks) ? tasks.length : 0,
     hoursLogged: Array.isArray(timesheets)
