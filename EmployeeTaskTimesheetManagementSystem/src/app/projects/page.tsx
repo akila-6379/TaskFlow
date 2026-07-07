@@ -43,6 +43,7 @@ import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded';
 import TrendingUpRoundedIcon from '@mui/icons-material/TrendingUpRounded';
 import ChevronLeftRoundedIcon from '@mui/icons-material/ChevronLeftRounded';
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded';
+import BadgeRoundedIcon from '@mui/icons-material/BadgeRounded';
 import MainLayout from '@/components/layout/MainLayout';
 import PageHeader from '@/components/common/PageHeader';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
@@ -248,6 +249,9 @@ export default function ProjectsPage() {
         ...p,
         status: (p.status as string) === 'Active' ? 'In Progress' : p.status,
       }));
+      // Case 14: Newest Project ID first
+      mappedProjects.sort((a, b) => Number(b.id) - Number(a.id));
+      
       const tasksData = await taskService.getAll();
       setProjects(mappedProjects);
       setTasks(tasksData);
@@ -520,7 +524,7 @@ export default function ProjectsPage() {
                 <Paper
                   key={project.id}
                   sx={{
-                    p: 3,
+                    p: 2.25,
                     borderRadius: '20px',
                     bgcolor: '#fff',
                     boxShadow: '0 15px 30px rgba(15,23,42,0.06)',
@@ -532,8 +536,8 @@ export default function ProjectsPage() {
                     },
                   }}
                 >
-                  <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}>
-                    <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', minWidth: 0, flex: 1 }}>
+                  <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, alignItems: 'flex-start', justifyContent: 'space-between', gap: 1.5 }}>
+                    <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', minWidth: 0, flex: 1 }}>
                       <Box sx={{
                         width: 56,
                         height: 56,
@@ -549,10 +553,30 @@ export default function ProjectsPage() {
                       </Box>
 
                       <Box sx={{ minWidth: 0 }}>
-                        <Typography sx={{ fontSize: 16, fontWeight: 700, color: '#0f172a', lineHeight: 1.1, mb: 0.5 }}>
-                          {project.projectId ? `${project.projectId} - ` : ''}{project.projectName}
+                        <Typography sx={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1, mb: 0.5 }}>
+                          Project ID
                         </Typography>
-                        <Typography sx={{ fontSize: 13, color: '#64748b', lineHeight: 1.6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <Typography 
+                          onClick={() => openEdit(project)}
+                          sx={{ 
+                            fontSize: 13, 
+                            fontWeight: 700, 
+                            color: '#2563EB', 
+                            cursor: 'pointer',
+                            display: 'inline-block',
+                            mb: 0.75,
+                            '&:hover': { textDecoration: 'underline' }
+                          }}
+                        >
+                          {project.projectId}
+                        </Typography>
+                        <Typography sx={{ fontSize: 11, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em', lineHeight: 1, mb: 0.5 }}>
+                          Project Name
+                        </Typography>
+                        <Typography sx={{ fontSize: 16, fontWeight: 700, color: '#0f172a', lineHeight: 1.2, mb: 0.5 }}>
+                          {project.projectName}
+                        </Typography>
+                        <Typography sx={{ fontSize: 13, color: '#64748b', lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {project.description || 'No description available'}
                         </Typography>
                       </Box>
@@ -578,7 +602,14 @@ export default function ProjectsPage() {
 
                       <Tooltip title="Delete">
                         <IconButton
-                          onClick={() => setDeleteId(project.id)}
+                          onClick={() => {
+                            const hasLinkedTasks = tasks.some(t => Number(t.projectId) === Number(project.id));
+                            if (hasLinkedTasks) {
+                              alert("This project cannot be deleted because it contains linked tasks.");
+                            } else {
+                              setDeleteId(project.id);
+                            }
+                          }}
                           sx={{
                             width: 38,
                             height: 38,
@@ -596,7 +627,7 @@ export default function ProjectsPage() {
                     </Box>
                   </Box>
 
-                  <Divider sx={{ borderColor: '#e2e8f0', my: 3 }} />
+                  <Divider sx={{ borderColor: '#e2e8f0', my: 1.75 }} />
 
                   <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: 'center', justifyContent: 'space-between' }}>
                     <Box sx={{ width: '100%', minWidth: 0 }}>
@@ -753,7 +784,22 @@ export default function ProjectsPage() {
         <DialogContent sx={{ pt: 3, pb: 2, px: 3.5 }}>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
 
-            {/* LEFT col, row 1 — Project Name */}
+            {/* LEFT col, row 1 — Project ID (Read-only) */}
+            <TextField
+              size="small"
+              label={
+                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: '#334155' }}>
+                  <BadgeRoundedIcon sx={{ fontSize: 15, color: '#2563EB' }} />
+                  <span>Project ID</span>
+                </Box>
+              }
+              value={editData ? (form.projectId ?? '') : 'Auto-generated'}
+              disabled={true}
+              fullWidth
+              sx={[fieldStyles, { gridColumn: { xs: '1', md: '1' }, gridRow: { md: '1' } }]}
+            />
+
+            {/* RIGHT col, row 1 — Project Name */}
             <TextField
               size="small"
               label={
@@ -769,10 +815,10 @@ export default function ProjectsPage() {
               error={Boolean(touched.projectName && validationErrors.projectName)}
               helperText={touched.projectName && validationErrors.projectName ? validationErrors.projectName : ''}
               fullWidth
-              sx={[fieldStyles, { gridColumn: { xs: '1', md: '1' }, gridRow: { md: '1' } }]}
+              sx={[fieldStyles, { gridColumn: { xs: '1', md: '2' }, gridRow: { md: '1' } }]}
             />
 
-            {/* RIGHT col, row 1 — Start Date */}
+            {/* LEFT col, row 2 — Start Date */}
             <TextField
               size="small"
               label={
@@ -797,59 +843,8 @@ export default function ProjectsPage() {
                   </InputAdornment>
                 ),
               }}
-              sx={[fieldStyles, { gridColumn: { xs: '1', md: '2' }, gridRow: { md: '1' } }]}
-            />
-
-            {/* LEFT col, row 2 — Status */}
-            <TextField
-              size="small"
-              select
-              label={
-                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: '#334155' }}>
-                  <TrendingUpRoundedIcon sx={{ fontSize: 15, color: '#2563EB' }} />
-                  <span>Status</span>
-                </Box>
-              }
-              value={form.status}
-              onChange={(e) => {
-                const newStatus = e.target.value as Project['status'];
-                // Case 7: Completed status must always have progress = 100
-                const newProgress = newStatus === 'Completed' ? 100 : form.progress;
-                setForm({ ...form, status: newStatus, progress: newProgress });
-              }}
-              fullWidth
-              SelectProps={{
-                renderValue: (val: unknown) => {
-                  const v = val as string;
-                  // Case 2: correct dot colors — In Progress is blue, not green
-                  const dotMap: Record<string, string> = {
-                    'In Progress': '#2563EB', Completed: '#16a34a', 'On Hold': '#f59e0b', Cancelled: '#ef4444',
-                  };
-                  return (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dotMap[v] ?? '#94a3b8', flexShrink: 0 }} />
-                      <Typography sx={{ fontSize: 14.5, fontWeight: 500, color: '#0f172a' }}>{v}</Typography>
-                    </Box>
-                  );
-                },
-              }}
               sx={[fieldStyles, { gridColumn: { xs: '1', md: '1' }, gridRow: { md: '2' } }]}
-            >
-              {STATUS_OPTIONS.map((s) => {
-                // Case 2: correct dot colors — In Progress is blue, not green
-                const dotMap: Record<string, string> = {
-                  'In Progress': '#2563EB', Completed: '#16a34a', 'On Hold': '#f59e0b', Cancelled: '#ef4444',
-                };
-                return (
-                  <MenuItem key={s} value={s} sx={{ py: 1.25, minHeight: 48 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dotMap[s], flexShrink: 0 }} />
-                      <Typography sx={{ fontSize: 14, fontWeight: 500 }}>{s}</Typography>
-                    </Box>
-                  </MenuItem>
-                );
-              })}
-            </TextField>
+            />
 
             {/* RIGHT col, row 2 — End Date */}
             <TextField
@@ -879,46 +874,53 @@ export default function ProjectsPage() {
               sx={[fieldStyles, { gridColumn: { xs: '1', md: '2' }, gridRow: { md: '2' } }]}
             />
 
-            {/* LEFT col, row 3 — Description (auto-expanding, starts compact) */}
+            {/* LEFT col, row 3 — Status */}
             <TextField
               size="small"
+              select
               label={
                 <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: '#334155' }}>
-                  <DescriptionRoundedIcon sx={{ fontSize: 15, color: '#2563EB' }} />
-                  <span>Description</span>
+                  <TrendingUpRoundedIcon sx={{ fontSize: 15, color: '#2563EB' }} />
+                  <span>Status</span>
                 </Box>
               }
-              placeholder="Briefly describe the project scope and goals…"
-              value={form.description}
+              value={form.status}
               onChange={(e) => {
-                handleFieldChange('description', e.target.value);
-                const ta = e.target as HTMLTextAreaElement;
-                ta.style.height = 'auto';
-                ta.style.height = `${Math.min(ta.scrollHeight, 160)}px`;
-                ta.style.overflowY = ta.scrollHeight > 160 ? 'auto' : 'hidden';
+                const newStatus = e.target.value as Project['status'];
+                const newProgress = newStatus === 'Completed' ? 100 : form.progress;
+                setForm({ ...form, status: newStatus, progress: newProgress });
               }}
-              onBlur={() => handleBlur('description')}
-              error={Boolean(touched.description && validationErrors.description)}
-              helperText={touched.description && validationErrors.description ? validationErrors.description : ''}
               fullWidth
-              multiline
-              sx={[
-                fieldStyles,
-                {
-                  gridColumn: { xs: '1', md: '1' },
-                  gridRow: { md: '3' },
-                  '& .MuiInputBase-root': { padding: '8px 14px', alignItems: 'flex-start' },
-                  '& textarea': {
-                    resize: 'none',
-                    minHeight: '1.4375em',
-                    height: '1.4375em',
-                    overflowY: 'hidden',
-                    transition: 'height 0.15s ease',
-                    boxSizing: 'content-box',
-                  },
+              SelectProps={{
+                renderValue: (val: unknown) => {
+                  const v = val as string;
+                  const dotMap: Record<string, string> = {
+                    'In Progress': '#2563EB', Completed: '#16a34a', 'On Hold': '#f59e0b', Cancelled: '#ef4444',
+                  };
+                  return (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dotMap[v] ?? '#94a3b8', flexShrink: 0 }} />
+                      <Typography sx={{ fontSize: 14.5, fontWeight: 500, color: '#0f172a' }}>{v}</Typography>
+                    </Box>
+                  );
                 },
-              ]}
-            />
+              }}
+              sx={[fieldStyles, { gridColumn: { xs: '1', md: '1' }, gridRow: { md: '3' } }]}
+            >
+              {STATUS_OPTIONS.map((s) => {
+                const dotMap: Record<string, string> = {
+                  'In Progress': '#2563EB', Completed: '#16a34a', 'On Hold': '#f59e0b', Cancelled: '#ef4444',
+                };
+                return (
+                  <MenuItem key={s} value={s} sx={{ py: 1.25, minHeight: 48 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                      <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dotMap[s], flexShrink: 0 }} />
+                      <Typography sx={{ fontSize: 14, fontWeight: 500 }}>{s}</Typography>
+                    </Box>
+                  </MenuItem>
+                );
+              })}
+            </TextField>
 
             {/* RIGHT col, row 3 — Progress (numeric + slider) */}
             <Box sx={{
@@ -946,7 +948,6 @@ export default function ProjectsPage() {
                 type="number"
                 value={form.progress}
                 onChange={(e) => {
-                  // Bug 2: clamp at the input level — never allow values outside 0-100
                   const raw = e.target.value;
                   const parsed = raw === '' ? 0 : Number(raw);
                   const v = Math.min(100, Math.max(0, parsed));
@@ -957,8 +958,6 @@ export default function ProjectsPage() {
                 error={Boolean(touched.progress && validationErrors.progress)}
                 helperText={touched.progress && validationErrors.progress ? validationErrors.progress : ''}
                 fullWidth
-                // Bug 1: Progress is always 0 and non-editable while adding a new project.
-                // It becomes editable only when editing an existing project.
                 disabled={!editData}
                 inputProps={{ min: 0, max: 100 }}
                 InputProps={{
@@ -973,14 +972,12 @@ export default function ProjectsPage() {
                 <Slider
                   value={Number(form.progress)}
                   onChange={(_e, v) => {
-                    // Bug 8: slider must update both form AND mark progress as touched for sync
                     setForm(prev => ({ ...prev, progress: v as number }));
                     setTouched(prev => ({ ...prev, progress: true }));
                   }}
                   min={0}
                   max={100}
                   step={1}
-                  // Bug 1: slider is read-only (disabled) while adding a new project
                   disabled={!editData}
                   marks={[
                     { value: 0, label: '0%' },
@@ -1004,6 +1001,47 @@ export default function ProjectsPage() {
                 />
               </Box>
             </Box>
+
+            {/* LEFT col, row 4 — Description (auto-expanding, starts compact) */}
+            <TextField
+              size="small"
+              label={
+                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: '#334155' }}>
+                  <DescriptionRoundedIcon sx={{ fontSize: 15, color: '#2563EB' }} />
+                  <span>Description</span>
+                </Box>
+              }
+              placeholder="Briefly describe the project scope and goals…"
+              value={form.description}
+              onChange={(e) => {
+                handleFieldChange('description', e.target.value);
+                const ta = e.target as HTMLTextAreaElement;
+                ta.style.height = 'auto';
+                ta.style.height = `${Math.min(ta.scrollHeight, 160)}px`;
+                ta.style.overflowY = ta.scrollHeight > 160 ? 'auto' : 'hidden';
+              }}
+              onBlur={() => handleBlur('description')}
+              error={Boolean(touched.description && validationErrors.description)}
+              helperText={touched.description && validationErrors.description ? validationErrors.description : ''}
+              fullWidth
+              multiline
+              sx={[
+                fieldStyles,
+                {
+                  gridColumn: { xs: '1', md: '1' },
+                  gridRow: { md: '4' },
+                  '& .MuiInputBase-root': { padding: '8px 14px', alignItems: 'flex-start' },
+                  '& textarea': {
+                    resize: 'none',
+                    minHeight: '1.4375em',
+                    height: '1.4375em',
+                    overflowY: 'hidden',
+                    transition: 'height 0.15s ease',
+                    boxSizing: 'content-box',
+                  },
+                },
+              ]}
+            />
 
           </Box>
 

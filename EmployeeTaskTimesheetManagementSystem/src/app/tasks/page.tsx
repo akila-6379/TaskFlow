@@ -25,6 +25,7 @@ import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
 import InfoRoundedIcon from '@mui/icons-material/InfoRounded';
+import BadgeRoundedIcon from '@mui/icons-material/BadgeRounded';
 import MainLayout    from '@/components/layout/MainLayout';
 import PageHeader    from '@/components/common/PageHeader';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
@@ -56,30 +57,18 @@ const EMPTY: Omit<Task, 'id'> = {
   status: 'Pending',
   dueDate: '',
 };
-function Toolbar({ employees }: { employees: Employee[] }) {
+function Toolbar() {
   return (
     <GridToolbarContainer sx={{ px: 2.25, py: 1.75, borderBottom: '1px solid #e8ecf5', background: '#f8fafc' }}>
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.25} sx={{ width: '100%', alignItems: { xs: 'stretch', md: 'center' } }}>
         <GridToolbarQuickFilter
-          placeholder="Search tasks by title, employee or project..."
+          placeholder="Search task title, task ID, project ID or project name..."
           sx={{ flex: 1, '& .MuiInputBase-root': { fontSize: 13, borderRadius: '999px', background: '#fff', border: '1px solid #e2e8f0', minHeight: 42 } }}
         />
         <Stack direction='row' spacing={1} sx={{ flexWrap: 'wrap' }}>
           <Button variant="outlined" size="small" startIcon={<FilterListRoundedIcon />} sx={{ borderRadius: '999px', textTransform: 'none', borderColor: '#dbe4f0', color: '#334155', px: 1.5 }}>
             Filter
           </Button>
-          <TextField
-            select
-            size="small"
-            defaultValue=""
-            placeholder="Employee"
-            sx={{ minWidth: 140, '& .MuiOutlinedInput-root': { borderRadius: '999px', background: '#fff' } }}
-          >
-            <MenuItem value="">All Employees</MenuItem>
-            {employees.map((employee) => (
-              <MenuItem key={employee.id} value={employee.id}>{employee.name}</MenuItem>
-            ))}
-          </TextField>
           <TextField
             select
             size="small"
@@ -130,6 +119,18 @@ function getTaskTypeMeta(title: string) {
   const match = Object.keys(TASK_TYPE_META).find((key) => normalized.includes(key));
   return match ? TASK_TYPE_META[match] : TASK_TYPE_META.registration;
 }
+
+const parseTaskId = (taskId?: string) => {
+  if (!taskId) return { projectNum: 0, sequence: 0 };
+  const match = taskId.match(/^TK(\d+)-(\d+)$/);
+  if (match) {
+    return {
+      projectNum: parseInt(match[1], 10),
+      sequence: parseInt(match[2], 10),
+    };
+  }
+  return { projectNum: 0, sequence: 0 };
+};
 
 function getDueDateInfo(value: string) {
   if (!value) return { label: 'No date', isOverdue: false };
@@ -229,6 +230,15 @@ export default function TasksPage() {
   const loadTasks = async () => {
     try {
       const data = await taskService.getAll();
+      // Case 14: Newest Task ID first (e.g. TK8-5, TK8-4, TK8-3)
+      data.sort((a, b) => {
+        const parsedA = parseTaskId(a.taskId);
+        const parsedB = parseTaskId(b.taskId);
+        if (parsedB.projectNum !== parsedA.projectNum) {
+          return parsedB.projectNum - parsedA.projectNum;
+        }
+        return parsedB.sequence - parsedA.sequence;
+      });
       setTasks(data);
     } catch (error) {
       console.error('Failed to load tasks', error);
@@ -274,6 +284,25 @@ export default function TasksPage() {
 
   const columns: GridColDef[] = [
   {
+    field: 'taskId',
+    headerName: 'Task ID',
+    width: 100,
+    renderCell: ({ row }) => (
+      <Typography 
+        onClick={() => openEdit(row)}
+        sx={{ 
+          fontSize: 13, 
+          fontWeight: 700, 
+          color: '#2563EB', 
+          cursor: 'pointer',
+          '&:hover': { textDecoration: 'underline' }
+        }}
+      >
+        {row.taskId}
+      </Typography>
+    )
+  },
+  {
     field: 'title',
     headerName: 'Task Title',
     width: 220,
@@ -286,7 +315,7 @@ export default function TasksPage() {
               {meta.icon}
             </Box>
             <Typography sx={{ fontSize: 13.5, fontWeight: 500, color: '#0f172a', lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, flex: 1 }}>
-              {row.taskId ? `[${row.taskId}] ` : ''}{row.title}
+              {row.title}
             </Typography>
           </Box>
         </Tooltip>
@@ -319,7 +348,7 @@ export default function TasksPage() {
   {
     field: 'projectId',
     headerName: 'Project',
-    width: 250,
+    width: 280,
     renderCell: ({ value }) => {
       const proj = projects.find(p => Number(p.id) === value);
       return (
@@ -327,9 +356,14 @@ export default function TasksPage() {
           <Box sx={{ width: 26, height: 26, borderRadius: '7px', bgcolor: '#f5f3ff', color: '#6d28d9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <FolderRoundedIcon sx={{ fontSize: 16 }} />
           </Box>
-          <Typography sx={{ fontSize: 13, fontWeight: 500, color: '#374151' }}>
-            {proj ? `${proj.projectId || `PR${proj.id}`} - ${proj.projectName}` : 'Unassigned'}
-          </Typography>
+          <Box>
+            <Typography sx={{ fontSize: 13, fontWeight: 500, color: '#374151', lineHeight: 1.2 }}>
+              {proj ? proj.projectName : 'Unassigned'}
+            </Typography>
+            <Typography sx={{ fontSize: 11, fontWeight: 500, color: '#64748b', lineHeight: 1.1 }}>
+              {proj ? (proj.projectId || `PR${proj.id}`) : ''}
+            </Typography>
+          </Box>
         </Box>
       );
     },
@@ -534,7 +568,7 @@ export default function TasksPage() {
                 paginationModel: { pageSize: 10 }
               }
             }}
-            slots={{ toolbar: () => <Toolbar employees={employees} /> }}
+            slots={{ toolbar: () => <Toolbar /> }}
             disableRowSelectionOnClick
             autoHeight
             rowHeight={64}
@@ -608,6 +642,15 @@ export default function TasksPage() {
 
             <TextField
               size="small"
+              label={fieldLabel(<BadgeRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Task ID')}
+              value={editData ? (form.taskId ?? '') : 'Auto-generated'}
+              disabled={true}
+              fullWidth
+              sx={fieldStyles}
+            />
+
+            <TextField
+              size="small"
               label={fieldLabel(<AssignmentRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Task Title')}
               placeholder="Enter task title"
               value={form.title}
@@ -620,7 +663,7 @@ export default function TasksPage() {
                   </InputAdornment>
                 ),
               }}
-              sx={[fieldStyles, { gridColumn: '1 / -1' }]}
+              sx={fieldStyles}
             />
 
             <Autocomplete
