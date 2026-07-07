@@ -133,6 +133,16 @@ function getStatusChip(status: Employee['status'] | string): { label: string; co
   }
 }
 
+const isFutureDate = (dateStr: string) => {
+  if (!dateStr) return false;
+  const todayObj = new Date();
+  const year = todayObj.getFullYear();
+  const month = String(todayObj.getMonth() + 1).padStart(2, '0');
+  const day = String(todayObj.getDate()).padStart(2, '0');
+  const todayStr = `${year}-${month}-${day}`;
+  return dateStr > todayStr;
+};
+
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading]     = useState(true);
@@ -144,38 +154,65 @@ export default function EmployeesPage() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [editData, setEditData] = useState<Employee | null>(null);
   const [form, setForm]         = useState<Omit<Employee, 'id'>>(EMPTY);
-  const [errors, setErrors]     = useState<{ employeeId?: string; phone?: string }>({});
+  const [touched, setTouched]   = useState<Record<string, boolean>>({});
 
-  const isDuplicateEmployeeId = (idValue: string, currentId?: string | null) => {
-    const trimmed = idValue.trim();
-    if (!trimmed) return false;
-    return employees.some((employee) =>
-      employee.employeeId === trimmed && employee.id !== currentId,
-    );
-  };
+  const validationErrors = useMemo(() => {
+    const errs: Record<string, string> = {};
 
-  const validateEmployeeId = (value?: string) => {
-    if (!value) return undefined;
-    if (isDuplicateEmployeeId(value, editData?.id ?? null)) {
-      return 'Employee ID already exists.';
+    if (!form.name || !form.name.trim()) {
+      errs.name = 'Full Name is required.';
     }
-    return undefined;
-  };
 
-  const validatePhone = (value?: string) => {
-    if (!value) return undefined;
-    const digits = value.replace(/\D/g, '');
-    if (digits.length !== 10) {
-      return 'Phone number must contain exactly 10 digits.';
+    if (!form.email || !form.email.trim()) {
+      errs.email = 'Email is required.';
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(form.email)) {
+        errs.email = 'Invalid email address format.';
+      }
     }
-    return undefined;
+
+    if (!form.department) {
+      errs.department = 'Department is required.';
+    }
+
+    if (!form.designation) {
+      errs.designation = 'Designation is required.';
+    }
+
+    if (form.phone) {
+      const digits = form.phone.replace(/\D/g, '');
+      if (digits.length !== 10) {
+        errs.phone = 'Phone number must contain exactly 10 digits.';
+      }
+    }
+
+    if (!form.joinDate) {
+      errs.joinDate = 'Join Date is required.';
+    }
+
+    if (form.employeeId) {
+      const isDuplicate = employees.some((employee) =>
+        employee.employeeId === form.employeeId.trim() && employee.id !== editData?.id
+      );
+      if (isDuplicate) {
+        errs.employeeId = 'Employee ID already exists.';
+      }
+    }
+
+    return errs;
+  }, [form, employees, editData]);
+
+  const isSaveDisabled = Object.keys(validationErrors).length > 0;
+  const isStatusDisabled = editData === null || isFutureDate(form.joinDate);
+
+  const handleFieldChange = (field: string, value: any) => {
+    setForm(prev => ({ ...prev, [field]: value }));
+    setTouched(prev => ({ ...prev, [field]: true }));
   };
 
-  const validateForm = () => {
-    const employeeIdError = validateEmployeeId(form.employeeId);
-    const phoneError = validatePhone(form.phone);
-    setErrors({ employeeId: employeeIdError, phone: phoneError });
-    return !employeeIdError && !phoneError;
+  const handleBlur = (field: string) => {
+    setTouched(prev => ({ ...prev, [field]: true }));
   };
 
   const fieldLabel = (icon: React.ReactNode, text: string) => (
@@ -235,16 +272,39 @@ export default function EmployeesPage() {
 
   useEffect(() => { loadEmployees(); }, []);
 
-  const openAdd = () => { setEditData(null); setForm(EMPTY); setOpen(true); };
+  const openAdd = () => {
+    setEditData(null);
+    setForm(EMPTY);
+    setTouched({});
+    setOpen(true);
+  };
 
   const openEdit = (emp: Employee) => {
     setEditData(emp);
-    setForm({ employeeId: emp.employeeId ?? '', name: emp.name ?? '', email: emp.email ?? '', department: emp.department ?? '', designation: emp.designation ?? '', status: emp.status ?? 'Active', phone: emp.phone ?? '', joinDate: emp.joinDate ?? '' });
+    const initialStatus = isFutureDate(emp.joinDate ?? '') ? 'Inactive' : (emp.status ?? 'Active');
+    setForm({
+      employeeId: emp.employeeId ?? '',
+      name: emp.name ?? '',
+      email: emp.email ?? '',
+      department: emp.department ?? '',
+      designation: emp.designation ?? '',
+      status: initialStatus,
+      phone: emp.phone ?? '',
+      joinDate: emp.joinDate ?? ''
+    });
+    setTouched({
+      name: true,
+      email: true,
+      department: true,
+      designation: true,
+      phone: true,
+      joinDate: true
+    });
     setOpen(true);
   };
 
   const handleSave = async () => {
-    if (!validateForm()) {
+    if (isSaveDisabled) {
       return;
     }
 
@@ -252,7 +312,7 @@ export default function EmployeesPage() {
       if (editData) { await employeeService.update(Number(editData.id), { ...form, id: editData.id }); }
       else          { await employeeService.create(form); }
       await loadEmployees();
-      setOpen(false); setEditData(null); setForm(EMPTY); setErrors({});
+      setOpen(false); setEditData(null); setForm(EMPTY); setTouched({});
     } catch (error) { console.error('Error saving employee:', error); }
   };
 
@@ -792,8 +852,8 @@ export default function EmployeesPage() {
               label={fieldLabel(<BadgeRoundedIcon sx={{ color: '#2563EB' }} />, 'Employee ID')}
               value={editData ? (form.employeeId ?? '') : 'Auto-generated'}
               disabled={true}
-              error={Boolean(errors.employeeId)}
-              helperText={errors.employeeId || ''}
+              error={Boolean(touched.employeeId && validationErrors.employeeId)}
+              helperText={touched.employeeId && validationErrors.employeeId ? validationErrors.employeeId : ''}
               fullWidth
               sx={fieldStyles}
             />
@@ -801,7 +861,10 @@ export default function EmployeesPage() {
               size="small"
               label={fieldLabel(<PersonRoundedIcon sx={{ color: '#2563EB' }} />, 'Full Name')}
               value={form.name ?? ''}
-              onChange={e => setForm({ ...form, name: e.target.value })}
+              onChange={e => handleFieldChange('name', e.target.value)}
+              onBlur={() => handleBlur('name')}
+              error={Boolean(touched.name && validationErrors.name)}
+              helperText={touched.name && validationErrors.name ? validationErrors.name : ''}
               fullWidth
               sx={fieldStyles}
             />
@@ -809,7 +872,10 @@ export default function EmployeesPage() {
               size="small"
               label={fieldLabel(<EmailRoundedIcon sx={{ color: '#2563EB' }} />, 'Email')}
               value={form.email ?? ''}
-              onChange={e => setForm({ ...form, email: e.target.value })}
+              onChange={e => handleFieldChange('email', e.target.value)}
+              onBlur={() => handleBlur('email')}
+              error={Boolean(touched.email && validationErrors.email)}
+              helperText={touched.email && validationErrors.email ? validationErrors.email : ''}
               fullWidth
               sx={[fieldStyles, { gridColumn: '1/-1' }]}
             />
@@ -818,7 +884,21 @@ export default function EmployeesPage() {
               select
               label={fieldLabel(<BusinessRoundedIcon sx={{ color: '#2563EB' }} />, 'Department')}
               value={form.department ?? ''}
-              onChange={e => setForm({ ...form, department: e.target.value })}
+              onChange={e => {
+                setForm(prev => ({
+                  ...prev,
+                  department: e.target.value,
+                  designation: '',
+                }));
+                setTouched(prev => ({
+                  ...prev,
+                  department: true,
+                  designation: true,
+                }));
+              }}
+              onBlur={() => handleBlur('department')}
+              error={Boolean(touched.department && validationErrors.department)}
+              helperText={touched.department && validationErrors.department ? validationErrors.department : ''}
               fullWidth
               sx={fieldStyles}
               SelectProps={{
@@ -855,7 +935,10 @@ export default function EmployeesPage() {
               select
               label={fieldLabel(<WorkRoundedIcon sx={{ color: '#2563EB' }} />, 'Designation')}
               value={form.designation ?? ''}
-              onChange={(e) => setForm({ ...form, designation: e.target.value })}
+              onChange={e => handleFieldChange('designation', e.target.value)}
+              onBlur={() => handleBlur('designation')}
+              error={Boolean(touched.designation && validationErrors.designation)}
+              helperText={touched.designation && validationErrors.designation ? validationErrors.designation : ''}
               fullWidth
               sx={fieldStyles}
               SelectProps={{
@@ -893,13 +976,12 @@ export default function EmployeesPage() {
               value={form.phone ?? ''}
               onChange={e => {
                 const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
-                setForm({ ...form, phone: digits });
-                if (errors.phone) {
-                  setErrors({ ...errors, phone: digits.length === 10 ? undefined : 'Phone number must contain exactly 10 digits.' });
-                }
+                setForm(prev => ({ ...prev, phone: digits }));
+                setTouched(prev => ({ ...prev, phone: true }));
               }}
-              error={Boolean(errors.phone)}
-              helperText={errors.phone || ''}
+              onBlur={() => handleBlur('phone')}
+              error={Boolean(touched.phone && validationErrors.phone)}
+              helperText={touched.phone && validationErrors.phone ? validationErrors.phone : ''}
               fullWidth
               sx={fieldStyles}
             />
@@ -908,7 +990,22 @@ export default function EmployeesPage() {
               label={fieldLabel(<CalendarTodayRoundedIcon sx={{ color: '#2563EB' }} />, 'Join Date')}
               type="date"
               value={form.joinDate ?? ''}
-              onChange={e => setForm({ ...form, joinDate: capDateYear(e.target.value) })}
+              onChange={e => {
+                const newJoinDate = capDateYear(e.target.value);
+                let newStatus = form.status;
+                if (editData === null) {
+                  newStatus = isFutureDate(newJoinDate) ? 'Inactive' : 'Active';
+                } else {
+                  if (isFutureDate(newJoinDate)) {
+                    newStatus = 'Inactive';
+                  }
+                }
+                setForm(prev => ({ ...prev, joinDate: newJoinDate, status: newStatus }));
+                setTouched(prev => ({ ...prev, joinDate: true }));
+              }}
+              onBlur={() => handleBlur('joinDate')}
+              error={Boolean(touched.joinDate && validationErrors.joinDate)}
+              helperText={touched.joinDate && validationErrors.joinDate ? validationErrors.joinDate : ''}
               fullWidth
               InputLabelProps={{ shrink: true }}
               sx={fieldStyles}
@@ -918,7 +1015,8 @@ export default function EmployeesPage() {
               select
               label={fieldLabel(<ShieldRoundedIcon sx={{ color: '#2563EB' }} />, 'Status')}
               value={form.status ?? 'Active'}
-              onChange={e => setForm({ ...form, status: e.target.value as Employee['status'] })}
+              onChange={e => handleFieldChange('status', e.target.value as Employee['status'])}
+              disabled={isStatusDisabled}
               fullWidth
               sx={fieldStyles}
               SelectProps={{
@@ -967,6 +1065,7 @@ export default function EmployeesPage() {
           </Button>
           <Button
             onClick={handleSave}
+            disabled={isSaveDisabled}
             variant="contained"
             disableElevation
             startIcon={<SaveRoundedIcon />}
@@ -983,6 +1082,11 @@ export default function EmployeesPage() {
                 boxShadow: '0 18px 32px rgba(37, 99, 235, 0.24)',
                 bgcolor: '#1e40af',
               },
+              '&.Mui-disabled': {
+                background: '#cbd5e1',
+                color: '#94a3b8',
+                boxShadow: 'none',
+              }
             }}
           >
             {editData ? 'Save Changes' : 'Add Employee'}
