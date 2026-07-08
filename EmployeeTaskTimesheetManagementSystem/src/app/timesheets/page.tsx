@@ -32,7 +32,7 @@ import { Timesheet, Employee, Project, Task } from '@/types';
 import { taskService } from '@/services/taskService';
 
 const EMPTY: Omit<Timesheet, 'id'> = {
-  employeeId: 0, projectId: 0, workDate: '', hoursWorked: 8, description: '',
+  employeeId: 0, projectId: 0, workDate: '', hoursWorked: 1, description: '',
 };
 
 function Toolbar({
@@ -108,7 +108,6 @@ function Toolbar({
             InputLabelProps={{ shrink: true }}
             inputProps={{ max: '9999-12-31' }}
             error={Boolean(dateRangeError)}
-            helperText={dateRangeError}
             sx={{ minWidth: 150, '& .MuiOutlinedInput-root': { borderRadius: '999px', background: '#fff' } }}
           />
           <TextField
@@ -122,7 +121,12 @@ function Toolbar({
             error={Boolean(dateRangeError)}
             sx={{ minWidth: 150, '& .MuiOutlinedInput-root': { borderRadius: '999px', background: '#fff' } }}
           />
-          <Button variant="contained" startIcon={<DownloadRoundedIcon />} onClick={onExport} disableElevation sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, px: 2, background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)' }}>
+          {dateRangeError && (
+            <Typography sx={{ fontSize: 12, color: '#dc2626', alignSelf: 'center', whiteSpace: 'nowrap' }}>
+              {dateRangeError}
+            </Typography>
+          )}
+          <Button variant="contained" startIcon={<DownloadRoundedIcon />} onClick={onExport} disableElevation sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, px: 2, background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)', boxShadow: '0 4px 12px rgba(37,99,235,0.18)', '&:hover': { boxShadow: '0 6px 16px rgba(37,99,235,0.28)', transform: 'translateY(-1px)' }, transition: 'all 0.2s ease' }}>
             Export
           </Button>
         </Stack>
@@ -174,16 +178,19 @@ const [employees, setEmployees] = useState<Employee[]>([]);
 const [projects, setProjects] = useState<Project[]>([]);
 const [tasks, setTasks] = useState<Task[]>([]);
 const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
+const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
 
 const employeeOptions = useMemo(
   () => employees.map(e => ({ id: Number(e.id), label: `${e.name} (${e.employeeId})` })),
   [employees],
 );
 
+// All projects for toolbar filter
 const projectOptions = useMemo(
   () => projects.map(p => ({ id: Number(p.id), label: p.projectName })),
   [projects],
 );
+
 
 
 const loadTimesheets = async () => {
@@ -224,20 +231,35 @@ useEffect(() => {
   }, [dateFrom, dateTo]);
 
   const taskOptions = useMemo(() => {
-    if (!form.employeeId) return [];
+    if (!form.employeeId || !form.projectId) return [];
     return tasks
-      .filter(t => Number(t.employeeId) === Number(form.employeeId))
+      .filter(t => Number(t.employeeId) === Number(form.employeeId) && Number(t.projectId) === Number(form.projectId))
       .map(t => ({
         id: t.id,
         label: t.taskId || `TK${t.id}`,
         title: t.title,
         projectId: t.projectId
       }));
-  }, [tasks, form.employeeId]);
+  }, [tasks, form.employeeId, form.projectId]);
+
+  // Projects filtered by selected employee (for dialog)
+  const dialogProjectOptions = useMemo(() => {
+    if (!form.employeeId) return [];
+    const empTaskProjectIds = new Set(
+      tasks
+        .filter(t => Number(t.employeeId) === Number(form.employeeId))
+        .map(t => Number(t.projectId))
+    );
+    return projects
+      .filter(p => empTaskProjectIds.has(Number(p.id)))
+      .map(p => ({ id: Number(p.id), label: p.projectName }));
+  }, [form.employeeId, tasks, projects]);
+
 
   const openAdd = () => {
     setEditData(null);
     setSelectedTaskId(null);
+    setSelectedProjectId(null);
     setForm(EMPTY);
     setFormError('');
     setOpen(true);
@@ -246,6 +268,7 @@ useEffect(() => {
     setEditData(entry);
     const matchedTask = tasks.find(t => Number(t.employeeId) === entry.employeeId && Number(t.projectId) === entry.projectId);
     setSelectedTaskId(matchedTask ? matchedTask.id : null);
+    setSelectedProjectId(entry.projectId);
     setForm({
       employeeId: entry.employeeId,
       projectId: entry.projectId,
@@ -725,6 +748,7 @@ useEffect(() => {
               onChange={(_, val) => {
                 setForm({ ...form, employeeId: val ? val.id : 0, projectId: 0 });
                 setSelectedTaskId(null);
+                setSelectedProjectId(null);
               }}
               isOptionEqualToValue={(o, v) => o.id === v.id}
               renderInput={(params) => (
@@ -766,25 +790,54 @@ useEffect(() => {
               noOptionsText="No employees found"
             />
 
-            {/* Row 1 — Task ID */}
+            {/* Row 1 — Project */}
+            <Autocomplete
+              size="small"
+              options={dialogProjectOptions}
+              value={dialogProjectOptions.find(o => o.id === form.projectId) ?? null}
+              disabled={!form.employeeId}
+              onChange={(_, val) => {
+                const newProjectId = val ? val.id : 0;
+                setForm(f => ({ ...f, projectId: newProjectId }));
+                setSelectedProjectId(val ? val.id : null);
+                setSelectedTaskId(null);
+              }}
+              isOptionEqualToValue={(o, v) => o.id === v.id}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label={fieldLabel(<FolderRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Project')}
+                  placeholder={form.employeeId ? 'Select project' : 'Select employee first'}
+                  fullWidth
+                  InputProps={{
+                    ...params.InputProps,
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <FolderRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={fieldStyles}
+                />
+              )}
+              noOptionsText={form.employeeId ? 'No projects are assigned to this employee.' : 'Select an employee first'}
+            />
+
+            {/* Row 2 — Task ID */}
             <Autocomplete
               size="small"
               options={taskOptions}
               value={taskOptions.find(o => o.id === selectedTaskId) ?? null}
+              disabled={!form.projectId}
               onChange={(_, val) => {
                 setSelectedTaskId(val ? val.id : null);
-                if (val) {
-                  setForm(f => ({ ...f, projectId: val.projectId }));
-                } else {
-                  setForm(f => ({ ...f, projectId: 0 }));
-                }
               }}
               isOptionEqualToValue={(o, v) => o.id === v.id}
               renderInput={(params) => (
                 <TextField
                   {...params}
                   label={fieldLabel(<AssignmentRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Task ID')}
-                  placeholder="Select Task ID"
+                  placeholder={form.projectId ? 'Select Task ID' : 'Select project first'}
                   fullWidth
                   InputProps={{
                     ...params.InputProps,
@@ -797,10 +850,10 @@ useEffect(() => {
                   sx={fieldStyles}
                 />
               )}
-              noOptionsText="No tasks found"
+              noOptionsText={form.projectId ? 'No tasks are assigned for this employee in the selected project.' : 'Select a project first'}
             />
 
-            {/* Row 2 — Task Name */}
+            {/* Row 2 — Task Name (auto-fill) */}
             <TextField
               size="small"
               label={fieldLabel(<AssignmentRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Task Name')}
@@ -817,7 +870,7 @@ useEffect(() => {
               sx={fieldStyles}
             />
 
-            {/* Row 2 — Project ID */}
+            {/* Row 3 — Project ID (auto-fill) */}
             <TextField
               size="small"
               label={fieldLabel(<FolderRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Project ID')}
@@ -834,7 +887,7 @@ useEffect(() => {
               sx={fieldStyles}
             />
 
-            {/* Row 3 — Project Name */}
+            {/* Row 3 — Project Name (auto-fill) */}
             <TextField
               size="small"
               label={fieldLabel(<FolderRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Project Name')}
@@ -851,7 +904,7 @@ useEffect(() => {
               sx={fieldStyles}
             />
 
-            {/* Row 3 — Work Date */}
+            {/* Row 4 — Work Date */}
             <TextField
               size="small"
               label={fieldLabel(<CalendarMonthRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Work Date')}
@@ -888,30 +941,44 @@ useEffect(() => {
             />
 
             {/* Row 4 — Hours Worked */}
-            <TextField
-              size="small"
-              label={fieldLabel(<AccessTimeRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Hours Worked')}
-              type="number"
-              value={form.hoursWorked}
-              onChange={e => setForm({ ...form, hoursWorked: Number(e.target.value) })}
-              fullWidth
-              inputProps={{ min: 0.5, max: 24, step: 0.5 }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <AccessTimeRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <Typography sx={{ fontSize: 13, color: '#64748b', fontWeight: 500 }}>hrs</Typography>
-                  </InputAdornment>
-                ),
-              }}
-              sx={fieldStyles}
-            />
+            {(() => {
+              const hoursVal = form.hoursWorked;
+              const hoursError =
+                hoursVal <= 0 ? 'Hours Worked must be greater than 0 hours.'
+                : hoursVal > 10 ? 'Hours Worked cannot exceed 10 hours.'
+                : '';
+              return (
+                <TextField
+                  size="small"
+                  label={fieldLabel(<AccessTimeRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Hours Worked')}
+                  type="number"
+                  value={form.hoursWorked}
+                  onChange={e => {
+                    const raw = Number(e.target.value);
+                    setForm({ ...form, hoursWorked: raw });
+                  }}
+                  fullWidth
+                  error={Boolean(hoursError)}
+                  helperText={hoursError}
+                  inputProps={{ min: 0.5, max: 10, step: 0.5 }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <AccessTimeRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
+                      </InputAdornment>
+                    ),
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <Typography sx={{ fontSize: 13, color: '#64748b', fontWeight: 500 }}>hrs</Typography>
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={fieldStyles}
+                />
+              );
+            })()}
 
-            {/* Row 4 — Description */}
+            {/* Row 5 — Description */}
             <TextField
               size="small"
               label={fieldLabel(<DescriptionRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Description')}
@@ -978,6 +1045,11 @@ useEffect(() => {
           </Button>
           <Button
             onClick={handleSave}
+            disabled={(() => {
+              const hoursVal = form.hoursWorked;
+              const hoursError = hoursVal <= 0 || hoursVal > 10;
+              return hoursError || Boolean(formError && formError !== '');
+            })()}
             variant="contained"
             disableElevation
             startIcon={<SaveRoundedIcon />}
@@ -990,6 +1062,7 @@ useEffect(() => {
               bgcolor: '#2563EB',
               '&:hover': { bgcolor: '#1D4ED8', boxShadow: '0 4px 12px rgba(37,99,235,0.25)' },
               transition: 'all 0.2s ease',
+              '&.Mui-disabled': { background: '#cbd5e1', color: '#94a3b8', boxShadow: 'none' },
             }}
           >
             Save Entry

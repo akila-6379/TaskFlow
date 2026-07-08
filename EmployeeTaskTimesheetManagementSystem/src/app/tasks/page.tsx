@@ -79,7 +79,22 @@ function Toolbar({ filterStatus, onStatusChange }: { filterStatus: string; onSta
             <MenuItem value="In Progress">In Progress</MenuItem>
             <MenuItem value="Completed">Completed</MenuItem>
           </TextField>
-          <Button variant="outlined" size="small" startIcon={<DownloadRoundedIcon />} sx={{ borderRadius: '999px', textTransform: 'none', borderColor: '#dbe4f0', color: '#334155', px: 1.5 }}>
+          <Button
+            variant="contained"
+            size="small"
+            startIcon={<DownloadRoundedIcon />}
+            disableElevation
+            sx={{
+              borderRadius: '999px',
+              textTransform: 'none',
+              fontWeight: 700,
+              px: 2,
+              background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)',
+              boxShadow: '0 4px 12px rgba(37,99,235,0.18)',
+              '&:hover': { boxShadow: '0 6px 16px rgba(37,99,235,0.28)', transform: 'translateY(-1px)' },
+              transition: 'all 0.2s ease',
+            }}
+          >
             Export
           </Button>
         </Stack>
@@ -311,6 +326,17 @@ export default function TasksPage() {
     }
     return '';
   }, [form.projectId, form.dueDate, projects]);
+
+  const taskFormValid = useMemo(() => {
+    return (
+      form.title.trim().length > 0 &&
+      form.employeeId > 0 &&
+      form.projectId > 0 &&
+      form.dueDate.trim().length > 0 &&
+      form.status.trim().length > 0 &&
+      form.description.trim().length > 0
+    );
+  }, [form.title, form.employeeId, form.projectId, form.dueDate, form.status, form.description]);
 
   const columns: GridColDef[] = [
   {
@@ -912,7 +938,7 @@ export default function TasksPage() {
           </Button>
           <Button
             onClick={handleSave}
-            disabled={Boolean(projectValidationError) || Boolean(dueDateValidationError)}
+            disabled={Boolean(projectValidationError) || Boolean(dueDateValidationError) || !taskFormValid}
             variant="contained"
             disableElevation
             startIcon={<TaskAltRoundedIcon />}
