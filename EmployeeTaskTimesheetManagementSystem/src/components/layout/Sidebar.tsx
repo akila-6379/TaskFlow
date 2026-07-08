@@ -214,6 +214,7 @@ export default function Sidebar() {
     borderRight: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0',
     bgcolor: isDark ? '#111827' : '#ffffff',
     backgroundImage: 'none',
+    borderRadius: 0,
   };
 
   if (isMobile) {

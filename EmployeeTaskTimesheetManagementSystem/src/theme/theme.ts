@@ -111,6 +111,9 @@ export function createAppTheme(mode: 'light' | 'dark' = 'light') {
             backgroundImage: 'none',
             color: t.textPri,
             borderRight: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid #e2e8f0',
+            // Override the global MuiPaper borderRadius:16 — the sidebar must have
+            // sharp corners so it sits flush with the full viewport height.
+            borderRadius: 0,
           },
         },
       },
