@@ -14,3 +14,13 @@ export function capDateYear(value: string): string {
   }
   return parts.join('-');
 }
+
+export function formatDateToDMY(value: string | Date | null): string {
+  if (!value) return '';
+  const dateObj = new Date(value);
+  if (Number.isNaN(dateObj.getTime())) return '';
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const year = dateObj.getFullYear();
+  return `${day}-${month}-${year}`;
+}

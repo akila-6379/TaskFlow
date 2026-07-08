@@ -1,5 +1,5 @@
 'use client';
-import { capDateYear } from '@/utils/dateUtils';
+import { capDateYear, formatDateToDMY } from '@/utils/dateUtils';
 import { useState, useMemo, useEffect } from 'react';
 import { timesheetService } from '@/services/timesheetService';
 import { employeeService } from '@/services/employeeService';
@@ -24,10 +24,12 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded';
+import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
 import MainLayout    from '@/components/layout/MainLayout';
 import PageHeader    from '@/components/common/PageHeader';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
-import { Timesheet, Employee, Project } from '@/types';
+import { Timesheet, Employee, Project, Task } from '@/types';
+import { taskService } from '@/services/taskService';
 
 const EMPTY: Omit<Timesheet, 'id'> = {
   employeeId: 0, projectId: 0, workDate: '', hoursWorked: 8, description: '',
@@ -47,6 +49,7 @@ function Toolbar({
   onExport,
   employeeOptions,
   projectOptions,
+  dateRangeError,
 }: {
   searchValue: string;
   onSearchChange: (value: string) => void;
@@ -61,6 +64,7 @@ function Toolbar({
   onExport: () => void;
   employeeOptions: Array<{ id: number; label: string }>;
   projectOptions: Array<{ id: number; label: string }>;
+  dateRangeError: string;
 }) {
   return (
     <GridToolbarContainer sx={{ px: 2.25, py: 1.75, borderBottom: '1px solid #e5e7eb', background: '#f8fafc' }}>
@@ -103,6 +107,8 @@ function Toolbar({
             onChange={(e) => onDateFromChange(capDateYear(e.target.value))}
             InputLabelProps={{ shrink: true }}
             inputProps={{ max: '9999-12-31' }}
+            error={Boolean(dateRangeError)}
+            helperText={dateRangeError}
             sx={{ minWidth: 150, '& .MuiOutlinedInput-root': { borderRadius: '999px', background: '#fff' } }}
           />
           <TextField
@@ -113,6 +119,7 @@ function Toolbar({
             onChange={(e) => onDateToChange(capDateYear(e.target.value))}
             InputLabelProps={{ shrink: true }}
             inputProps={{ max: '9999-12-31' }}
+            error={Boolean(dateRangeError)}
             sx={{ minWidth: 150, '& .MuiOutlinedInput-root': { borderRadius: '999px', background: '#fff' } }}
           />
           <Button variant="contained" startIcon={<DownloadRoundedIcon />} onClick={onExport} disableElevation sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, px: 2, background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)' }}>
@@ -165,6 +172,8 @@ const [timesheets, setTimesheets] = useState<Timesheet[]>([]);
 const [loading, setLoading] = useState(true);
 const [employees, setEmployees] = useState<Employee[]>([]);
 const [projects, setProjects] = useState<Project[]>([]);
+const [tasks, setTasks] = useState<Task[]>([]);
+const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
 
 const employeeOptions = useMemo(
   () => employees.map(e => ({ id: Number(e.id), label: `${e.name} (${e.employeeId})` })),
@@ -175,6 +184,7 @@ const projectOptions = useMemo(
   () => projects.map(p => ({ id: Number(p.id), label: p.projectName })),
   [projects],
 );
+
 
 const loadTimesheets = async () => {
   try {
@@ -191,6 +201,7 @@ useEffect(() => {
   loadTimesheets();
   employeeService.getAll().then(setEmployees).catch(console.error);
   projectService.getAll().then(setProjects).catch(console.error);
+  taskService.getAll().then(setTasks).catch(console.error);
 }, []);
 
   // ── local dialog state ────────────────────────────────────────────────────
@@ -204,14 +215,37 @@ useEffect(() => {
   const [projectFilter, setProjectFilter] = useState<number | null>(null);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+
+  const dateRangeError = useMemo(() => {
+    if (dateFrom && dateTo && dateFrom > dateTo) {
+      return 'From Date cannot be later than To Date.';
+    }
+    return '';
+  }, [dateFrom, dateTo]);
+
+  const taskOptions = useMemo(() => {
+    if (!form.employeeId) return [];
+    return tasks
+      .filter(t => Number(t.employeeId) === Number(form.employeeId))
+      .map(t => ({
+        id: t.id,
+        label: t.taskId || `TK${t.id}`,
+        title: t.title,
+        projectId: t.projectId
+      }));
+  }, [tasks, form.employeeId]);
+
   const openAdd = () => {
-  setEditData(null);
-  setForm(EMPTY);
-  setFormError('');
-  setOpen(true);
-};
+    setEditData(null);
+    setSelectedTaskId(null);
+    setForm(EMPTY);
+    setFormError('');
+    setOpen(true);
+  };
   const openEdit = (entry: Timesheet) => {
     setEditData(entry);
+    const matchedTask = tasks.find(t => Number(t.employeeId) === entry.employeeId && Number(t.projectId) === entry.projectId);
+    setSelectedTaskId(matchedTask ? matchedTask.id : null);
     setForm({
       employeeId: entry.employeeId,
       projectId: entry.projectId,
@@ -224,29 +258,74 @@ useEffect(() => {
   };
 
   const handleSave = async () => {
-  setFormError('');
-  try {
-    if (editData) {
-      await timesheetService.update(editData.id, {
-        ...form,
-        id: editData.id,
-      });
-    } else {
-      await timesheetService.create(form);
+    setFormError('');
+    if (!form.employeeId) {
+      setFormError('Employee is required.');
+      return;
+    }
+    if (!selectedTaskId) {
+      setFormError('Task ID is required.');
+      return;
+    }
+    if (!form.projectId) {
+      setFormError('Project is required.');
+      return;
+    }
+    if (!form.workDate) {
+      setFormError('Work Date is required.');
+      return;
     }
 
-    await loadTimesheets();
-    setForm(EMPTY);
-    setEditData(null);
-    setOpen(false);
-  } catch (error: any) {
-    const msg =
-      error?.response?.data?.message ||
-      error?.response?.data ||
-      'An error occurred while saving the timesheet. Please try again.';
-    setFormError(typeof msg === 'string' ? msg : JSON.stringify(msg));
-  }
-};
+    const selectedProject = projects.find(p => Number(p.id) === form.projectId);
+    if (selectedProject) {
+      const ws = selectedProject.startDate;
+      const we = selectedProject.endDate;
+      if (form.workDate < ws || form.workDate > we) {
+        setFormError("Work Date must fall within the selected project's duration.");
+        return;
+      }
+    }
+
+    const today = new Date().toISOString().slice(0, 10);
+    const todayDate = new Date(today);
+    const pickedDate = new Date(form.workDate);
+    const daysDiff = Math.round((todayDate.getTime() - pickedDate.getTime()) / 86400000);
+    const dow = pickedDate.getDay();
+    if (dow === 0 || dow === 6) {
+      setFormError('Timesheet entries are not allowed on weekends (Saturday or Sunday).');
+      return;
+    }
+    if (daysDiff > 2) {
+      setFormError('You can only log time for today, yesterday, or the day before yesterday.');
+      return;
+    }
+    if (daysDiff < 0) {
+      setFormError('Work Date cannot be in the future.');
+      return;
+    }
+
+    try {
+      if (editData) {
+        await timesheetService.update(editData.id, {
+          ...form,
+          id: editData.id,
+        });
+      } else {
+        await timesheetService.create(form);
+      }
+
+      await loadTimesheets();
+      setForm(EMPTY);
+      setEditData(null);
+      setOpen(false);
+    } catch (error: any) {
+      const msg =
+        error?.response?.data?.message ||
+        error?.response?.data ||
+        'An error occurred while saving the timesheet. Please try again.';
+      setFormError(typeof msg === 'string' ? msg : JSON.stringify(msg));
+    }
+  };
 
   // ── derived summary stats (always safe — timesheets is guaranteed array) ──
   const stats = useMemo(() => {
@@ -285,11 +364,14 @@ useEffect(() => {
       .filter((entry) => {
         const emp = employees.find((e) => Number(e.id) === entry.employeeId);
         const proj = projects.find((p) => Number(p.id) === entry.projectId);
+        const matchedTask = tasks.find(t => Number(t.employeeId) === entry.employeeId && Number(t.projectId) === entry.projectId);
         
         const employeeName = emp?.name?.toLowerCase() ?? '';
         const employeeId = emp?.employeeId?.toLowerCase() ?? '';
         const projectName = proj?.projectName?.toLowerCase() ?? '';
         const projectId = proj?.projectId?.toLowerCase() ?? '';
+        const taskId = matchedTask?.taskId?.toLowerCase() ?? '';
+        const taskName = matchedTask?.title?.toLowerCase() ?? '';
         const description = entry.description?.toLowerCase() ?? '';
         const workDate = entry.workDate ?? '';
 
@@ -298,14 +380,16 @@ useEffect(() => {
           employeeId,
           projectName,
           projectId,
+          taskId,
+          taskName,
           description,
           workDate
         ].some((value) => value.includes(term));
 
         const matchesEmployee = employeeFilter === null || entry.employeeId === employeeFilter;
         const matchesProject = projectFilter === null || entry.projectId === projectFilter;
-        const matchesDateFrom = !dateFrom || entry.workDate >= dateFrom;
-        const matchesDateTo = !dateTo || entry.workDate <= dateTo;
+        const matchesDateFrom = !dateFrom || dateRangeError ? true : entry.workDate >= dateFrom;
+        const matchesDateTo = !dateTo || dateRangeError ? true : entry.workDate <= dateTo;
 
         return matchesSearch && matchesEmployee && matchesProject && matchesDateFrom && matchesDateTo;
       })
@@ -314,7 +398,7 @@ useEffect(() => {
         const db = b.workDate ?? '';
         return db.localeCompare(da);
       });
-  }, [timesheets, employees, projects, searchValue, employeeFilter, projectFilter, dateFrom, dateTo]);
+  }, [timesheets, employees, projects, tasks, searchValue, employeeFilter, projectFilter, dateFrom, dateTo, dateRangeError]);
 
   const handleExport = () => {
     const headers = ['Employee', 'Project', 'Work Date', 'Hours Worked', 'Description'];
@@ -324,7 +408,7 @@ useEffect(() => {
       return [
         `${emp?.name ?? `#${entry.employeeId}`}`,
         `${proj?.projectName ?? `#${entry.projectId}`}`,
-        entry.workDate,
+        formatDateToDMY(entry.workDate),
         `${entry.hoursWorked}`,
         entry.description.replace(/\n/g, ' '),
       ];
@@ -403,7 +487,7 @@ useEffect(() => {
           </Box>
           <Box sx={{ minWidth: 0 }}>
             <Typography sx={{ fontWeight: 400, color: '#374151', fontSize: 13, lineHeight: 1.3 }}>
-              {isValidDate ? new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Invalid date'}
+              {isValidDate ? formatDateToDMY(value) : 'Invalid date'}
             </Typography>
             <Typography sx={{ fontSize: 11, fontWeight: 400, color: '#94a3b8', lineHeight: 1.2 }}>
               {isValidDate ? new Date(value).toLocaleDateString('en-GB', { weekday: 'short' }) : '—'}
@@ -566,6 +650,7 @@ useEffect(() => {
                 onExport: handleExport,
                 employeeOptions,
                 projectOptions,
+                dateRangeError,
               } as any
             }}
             disableRowSelectionOnClick
@@ -637,7 +722,10 @@ useEffect(() => {
               size="small"
               options={employeeOptions}
               value={employeeOptions.find(o => o.id === form.employeeId) ?? null}
-              onChange={(_, val) => val && setForm({ ...form, employeeId: val.id })}
+              onChange={(_, val) => {
+                setForm({ ...form, employeeId: val ? val.id : 0, projectId: 0 });
+                setSelectedTaskId(null);
+              }}
               isOptionEqualToValue={(o, v) => o.id === v.id}
               renderInput={(params) => (
                 <TextField
@@ -678,45 +766,92 @@ useEffect(() => {
               noOptionsText="No employees found"
             />
 
-            {/* Row 1 — Project */}
+            {/* Row 1 — Task ID */}
             <Autocomplete
               size="small"
-              options={projectOptions}
-              value={projectOptions.find(o => o.id === form.projectId) ?? null}
-              onChange={(_, val) => val && setForm({ ...form, projectId: val.id })}
+              options={taskOptions}
+              value={taskOptions.find(o => o.id === selectedTaskId) ?? null}
+              onChange={(_, val) => {
+                setSelectedTaskId(val ? val.id : null);
+                if (val) {
+                  setForm(f => ({ ...f, projectId: val.projectId }));
+                } else {
+                  setForm(f => ({ ...f, projectId: 0 }));
+                }
+              }}
               isOptionEqualToValue={(o, v) => o.id === v.id}
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label={fieldLabel(<FolderRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Project')}
-                  placeholder="Select project"
+                  label={fieldLabel(<AssignmentRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Task ID')}
+                  placeholder="Select Task ID"
                   fullWidth
                   InputProps={{
                     ...params.InputProps,
                     startAdornment: (
                       <InputAdornment position="start">
-                        <FolderRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
+                        <AssignmentRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
                       </InputAdornment>
                     ),
                   }}
                   sx={fieldStyles}
                 />
               )}
-              renderOption={(props, option) => {
-                const { key, ...rest } = props;
-                return (
-                  <Box component="li" key={key} {...rest} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.25, px: 2 }}>
-                    <Box sx={{ width: 28, height: 28, borderRadius: '8px', bgcolor: 'rgba(109,93,246,0.1)', color: '#6D5DF6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <FolderRoundedIcon sx={{ fontSize: 16 }} />
-                    </Box>
-                    <Typography sx={{ fontWeight: 600, fontSize: 13.5, color: '#0f172a' }}>{option.label}</Typography>
-                  </Box>
-                );
-              }}
-              noOptionsText="No projects found"
+              noOptionsText="No tasks found"
             />
 
-            {/* Row 2 — Work Date (full width, 3-day window, no weekends) */}
+            {/* Row 2 — Task Name */}
+            <TextField
+              size="small"
+              label={fieldLabel(<AssignmentRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Task Name')}
+              value={tasks.find(t => t.id === selectedTaskId)?.title ?? ''}
+              fullWidth
+              InputProps={{
+                readOnly: true,
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <AssignmentRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={fieldStyles}
+            />
+
+            {/* Row 2 — Project ID */}
+            <TextField
+              size="small"
+              label={fieldLabel(<FolderRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Project ID')}
+              value={projects.find(p => Number(p.id) === form.projectId)?.projectId ?? ''}
+              fullWidth
+              InputProps={{
+                readOnly: true,
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <FolderRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={fieldStyles}
+            />
+
+            {/* Row 3 — Project Name */}
+            <TextField
+              size="small"
+              label={fieldLabel(<FolderRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Project Name')}
+              value={projects.find(p => Number(p.id) === form.projectId)?.projectName ?? ''}
+              fullWidth
+              InputProps={{
+                readOnly: true,
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <FolderRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={fieldStyles}
+            />
+
+            {/* Row 3 — Work Date */}
             <TextField
               size="small"
               label={fieldLabel(<CalendarMonthRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Work Date')}
@@ -725,9 +860,7 @@ useEffect(() => {
               onChange={e => {
                 const capped = capDateYear(e.target.value);
                 const today = new Date().toISOString().slice(0, 10);
-                // Clamp future dates to today
                 const selectedDate = capped > today ? today : capped;
-                // Frontend validation
                 const todayDate = new Date(today);
                 const pickedDate = new Date(selectedDate);
                 const daysDiff = Math.round((todayDate.getTime() - pickedDate.getTime()) / 86400000);
@@ -751,10 +884,10 @@ useEffect(() => {
                   </InputAdornment>
                 ),
               }}
-              sx={[fieldStyles, { gridColumn: '1 / -1' }]}
+              sx={fieldStyles}
             />
 
-            {/* Row 3 — Hours Worked (full width) */}
+            {/* Row 4 — Hours Worked */}
             <TextField
               size="small"
               label={fieldLabel(<AccessTimeRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Hours Worked')}
@@ -775,10 +908,10 @@ useEffect(() => {
                   </InputAdornment>
                 ),
               }}
-              sx={[fieldStyles, { gridColumn: '1 / -1' }]}
+              sx={fieldStyles}
             />
 
-            {/* Row 4 — Description (full width, auto-expanding) */}
+            {/* Row 4 — Description */}
             <TextField
               size="small"
               label={fieldLabel(<DescriptionRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Description')}
@@ -796,7 +929,6 @@ useEffect(() => {
               sx={[
                 fieldStyles,
                 {
-                  gridColumn: '1 / -1',
                   '& .MuiInputBase-root': { padding: '8px 14px', alignItems: 'flex-start' },
                   '& textarea': {
                     resize: 'none',

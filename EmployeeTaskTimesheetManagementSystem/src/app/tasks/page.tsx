@@ -1,5 +1,5 @@
 'use client';
-import { capDateYear } from '@/utils/dateUtils';
+import { capDateYear, formatDateToDMY } from '@/utils/dateUtils';
 import { useState, useEffect, useMemo } from 'react';
 import {
   Autocomplete, Avatar, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle,
@@ -69,9 +69,10 @@ function Toolbar({ filterStatus, onStatusChange }: { filterStatus: string; onSta
           <TextField
             select
             size="small"
+            label="Task Status"
             value={filterStatus}
             onChange={(e) => onStatusChange(e.target.value)}
-            sx={{ minWidth: 140, '& .MuiOutlinedInput-root': { borderRadius: '999px', background: '#fff' } }}
+            sx={{ minWidth: 150, '& .MuiOutlinedInput-root': { borderRadius: '999px', background: '#fff' } }}
           >
             <MenuItem value="">All Status</MenuItem>
             <MenuItem value="Pending">Pending</MenuItem>
@@ -262,6 +263,7 @@ export default function TasksPage() {
   const openEdit = (t: Task) => { setEditData(t); setForm({ ...t }); setOpen(true); };
 
   const handleSave = async () => {
+    if (projectValidationError || dueDateValidationError) return;
     try {
       if (editData) {
         await taskService.update(editData.id, {
@@ -299,6 +301,16 @@ export default function TasksPage() {
     }
     return '';
   }, [form.projectId, editData, projects]);
+
+  const dueDateValidationError = useMemo(() => {
+    if (!form.projectId || !form.dueDate) return '';
+    const proj = projects.find(p => Number(p.id) === form.projectId);
+    if (!proj) return '';
+    if (form.dueDate > proj.endDate) {
+      return 'Task Due Date cannot be later than the Project End Date.';
+    }
+    return '';
+  }, [form.projectId, form.dueDate, projects]);
 
   const columns: GridColDef[] = [
   {
@@ -385,7 +397,7 @@ export default function TasksPage() {
           </Box>
           <Box sx={{ minWidth: 0 }}>
             <Typography sx={{ fontSize: 13, fontWeight: 400, color: '#374151', lineHeight: 1.3 }}>
-              {value ? new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'No date'}
+              {value ? formatDateToDMY(value) : 'No date'}
             </Typography>
             <Typography sx={{ fontSize: 11, fontWeight: 400, color: info.isOverdue ? '#dc2626' : '#94a3b8', lineHeight: 1.2 }}>{info.label}</Typography>
           </Box>
@@ -788,6 +800,8 @@ export default function TasksPage() {
               fullWidth
               InputLabelProps={{ shrink: true }}
               inputProps={{ max: '9999-12-31' }}
+              error={Boolean(dueDateValidationError)}
+              helperText={dueDateValidationError}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -898,7 +912,7 @@ export default function TasksPage() {
           </Button>
           <Button
             onClick={handleSave}
-            disabled={Boolean(projectValidationError)}
+            disabled={Boolean(projectValidationError) || Boolean(dueDateValidationError)}
             variant="contained"
             disableElevation
             startIcon={<TaskAltRoundedIcon />}
