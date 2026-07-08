@@ -3,7 +3,7 @@ import { capDateYear, formatDateToDMY } from '@/utils/dateUtils';
 import { useState, useEffect, useMemo } from 'react';
 import {
   Autocomplete, Avatar, Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle,
-  TextField, MenuItem, IconButton, Tooltip, Paper, Divider, Typography, InputAdornment, Stack,
+  TextField, MenuItem, IconButton, Tooltip, Paper, Divider, Typography, InputAdornment, Stack, useTheme,
 } from '@mui/material';
 import { DataGrid, GridColDef, GridToolbarContainer, GridToolbarQuickFilter } from '@mui/x-data-grid';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
@@ -58,12 +58,15 @@ const EMPTY: Omit<Task, 'id'> = {
   dueDate: '',
 };
 function Toolbar({ filterStatus, onStatusChange }: { filterStatus: string; onStatusChange: (status: string) => void }) {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+
   return (
-    <GridToolbarContainer sx={{ px: 2.25, py: 1.75, borderBottom: '1px solid #e8ecf5', background: '#f8fafc' }}>
+    <GridToolbarContainer sx={{ px: 2.25, py: 1.75, borderBottom: '1px solid', borderColor: 'divider', background: 'background.paper' }}>
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.25} sx={{ width: '100%', alignItems: { xs: 'stretch', md: 'center' } }}>
         <GridToolbarQuickFilter
           placeholder="Search task title, task ID, project ID or project name..."
-          sx={{ flex: 1, '& .MuiInputBase-root': { fontSize: 13, borderRadius: '999px', background: '#fff', border: '1px solid #e2e8f0', minHeight: 42 } }}
+          sx={{ flex: 1, '& .MuiInputBase-root': { fontSize: 13, borderRadius: '999px', background: 'action.hover', border: '1px solid', borderColor: 'divider', minHeight: 42 } }}
         />
         <Stack direction='row' spacing={1} sx={{ flexWrap: 'wrap' }}>
           <TextField
@@ -72,7 +75,7 @@ function Toolbar({ filterStatus, onStatusChange }: { filterStatus: string; onSta
             label="Task Status"
             value={filterStatus}
             onChange={(e) => onStatusChange(e.target.value)}
-            sx={{ minWidth: 150, '& .MuiOutlinedInput-root': { borderRadius: '999px', background: '#fff' } }}
+            sx={{ minWidth: 150, '& .MuiOutlinedInput-root': { borderRadius: '999px', background: 'action.hover' } }}
           >
             <MenuItem value="">All Status</MenuItem>
             <MenuItem value="Pending">Pending</MenuItem>
@@ -89,9 +92,13 @@ function Toolbar({ filterStatus, onStatusChange }: { filterStatus: string; onSta
               textTransform: 'none',
               fontWeight: 700,
               px: 2,
-              background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)',
-              boxShadow: '0 4px 12px rgba(37,99,235,0.18)',
-              '&:hover': { boxShadow: '0 6px 16px rgba(37,99,235,0.28)', transform: 'translateY(-1px)' },
+              background: isDark ? 'linear-gradient(135deg, #7C3AED 0%, #6d28d9 100%)' : 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)',
+              boxShadow: isDark ? '0 4px 12px rgba(124,58,237,0.25)' : '0 4px 12px rgba(37,99,235,0.18)',
+              '&:hover': {
+                background: isDark ? 'linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%)' : 'linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%)',
+                boxShadow: isDark ? '0 6px 18px rgba(124,58,237,0.35)' : '0 6px 16px rgba(37,99,235,0.28)',
+                transform: 'translateY(-1px)',
+              },
               transition: 'all 0.2s ease',
             }}
           >
@@ -173,9 +180,9 @@ function getStatusColor(status: string) {
 }
 
 const fieldLabel = (icon: React.ReactNode, text: string) => (
-  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, color: '#334155', fontSize: 13, fontWeight: 600 }}>
+  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, color: 'text.secondary', fontSize: 13, fontWeight: 600 }}>
     {icon}
-    <Typography component="span" sx={{ fontSize: 13, fontWeight: 600 }}>{text}</Typography>
+    <Typography component="span" sx={{ fontSize: 13, fontWeight: 600, color: 'text.secondary' }}>{text}</Typography>
   </Box>
 );
 
@@ -183,40 +190,41 @@ const fieldStyles = {
   '& .MuiOutlinedInput-root': {
     borderRadius: '14px',
     minHeight: 52,
-    backgroundColor: '#ffffff',
+    backgroundColor: 'background.paper',
     '& fieldset': {
-      borderColor: '#cbd5e1',
+      borderColor: 'divider',
     },
     '&:hover fieldset': {
-      borderColor: '#94a3b8',
+      borderColor: 'text.disabled',
     },
     '&.Mui-focused fieldset': {
-      borderColor: '#2563EB',
-      boxShadow: '0 0 0 4px rgba(37,99,235,0.08)',
+      borderColor: 'primary.main',
     },
   },
   '& .MuiInputLabel-root': {
-    color: '#334155',
+    color: 'text.secondary',
     fontWeight: 600,
   },
   '& .MuiInputBase-input': {
     fontSize: '15px',
     fontWeight: 500,
-    color: '#111827',
+    color: 'text.primary',
   },
   '& .MuiOutlinedInput-input': {
     fontSize: '15px',
     fontWeight: 500,
-    color: '#111827',
+    color: 'text.primary',
   },
   '& .MuiSelect-select': {
     fontSize: '15px',
     fontWeight: 500,
-    color: '#111827',
+    color: 'text.primary',
   },
 };
 
 export default function TasksPage() {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -348,14 +356,14 @@ export default function TasksPage() {
       return (
         <Tooltip title={row.title}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, height: '100%', py: 1 }}>
-            <Box sx={{ width: 34, height: 34, borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: `${meta.color}14`, color: meta.color, flexShrink: 0 }}>
+            <Box sx={{ width: 34, height: 34, borderRadius: '9px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: isDark ? 'rgba(37,99,235,0.15)' : `${meta.color}14`, color: isDark ? '#60a5fa' : meta.color, flexShrink: 0 }}>
               {meta.icon}
             </Box>
             <Box sx={{ minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <Typography sx={{ fontSize: 13.5, fontWeight: 600, color: '#0f172a', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <Typography sx={{ fontSize: 13.5, fontWeight: 600, color: 'text.primary', lineHeight: 1.25, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {row.title}
               </Typography>
-              <Typography sx={{ fontSize: 11.5, fontWeight: 500, color: '#64748b', lineHeight: 1.2, mt: 0.25 }}>
+              <Typography sx={{ fontSize: 11.5, fontWeight: 500, color: 'text.secondary', lineHeight: 1.2, mt: 0.25 }}>
                 {row.taskId}
               </Typography>
             </Box>
@@ -380,8 +388,8 @@ export default function TasksPage() {
             {initial}
           </Avatar>
           <Box>
-            <Typography sx={{ fontSize: 13.5, fontWeight: 500, color: '#0f172a', lineHeight: 1.3 }}>{emp ? emp.name : 'Unassigned'}</Typography>
-            <Typography sx={{ fontSize: 11.5, fontWeight: 400, color: '#64748b', lineHeight: 1.2 }}>{emp ? emp.employeeId : `#${value}`}</Typography>
+            <Typography sx={{ fontSize: 13.5, fontWeight: 500, color: 'text.primary', lineHeight: 1.3 }}>{emp ? emp.name : 'Unassigned'}</Typography>
+            <Typography sx={{ fontSize: 11.5, fontWeight: 400, color: 'text.secondary', lineHeight: 1.2 }}>{emp ? emp.employeeId : `#${value}`}</Typography>
           </Box>
         </Box>
       );
@@ -395,14 +403,14 @@ export default function TasksPage() {
       const proj = projects.find(p => Number(p.id) === value);
       return (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: '100%' }}>
-          <Box sx={{ width: 26, height: 26, borderRadius: '7px', bgcolor: '#f5f3ff', color: '#6d28d9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Box sx={{ width: 26, height: 26, borderRadius: '7px', bgcolor: 'action.selected', color: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <FolderRoundedIcon sx={{ fontSize: 16 }} />
           </Box>
           <Box>
-            <Typography sx={{ fontSize: 13, fontWeight: 500, color: '#374151', lineHeight: 1.2 }}>
+            <Typography sx={{ fontSize: 13, fontWeight: 500, color: 'text.primary', lineHeight: 1.2 }}>
               {proj ? proj.projectName : 'Unassigned'}
             </Typography>
-            <Typography sx={{ fontSize: 11, fontWeight: 500, color: '#64748b', lineHeight: 1.1 }}>
+            <Typography sx={{ fontSize: 11, fontWeight: 500, color: 'text.secondary', lineHeight: 1.1 }}>
               {proj ? (proj.projectId || `PR${proj.id}`) : ''}
             </Typography>
           </Box>
@@ -418,14 +426,14 @@ export default function TasksPage() {
       const info = getDueDateInfo(value);
       return (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: '100%' }}>
-          <Box sx={{ width: 26, height: 26, borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: info.isOverdue ? '#fef2f2' : '#f1f5f9', color: info.isOverdue ? '#dc2626' : '#64748b', flexShrink: 0 }}>
+          <Box sx={{ width: 26, height: 26, borderRadius: '7px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: info.isOverdue ? 'rgba(239,68,68,0.12)' : 'action.hover', color: info.isOverdue ? 'error.main' : 'text.secondary', flexShrink: 0 }}>
             <CalendarMonthRoundedIcon sx={{ fontSize: 14 }} />
           </Box>
           <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontSize: 13, fontWeight: 400, color: '#374151', lineHeight: 1.3 }}>
+            <Typography sx={{ fontSize: 13, fontWeight: 400, color: 'text.primary', lineHeight: 1.3 }}>
               {value ? formatDateToDMY(value) : 'No date'}
             </Typography>
-            <Typography sx={{ fontSize: 11, fontWeight: 400, color: info.isOverdue ? '#dc2626' : '#94a3b8', lineHeight: 1.2 }}>{info.label}</Typography>
+            <Typography sx={{ fontSize: 11, fontWeight: 400, color: info.isOverdue ? 'error.main' : 'text.secondary', lineHeight: 1.2 }}>{info.label}</Typography>
           </Box>
         </Box>
       );
@@ -469,11 +477,12 @@ export default function TasksPage() {
             sx={{
               width: 32, height: 32,
               borderRadius: '9px',
-              bgcolor: '#eff6ff',
-              color: '#2563EB',
-              border: '1px solid rgba(37,99,235,0.15)',
+              bgcolor: isDark ? 'rgba(37,99,235,0.15)' : '#eff6ff',
+              color: isDark ? '#60a5fa' : '#2563EB',
+              border: '1px solid',
+              borderColor: isDark ? 'rgba(37,99,235,0.3)' : 'rgba(37,99,235,0.15)',
               transition: 'all 0.25s ease',
-              '&:hover': { bgcolor: '#dbeafe', transform: 'translateY(-2px)', boxShadow: '0 4px 10px rgba(37,99,235,0.20)' },
+              '&:hover': { bgcolor: isDark ? 'rgba(37,99,235,0.25)' : '#dbeafe', transform: 'translateY(-2px)' },
             }}
           >
             <EditRoundedIcon sx={{ fontSize: 15 }} />
@@ -486,11 +495,12 @@ export default function TasksPage() {
             sx={{
               width: 32, height: 32,
               borderRadius: '9px',
-              bgcolor: '#fff1f2',
-              color: '#dc2626',
-              border: '1px solid rgba(220,38,38,0.15)',
+              bgcolor: isDark ? 'rgba(239,68,68,0.15)' : '#fff1f2',
+              color: isDark ? '#f87171' : '#dc2626',
+              border: '1px solid',
+              borderColor: isDark ? 'rgba(239,68,68,0.3)' : 'rgba(220,38,38,0.15)',
               transition: 'all 0.25s ease',
-              '&:hover': { bgcolor: '#fee2e2', transform: 'translateY(-2px)', boxShadow: '0 4px 10px rgba(220,38,38,0.18)' },
+              '&:hover': { bgcolor: isDark ? 'rgba(239,68,68,0.25)' : '#fee2e2', transform: 'translateY(-2px)' },
             }}
           >
             <DeleteRoundedIcon sx={{ fontSize: 15 }} />
@@ -507,8 +517,9 @@ export default function TasksPage() {
 
     /* ── Column headers ── */
     '& .MuiDataGrid-columnHeaders': {
-      bgcolor: '#f8fafd',
-      borderBottom: '1px solid #e8edf2',
+      bgcolor: 'action.hover',
+      borderBottom: '1px solid',
+      borderColor: 'divider',
     },
     '& .MuiDataGrid-columnHeader': {
       textTransform: 'uppercase',
@@ -517,19 +528,19 @@ export default function TasksPage() {
     '& .MuiDataGrid-columnHeaderTitle': {
       fontSize: 11,
       fontWeight: 700,
-      color: '#94a3b8',
+      color: 'text.secondary',
     },
 
     /* ── Rows ── */
     '& .MuiDataGrid-row': {
       transition: 'all 0.2s ease',
       cursor: 'default',
-      borderBottom: '1px solid #f1f5f9',
+      borderBottom: '1px solid',
+      borderColor: 'divider',
     },
     '& .MuiDataGrid-row:hover': {
-      bgcolor: '#fafcff',
+      bgcolor: 'action.hover',
       transform: 'translateY(-1px)',
-      boxShadow: '0 4px 12px rgba(37,99,235,0.07)',
       zIndex: 1,
     },
     '& .MuiDataGrid-row:last-child': {
@@ -540,7 +551,7 @@ export default function TasksPage() {
     '& .MuiDataGrid-cell': {
       borderBottom: 'none',
       fontSize: 13,
-      color: '#374151',
+      color: 'text.primary',
       outline: 'none !important',
     },
     '& .MuiDataGrid-cell:focus': { outline: 'none' },
@@ -548,13 +559,14 @@ export default function TasksPage() {
 
     /* ── Footer / pagination ── */
     '& .MuiDataGrid-footerContainer': {
-      borderTop: '1px solid #f1f5f9',
-      bgcolor: '#fafafa',
+      borderTop: '1px solid',
+      borderColor: 'divider',
+      bgcolor: 'background.paper',
       px: 1,
     },
     '& .MuiTablePagination-root': {
       fontSize: 13,
-      color: '#6b7280',
+      color: 'text.secondary',
     },
     '& .MuiTablePagination-select': {
       borderRadius: '8px',
@@ -567,12 +579,12 @@ export default function TasksPage() {
 
     /* ── Separator lines ── */
     '& .MuiDataGrid-columnSeparator': { display: 'none' },
-    '& .MuiDataGrid-withBorderColor': { borderColor: '#f1f5f9' },
+    '& .MuiDataGrid-withBorderColor': { borderColor: 'divider' },
   };
 
   return (
     <MainLayout>
-      <Box sx={{ background: '#f6f8fc', minHeight: '100%', px: { xs: 2, md: 3 }, py: { xs: 2, md: 3 } }}>
+      <Box sx={{ background: 'background.default', minHeight: '100%', px: { xs: 2, md: 3 }, py: { xs: 2, md: 3 } }}>
         <PageHeader
           title="Task Management"
           subtitle={`${tasks.length} tasks total`}
@@ -588,9 +600,13 @@ export default function TasksPage() {
                 textTransform: 'none',
                 px: 2.25,
                 py: 1,
-                background: 'linear-gradient(135deg, #2563EB 0%, #6D5DF6 100%)',
-                boxShadow: '0 10px 24px rgba(37,99,235,0.24)',
-                '&:hover': { boxShadow: '0 14px 30px rgba(109,93,246,0.28)', transform: 'translateY(-1px)' },
+                background: isDark ? 'linear-gradient(135deg, #7C3AED 0%, #6d28d9 100%)' : 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)',
+                boxShadow: isDark ? '0 4px 12px rgba(124,58,237,0.25)' : '0 4px 12px rgba(37,99,235,0.24)',
+                '&:hover': {
+                  background: isDark ? 'linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%)' : 'linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%)',
+                  boxShadow: isDark ? '0 6px 18px rgba(124,58,237,0.35)' : '0 6px 18px rgba(37,99,235,0.28)',
+                  transform: 'translateY(-1px)',
+                },
                 transition: 'all 0.2s ease',
               }}
             >
@@ -599,7 +615,7 @@ export default function TasksPage() {
           }
         />
 
-        <Paper sx={{ border: '1px solid #e8ecf5', boxShadow: '0 20px 50px rgba(15, 23, 42, 0.06)', borderRadius: '20px', overflow: 'hidden', background: '#fff' }}>
+        <Paper sx={{ border: '1px solid', borderColor: 'divider', boxShadow: 2, borderRadius: '20px', overflow: 'hidden', background: 'background.paper' }}>
           <DataGrid
             loading={loading}
             rows={filteredTasks}
@@ -636,22 +652,22 @@ export default function TasksPage() {
         PaperProps={{
           sx: {
             borderRadius: '20px',
-            boxShadow: '0 20px 60px rgba(15,23,42,.15)',
-            background: 'rgba(248,250,252,0.96)',
+            boxShadow: 24,
+            background: 'background.paper',
             overflow: 'hidden',
           },
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, px: 3.5, pt: 3, pb: 1.5 }}>
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <Avatar sx={{ width: 48, height: 48, bgcolor: '#dbeafe', color: '#1d4ed8' }}>
+            <Avatar sx={{ width: 48, height: 48, bgcolor: isDark ? 'rgba(37,99,235,0.15)' : '#dbeafe', color: isDark ? '#60a5fa' : '#1d4ed8' }}>
               <TaskAltRoundedIcon />
             </Avatar>
             <Box>
-              <Typography sx={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+              <Typography sx={{ fontSize: 24, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.2, color: 'text.primary' }}>
                 {editData ? 'Edit Task' : 'Create New Task'}
               </Typography>
-              <Typography sx={{ fontSize: 14, fontWeight: 400, color: '#64748B', mt: 0.5 }}>
+              <Typography sx={{ fontSize: 14, fontWeight: 400, color: 'text.secondary', mt: 0.5 }}>
                 Add task details and assign it to the right person.
               </Typography>
             </Box>
@@ -662,10 +678,10 @@ export default function TasksPage() {
               width: 40,
               height: 40,
               borderRadius: '12px',
-              bgcolor: 'rgba(255,255,255,0.88)',
-              color: '#475569',
+              bgcolor: 'action.hover',
+              color: 'text.primary',
               transition: 'all 0.2s ease',
-              '&:hover': { bgcolor: '#e2e8f0', transform: 'translateY(-1px)' },
+              '&:hover': { bgcolor: 'action.selected', transform: 'translateY(-1px)' },
             }}
             aria-label="Close task dialog"
           >
@@ -673,24 +689,24 @@ export default function TasksPage() {
           </IconButton>
         </Box>
 
-        <Divider sx={{ borderColor: '#e2e8f0' }} />
+        <Divider />
 
         <DialogContent sx={{ pt: 3, pb: 2, px: 3.5 }}>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
             
             {/* Section: Task Details */}
             <Box sx={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 1.25, mt: 0.5, mb: 0.25 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: '8px', bgcolor: 'rgba(37,99,235,0.1)', color: '#2563EB' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 28, height: 28, borderRadius: '8px', bgcolor: 'action.selected', color: 'primary.main' }}>
                 <DescriptionRoundedIcon sx={{ fontSize: 16 }} />
               </Box>
-              <Typography sx={{ fontSize: 15, fontWeight: 700, color: '#1e293b', letterSpacing: '0.01em' }}>
+              <Typography sx={{ fontSize: 15, fontWeight: 700, color: 'text.primary', letterSpacing: '0.01em' }}>
                 Task Details
               </Typography>
             </Box>
 
             <TextField
               size="small"
-              label={fieldLabel(<BadgeRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Task ID')}
+              label={fieldLabel(<BadgeRoundedIcon sx={{ color: 'primary.main', fontSize: 16 }} />, 'Task ID')}
               value={editData ? (form.taskId ?? '') : 'Auto-generated'}
               disabled={true}
               fullWidth
@@ -699,7 +715,7 @@ export default function TasksPage() {
 
             <TextField
               size="small"
-              label={fieldLabel(<AssignmentRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Task Title')}
+              label={fieldLabel(<AssignmentRoundedIcon sx={{ color: 'primary.main', fontSize: 16 }} />, 'Task Title')}
               placeholder="Enter task title"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
@@ -707,7 +723,7 @@ export default function TasksPage() {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <AssignmentRoundedIcon sx={{ color: '#64748b', fontSize: 18 }} />
+                    <AssignmentRoundedIcon sx={{ color: 'text.secondary', fontSize: 18 }} />
                   </InputAdornment>
                 ),
               }}
@@ -724,14 +740,14 @@ export default function TasksPage() {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label={fieldLabel(<PersonRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Employee')}
+                  label={fieldLabel(<PersonRoundedIcon sx={{ color: 'primary.main', fontSize: 16 }} />, 'Employee')}
                   placeholder="Select employee"
                   fullWidth
                   InputProps={{
                     ...params.InputProps,
                     startAdornment: (
                       <InputAdornment position="start">
-                        <PersonRoundedIcon sx={{ color: '#64748b', fontSize: 18 }} />
+                        <PersonRoundedIcon sx={{ color: 'text.secondary', fontSize: 18 }} />
                       </InputAdornment>
                     ),
                   }}
@@ -742,12 +758,12 @@ export default function TasksPage() {
                 const { key, ...otherProps } = props;
                 return (
                   <Box component="li" key={key} {...otherProps} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.25, px: 2 }}>
-                    <Avatar sx={{ width: 28, height: 28, fontSize: 13, fontWeight: 700, bgcolor: 'rgba(37,99,235,0.1)', color: '#2563EB' }}>
+                    <Avatar sx={{ width: 28, height: 28, fontSize: 13, fontWeight: 700, bgcolor: 'action.selected', color: 'primary.main' }}>
                       {option.name?.charAt(0) ?? 'U'}
                     </Avatar>
                     <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                      <Typography sx={{ fontWeight: 600, fontSize: 13.5, color: '#0f172a' }}>{option.name}</Typography>
-                      <Typography sx={{ fontSize: 11, color: '#64748b' }}>{option.employeeId}</Typography>
+                      <Typography sx={{ fontWeight: 600, fontSize: 13.5, color: 'text.primary' }}>{option.name}</Typography>
+                      <Typography sx={{ fontSize: 11, color: 'text.secondary' }}>{option.employeeId}</Typography>
                     </Box>
                   </Box>
                 );
@@ -767,7 +783,7 @@ export default function TasksPage() {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label={fieldLabel(<FolderRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Project ID')}
+                  label={fieldLabel(<FolderRoundedIcon sx={{ color: 'primary.main', fontSize: 16 }} />, 'Project ID')}
                   placeholder="Select project ID"
                   fullWidth
                   error={Boolean(projectValidationError)}
@@ -776,7 +792,7 @@ export default function TasksPage() {
                     ...params.InputProps,
                     startAdornment: (
                       <InputAdornment position="start">
-                        <FolderRoundedIcon sx={{ color: '#64748b', fontSize: 18 }} />
+                        <FolderRoundedIcon sx={{ color: 'text.secondary', fontSize: 18 }} />
                       </InputAdornment>
                     ),
                   }}
@@ -787,10 +803,10 @@ export default function TasksPage() {
                 const { key, ...otherProps } = props;
                 return (
                   <Box component="li" key={key} {...otherProps} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 1.25, px: 2 }}>
-                    <Box sx={{ width: 28, height: 28, borderRadius: '8px', bgcolor: 'rgba(109, 93, 246, 0.1)', color: '#6D5DF6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <Box sx={{ width: 28, height: 28, borderRadius: '8px', bgcolor: 'action.selected', color: 'primary.main', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <FolderRoundedIcon sx={{ fontSize: 16 }} />
                     </Box>
-                    <Typography sx={{ fontWeight: 600, fontSize: 13.5, color: '#0f172a' }}>{option.label}</Typography>
+                    <Typography sx={{ fontWeight: 600, fontSize: 13.5, color: 'text.primary' }}>{option.label}</Typography>
                   </Box>
                 );
               }}
@@ -802,14 +818,14 @@ export default function TasksPage() {
             {form.projectId > 0 && (
               <TextField
                 size="small"
-                label={fieldLabel(<FolderRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Project Name')}
+                label={fieldLabel(<FolderRoundedIcon sx={{ color: 'primary.main', fontSize: 16 }} />, 'Project Name')}
                 value={projectOptions.find(option => option.id === form.projectId)?.projectName ?? ''}
                 fullWidth
                 InputProps={{
                   readOnly: true,
                   startAdornment: (
                     <InputAdornment position="start">
-                      <FolderRoundedIcon sx={{ color: '#64748b', fontSize: 18 }} />
+                      <FolderRoundedIcon sx={{ color: 'text.secondary', fontSize: 18 }} />
                     </InputAdornment>
                   ),
                 }}
@@ -819,7 +835,7 @@ export default function TasksPage() {
 
             <TextField
               size="small"
-              label={fieldLabel(<CalendarMonthRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Due Date')}
+              label={fieldLabel(<CalendarMonthRoundedIcon sx={{ color: 'primary.main', fontSize: 16 }} />, 'Due Date')}
               type="date"
               value={form.dueDate}
               onChange={(e) => setForm({ ...form, dueDate: capDateYear(e.target.value) })}
@@ -831,7 +847,7 @@ export default function TasksPage() {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <CalendarMonthRoundedIcon sx={{ color: '#64748b', fontSize: 18 }} />
+                    <CalendarMonthRoundedIcon sx={{ color: 'text.secondary', fontSize: 18 }} />
                   </InputAdornment>
                 ),
               }}
@@ -841,7 +857,7 @@ export default function TasksPage() {
             <TextField
               size="small"
               select
-              label={fieldLabel(<TaskAltRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Status')}
+              label={fieldLabel(<TaskAltRoundedIcon sx={{ color: 'primary.main', fontSize: 16 }} />, 'Status')}
               value={form.status}
               onChange={(e) => setForm({ ...form, status: e.target.value as Task['status'] })}
               fullWidth
@@ -851,7 +867,7 @@ export default function TasksPage() {
                   return (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
                       <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: getStatusColor(selected), flexShrink: 0 }} />
-                      <Typography sx={{ fontSize: 14.5, fontWeight: 500, color: '#0f172a' }}>{selected}</Typography>
+                      <Typography sx={{ fontSize: 14.5, fontWeight: 500, color: 'text.primary' }}>{selected}</Typography>
                     </Box>
                   );
                 }
@@ -880,7 +896,7 @@ export default function TasksPage() {
 
             <TextField
               size="small"
-              label={fieldLabel(<DescriptionRoundedIcon sx={{ color: '#2563EB', fontSize: 16 }} />, 'Description')}
+              label={fieldLabel(<DescriptionRoundedIcon sx={{ color: 'primary.main', fontSize: 16 }} />, 'Description')}
               placeholder="Enter task description..."
               value={form.description}
               onChange={(e) => {
@@ -915,7 +931,7 @@ export default function TasksPage() {
           </Box>
         </DialogContent>
 
-        <Divider sx={{ borderColor: '#e2e8f0' }} />
+        <Divider />
 
         <DialogActions sx={{ px: 3.5, py: 3, gap: 2, justifyContent: 'flex-end' }}>
           <Button
@@ -926,12 +942,12 @@ export default function TasksPage() {
               borderRadius: '12px',
               textTransform: 'none',
               fontWeight: 600,
-              borderColor: '#cbd5e1',
-              color: '#475569',
+              borderColor: 'divider',
+              color: 'text.primary',
               px: 2.5,
               py: 1.25,
               transition: 'all 0.2s ease',
-              '&:hover': { borderColor: '#94a3b8', bgcolor: '#f8fafc' }
+              '&:hover': { borderColor: 'text.disabled', bgcolor: 'action.hover' }
             }}
           >
             Cancel
@@ -948,12 +964,12 @@ export default function TasksPage() {
               fontWeight: 600,
               px: 3,
               py: 1.25,
-              bgcolor: '#2563EB',
-              '&:hover': { bgcolor: '#1D4ED8', boxShadow: '0 4px 12px rgba(37,99,235,0.2)' },
+              bgcolor: 'primary.main',
+              '&:hover': { bgcolor: 'primary.dark' },
               transition: 'all 0.2s ease',
               '&.Mui-disabled': {
-                background: '#cbd5e1',
-                color: '#94a3b8',
+                background: 'action.disabledBackground',
+                color: 'action.disabled',
                 boxShadow: 'none',
               }
             }}

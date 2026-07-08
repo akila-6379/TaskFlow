@@ -192,7 +192,7 @@ export default function SettingsPage() {
               startIcon={<CloseRoundedIcon />}
               onClick={handleDiscard}
               disabled={!isDirty}
-              sx={{ borderRadius: '999px', textTransform: 'none', px: 2, py: 1, borderColor: '#e2e8f0', color: '#475569' }}
+              sx={{ borderRadius: '999px', textTransform: 'none', px: 2, py: 1, borderColor: 'divider', color: 'text.primary', '&:hover': { borderColor: 'text.disabled', bgcolor: 'action.hover' } }}
             >
               Discard Changes
             </Button>
@@ -203,11 +203,11 @@ export default function SettingsPage() {
               disabled={!isDirty}
               sx={{
                 borderRadius: '999px', textTransform: 'none', px: 2.25, py: 1,
-                background: 'linear-gradient(135deg, #2563EB 0%, #6D5DF6 100%)',
-                boxShadow: '0 12px 24px rgba(37,99,235,0.22)',
-                '&:hover': { transform: 'translateY(-1px)', boxShadow: '0 16px 30px rgba(37,99,235,0.26)' },
+                background: isDark ? 'linear-gradient(135deg, #7C3AED 0%, #6d28d9 100%)' : 'linear-gradient(135deg, #2563EB 0%, #6D5DF6 100%)',
+                boxShadow: isDark ? '0 4px 12px rgba(124,58,237,0.25)' : '0 12px 24px rgba(37,99,235,0.22)',
+                '&:hover': { transform: 'translateY(-1px)', boxShadow: isDark ? '0 6px 18px rgba(124,58,237,0.35)' : '0 16px 30px rgba(37,99,235,0.26)' },
                 transition: 'all 0.2s ease',
-                '&.Mui-disabled': { background: '#e2e8f0', boxShadow: 'none', color: '#94a3b8' },
+                '&.Mui-disabled': { background: 'action.disabledBackground', boxShadow: 'none', color: 'action.disabled' },
               }}
             >
               {isDirty ? 'Save Changes' : 'No Changes'}
@@ -222,8 +222,8 @@ export default function SettingsPage() {
               value={tab} onChange={(_, v) => setTab(v)} variant="fullWidth"
               sx={{
                 '& .MuiTabs-indicator': { height: 3, borderRadius: '999px' },
-                '& .MuiTab-root': { textTransform: 'none', fontWeight: 700, minHeight: 48, color: '#64748b' },
-                '& .Mui-selected': { color: '#2563EB !important' },
+                '& .MuiTab-root': { textTransform: 'none', fontWeight: 700, minHeight: 48, color: 'text.secondary' },
+                '& .Mui-selected': { color: 'primary.main !important' },
               }}
             >
               <Tab label="Profile" />
@@ -238,17 +238,17 @@ export default function SettingsPage() {
                 {/* Profile Summary Card */}
                 <Grid item xs={12} lg={4}>
                   <Card sx={{ borderRadius: '20px', border: `1px solid ${theme.palette.divider}`, boxShadow: isDark ? '0 14px 36px rgba(0,0,0,0.35)' : '0 14px 36px rgba(15, 23, 42, 0.06)', overflow: 'hidden' }}>
-                    <Box sx={{ background: 'linear-gradient(135deg, #2563EB 0%, #6D5DF6 100%)', p: 3, color: '#fff' }}>
+                    <Box sx={{ background: isDark ? 'linear-gradient(135deg, #7C3AED 0%, #6d28d9 100%)' : 'linear-gradient(135deg, #2563EB 0%, #6D5DF6 100%)', p: 3, color: '#ffffff' }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <Box>
                           <Typography variant="caption" sx={{ textTransform: 'uppercase', letterSpacing: 1.2, opacity: 0.9 }}>Profile Summary</Typography>
                           <Typography variant="h6" fontWeight={700} mt={0.5}>{profile.name || user?.name}</Typography>
                         </Box>
                         <Box sx={{ position: 'relative' }}>
-                          <Avatar sx={{ width: 76, height: 76, fontSize: 30, bgcolor: '#fff', color: '#2563EB', fontWeight: 800 }}>
+                          <Avatar sx={{ width: 76, height: 76, fontSize: 30, bgcolor: '#ffffff', color: 'primary.main', fontWeight: 800 }}>
                             {(profile.name || user?.name)?.charAt(0)?.toUpperCase()}
                           </Avatar>
-                          <IconButton sx={{ position: 'absolute', right: -4, bottom: -4, bgcolor: '#fff', color: '#2563EB', width: 32, height: 32, boxShadow: '0 8px 18px rgba(15,23,42,0.16)', '&:hover': { bgcolor: '#f8fafc' } }}>
+                          <IconButton sx={{ position: 'absolute', right: -4, bottom: -4, bgcolor: '#ffffff', color: 'primary.main', width: 32, height: 32, boxShadow: '0 8px 18px rgba(15,23,42,0.16)', '&:hover': { bgcolor: 'action.hover' } }}>
                             <CameraAltRoundedIcon sx={{ fontSize: 16 }} />
                           </IconButton>
                         </Box>
@@ -258,12 +258,12 @@ export default function SettingsPage() {
                       <Stack spacing={1.5}>
                         <Box>
                           <Typography variant="subtitle1" fontWeight={700} color="text.primary">{profile.name || user?.name}</Typography>
-                          <Chip label={user?.role ?? 'Manager'} size="small" sx={{ mt: 0.75, bgcolor: isDark ? 'rgba(37,99,235,0.15)' : '#eff6ff', color: '#2563EB', fontWeight: 700, borderRadius: '999px' }} />
+                          <Chip label={user?.role ?? 'Manager'} size="small" sx={{ mt: 0.75, bgcolor: isDark ? 'rgba(37,99,235,0.15)' : '#eff6ff', color: 'primary.main', fontWeight: 700, borderRadius: '999px' }} />
                         </Box>
                         <Box sx={{ display: 'grid', gap: 1 }}>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#64748b' }}><EmailRoundedIcon sx={{ fontSize: 18 }} /><Typography variant="body2">{profile.email || user?.email}</Typography></Box>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#64748b' }}><PhoneRoundedIcon sx={{ fontSize: 18 }} /><Typography variant="body2">{profile.phone}</Typography></Box>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#64748b' }}><BusinessRoundedIcon sx={{ fontSize: 18 }} /><Typography variant="body2">{profile.department}</Typography></Box>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}><EmailRoundedIcon sx={{ fontSize: 18 }} /><Typography variant="body2">{profile.email || user?.email}</Typography></Box>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}><PhoneRoundedIcon sx={{ fontSize: 18 }} /><Typography variant="body2">{profile.phone}</Typography></Box>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'text.secondary' }}><BusinessRoundedIcon sx={{ fontSize: 18 }} /><Typography variant="body2">{profile.department}</Typography></Box>
                         </Box>
                       </Stack>
                     </CardContent>
@@ -281,7 +281,7 @@ export default function SettingsPage() {
                             label="Full Name" value={profile.name}
                             onChange={e => setProfile({ ...profile, name: e.target.value })}
                             fullWidth error={!!profileErrors.name} helperText={profileErrors.name}
-                            InputProps={{ startAdornment: <PersonRoundedIcon sx={{ color: '#64748b', mr: 1 }} /> }}
+                            InputProps={{ startAdornment: <PersonRoundedIcon sx={{ color: 'text.secondary', mr: 1 }} /> }}
                             sx={fieldSx}
                           />
                         </Grid>
@@ -290,7 +290,7 @@ export default function SettingsPage() {
                             label="Email Address" value={profile.email}
                             onChange={e => setProfile({ ...profile, email: e.target.value })}
                             fullWidth error={!!profileErrors.email} helperText={profileErrors.email}
-                            InputProps={{ startAdornment: <EmailRoundedIcon sx={{ color: '#64748b', mr: 1 }} /> }}
+                            InputProps={{ startAdornment: <EmailRoundedIcon sx={{ color: 'text.secondary', mr: 1 }} /> }}
                             sx={fieldSx}
                           />
                         </Grid>
@@ -299,7 +299,7 @@ export default function SettingsPage() {
                             label="Phone Number" value={profile.phone}
                             onChange={e => setProfile({ ...profile, phone: e.target.value })}
                             fullWidth error={!!profileErrors.phone} helperText={profileErrors.phone}
-                            InputProps={{ startAdornment: <PhoneRoundedIcon sx={{ color: '#64748b', mr: 1 }} /> }}
+                            InputProps={{ startAdornment: <PhoneRoundedIcon sx={{ color: 'text.secondary', mr: 1 }} /> }}
                             sx={fieldSx}
                           />
                         </Grid>
@@ -308,7 +308,7 @@ export default function SettingsPage() {
                             label="Department" value={profile.department}
                             onChange={e => setProfile({ ...profile, department: e.target.value })}
                             fullWidth error={!!profileErrors.department} helperText={profileErrors.department}
-                            InputProps={{ startAdornment: <BusinessRoundedIcon sx={{ color: '#64748b', mr: 1 }} /> }}
+                            InputProps={{ startAdornment: <BusinessRoundedIcon sx={{ color: 'text.secondary', mr: 1 }} /> }}
                             sx={fieldSx}
                           />
                         </Grid>
@@ -335,8 +335,8 @@ export default function SettingsPage() {
                             disabled={!pwForm.current && !pwForm.newPw && !pwForm.confirm}
                             sx={{
                               borderRadius: '999px', textTransform: 'none', fontWeight: 600,
-                              background: 'linear-gradient(135deg, #2563EB 0%, #6D5DF6 100%)',
-                              '&.Mui-disabled': { background: '#e2e8f0', color: '#94a3b8' },
+                              background: isDark ? 'linear-gradient(135deg, #7C3AED 0%, #6d28d9 100%)' : 'linear-gradient(135deg, #2563EB 0%, #6D5DF6 100%)',
+                              '&.Mui-disabled': { background: 'action.disabledBackground', color: 'action.disabled' },
                             }}
                           >
                             Update Password
@@ -350,7 +350,7 @@ export default function SettingsPage() {
                               onChange={e => setPwForm({ ...pwForm, current: e.target.value })}
                               error={!!pwErrors.current} helperText={pwErrors.current}
                               fullWidth
-                              InputProps={{ startAdornment: <LockRoundedIcon sx={{ color: '#64748b', mr: 1 }} /> }}
+                              InputProps={{ startAdornment: <LockRoundedIcon sx={{ color: 'text.secondary', mr: 1 }} /> }}
                               sx={fieldSx}
                             />
                           </Grid>
@@ -361,18 +361,19 @@ export default function SettingsPage() {
                               onChange={e => setPwForm({ ...pwForm, newPw: e.target.value })}
                               error={!!pwErrors.newPw} helperText={pwErrors.newPw}
                               fullWidth
-                              InputProps={{ startAdornment: <LockRoundedIcon sx={{ color: '#64748b', mr: 1 }} /> }}
+                              InputProps={{ startAdornment: <LockRoundedIcon sx={{ color: 'text.secondary', mr: 1 }} /> }}
                               sx={fieldSx}
                             />
                           </Grid>
                           <Grid item xs={12} md={4}>
+                            <Typography sx={{ display: 'none' }} />
                             <TextField
                               label="Confirm Password" type="password"
                               value={pwForm.confirm}
                               onChange={e => setPwForm({ ...pwForm, confirm: e.target.value })}
                               error={!!pwErrors.confirm} helperText={pwErrors.confirm}
                               fullWidth
-                              InputProps={{ startAdornment: <LockRoundedIcon sx={{ color: '#64748b', mr: 1 }} /> }}
+                              InputProps={{ startAdornment: <LockRoundedIcon sx={{ color: 'text.secondary', mr: 1 }} /> }}
                               sx={fieldSx}
                             />
                           </Grid>
@@ -400,7 +401,7 @@ export default function SettingsPage() {
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <Box sx={{ width: 44, height: 44, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'background.default', color: '#2563EB' }}>{item.icon}</Box>
+                      <Box sx={{ width: 44, height: 44, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'background.default', color: 'primary.main' }}>{item.icon}</Box>
                       <Box>
                         <Typography variant="subtitle2" fontWeight={700}>{item.title}</Typography>
                         <Typography variant="body2" color="text.secondary">{item.description}</Typography>

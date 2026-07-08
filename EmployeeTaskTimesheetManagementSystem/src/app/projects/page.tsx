@@ -22,6 +22,7 @@ import {
   InputAdornment,
   Slider,
   Fade,
+  useTheme,
 } from '@mui/material';
 import LinearProgress from '@mui/material/LinearProgress';
 import AddRoundedIcon from '@mui/icons-material/AddRounded';
@@ -149,21 +150,22 @@ const fieldStyles = {
   '& .MuiOutlinedInput-root': {
     borderRadius: '14px',
     minHeight: 52,
-    backgroundColor: '#ffffff',
-    '& fieldset': { borderColor: '#cbd5e1' },
-    '&:hover fieldset': { borderColor: '#94a3b8' },
+    backgroundColor: 'background.paper',
+    '& fieldset': { borderColor: 'divider' },
+    '&:hover fieldset': { borderColor: 'text.disabled' },
     '&.Mui-focused fieldset': {
-      borderColor: '#2563EB',
-      boxShadow: '0 0 0 4px rgba(37,99,235,0.08)',
+      borderColor: 'primary.main',
     },
   },
-  '& .MuiInputLabel-root': { color: '#334155', fontWeight: 600 },
-  '& .MuiInputBase-input': { fontSize: '15px', fontWeight: 500, color: '#111827' },
-  '& .MuiOutlinedInput-input': { fontSize: '15px', fontWeight: 500, color: '#111827' },
-  '& .MuiSelect-select': { fontSize: '15px', fontWeight: 500, color: '#111827' },
+  '& .MuiInputLabel-root': { color: 'text.secondary', fontWeight: 600 },
+  '& .MuiInputBase-input': { fontSize: '15px', fontWeight: 500, color: 'text.primary' },
+  '& .MuiOutlinedInput-input': { fontSize: '15px', fontWeight: 500, color: 'text.primary' },
+  '& .MuiSelect-select': { fontSize: '15px', fontWeight: 500, color: 'text.primary' },
 };
 
 export default function ProjectsPage() {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -430,14 +432,14 @@ export default function ProjectsPage() {
               fontSize: 14,
               px: 2.5,
               py: 1.1,
-              background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)',
-              boxShadow: '0 4px 14px rgba(37,99,235,0.35)',
-              color: '#fff',
+              background: isDark ? 'linear-gradient(135deg, #7C3AED 0%, #6d28d9 100%)' : 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)',
+              boxShadow: isDark ? '0 4px 12px rgba(124,58,237,0.25)' : '0 4px 12px rgba(37,99,235,0.25)',
+              color: '#ffffff',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
               '&:hover': {
-                background: 'linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%)',
-                boxShadow: '0 6px 20px rgba(37,99,235,0.45)',
+                background: isDark ? 'linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%)' : 'linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%)',
+                boxShadow: isDark ? '0 6px 18px rgba(124,58,237,0.35)' : '0 6px 18px rgba(37,99,235,0.35)',
                 transform: 'translateY(-2px) scale(1.03)',
               },
               '&:active': {
@@ -450,7 +452,7 @@ export default function ProjectsPage() {
         }
       />
 
-      <Paper sx={{ p: { xs: 2, md: 3 }, borderRadius: '20px', boxShadow: '0 18px 45px rgba(15,23,42,0.08)', bgcolor: '#fff' }}>
+      <Paper sx={{ p: { xs: 2, md: 3 }, borderRadius: '20px', boxShadow: 2, bgcolor: 'background.paper' }}>
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center', width: { xs: '100%', md: 'auto' } }}>
             <Paper
@@ -458,16 +460,16 @@ export default function ProjectsPage() {
               onSubmit={(e) => e.preventDefault()}
               sx={{
                 display: 'flex', alignItems: 'center', gap: 1, width: { xs: '100%', sm: 340 }, px: 2, py: 1.1,
-                borderRadius: '20px', boxShadow: '0 12px 28px rgba(15,23,42,0.06)', bgcolor: '#fff', border: '1px solid #e2e8f0',
+                borderRadius: '20px', boxShadow: 'none', bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider',
               }}
             >
-              <SearchRoundedIcon sx={{ color: '#94a3b8' }} />
+              <SearchRoundedIcon sx={{ color: 'text.secondary' }} />
               <InputBase
                 placeholder="Search projects, status, or dates"
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
                 fullWidth
-                sx={{ fontSize: 14, color: '#334155' }}
+                sx={{ fontSize: 14, color: 'text.primary' }}
               />
             </Paper>
 
@@ -476,8 +478,9 @@ export default function ProjectsPage() {
               startIcon={<FilterAltRoundedIcon />}
               onClick={handleFilterClick}
               sx={{
-                borderRadius: '20px', textTransform: 'none', borderColor: '#cbd5e1', color: '#1d4ed8', fontWeight: 600,
-                boxShadow: '0 10px 24px rgba(59,130,246,0.08)',
+                borderRadius: '20px', textTransform: 'none', borderColor: 'divider', color: 'primary.main', fontWeight: 600,
+                bgcolor: 'background.paper',
+                '&:hover': { bgcolor: 'action.hover', borderColor: 'text.disabled' },
               }}
             >
               Filter: {filterStatus}
@@ -489,7 +492,7 @@ export default function ProjectsPage() {
               anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
               transformOrigin={{ vertical: 'top', horizontal: 'left' }}
               disableRestoreFocus
-              PaperProps={{ sx: { borderRadius: '16px', minWidth: 180 } }}
+              PaperProps={{ sx: { borderRadius: '16px', minWidth: 180, border: '1px solid', borderColor: 'divider' } }}
             >
               {FILTER_OPTIONS.map((option) => (
                 <MenuItem
@@ -509,19 +512,23 @@ export default function ProjectsPage() {
               variant="outlined"
               startIcon={<FileDownloadRoundedIcon />}
               onClick={handleExport}
-              sx={{ borderRadius: '20px', textTransform: 'none', borderColor: '#cbd5e1', color: '#0f172a', fontWeight: 600 }}
+              sx={{
+                borderRadius: '20px', textTransform: 'none', borderColor: 'divider', color: 'text.primary', fontWeight: 600,
+                bgcolor: 'background.paper',
+                '&:hover': { bgcolor: 'action.hover', borderColor: 'text.disabled' },
+              }}
             >
               Export
             </Button>
           </Box>
         </Box>
 
-        <Divider sx={{ borderColor: '#e2e8f0', mb: 3 }} />
+        <Divider sx={{ mb: 3 }} />
 
         {loading ? (
-          <Typography sx={{ color: '#64748b', textAlign: 'center', py: 8 }}>Loading projects...</Typography>
+          <Typography sx={{ color: 'text.secondary', textAlign: 'center', py: 8 }}>Loading projects...</Typography>
         ) : visibleProjects.length === 0 ? (
-          <Typography sx={{ color: '#64748b', textAlign: 'center', py: 8 }}>No projects match your search or filter.</Typography>
+          <Typography sx={{ color: 'text.secondary', textAlign: 'center', py: 8 }}>No projects match your search or filter.</Typography>
         ) : (
           <Stack spacing={2}>
             {visibleProjects.map((project) => {
@@ -535,13 +542,13 @@ export default function ProjectsPage() {
                   sx={{
                     p: 2.25,
                     borderRadius: '20px',
-                    bgcolor: '#fff',
-                    boxShadow: '0 15px 30px rgba(15,23,42,0.06)',
+                    bgcolor: 'background.paper',
+                    boxShadow: 1,
                     transition: 'all 0.25s ease',
                     '&:hover': {
                       transform: 'translateY(-3px)',
-                      boxShadow: '0 22px 42px rgba(14,95,255,0.12)',
-                      bgcolor: '#f8fbff',
+                      boxShadow: 3,
+                      bgcolor: 'action.hover',
                     },
                   }}
                 >
@@ -555,20 +562,20 @@ export default function ProjectsPage() {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        boxShadow: `0 18px 38px ${iconConfig.shadow}`,
+                        boxShadow: isDark ? 'none' : `0 18px 38px ${iconConfig.shadow}`,
                         flexShrink: 0,
                       }}>
                         {iconConfig.icon}
                       </Box>
 
                       <Box sx={{ minWidth: 0 }}>
-                        <Typography sx={{ fontSize: 16, fontWeight: 700, color: '#0f172a', lineHeight: 1.2, mb: 0.25 }}>
+                        <Typography sx={{ fontSize: 16, fontWeight: 700, color: 'text.primary', lineHeight: 1.2, mb: 0.25 }}>
                           {project.projectName}
                         </Typography>
-                        <Typography sx={{ fontSize: 12.5, fontWeight: 500, color: '#64748b', mb: 0.75 }}>
+                        <Typography sx={{ fontSize: 12.5, fontWeight: 500, color: 'text.secondary', mb: 0.75 }}>
                           {project.projectId}
                         </Typography>
-                        <Typography sx={{ fontSize: 13, color: '#64748b', lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <Typography sx={{ fontSize: 13, color: 'text.secondary', lineHeight: 1.4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {project.description || 'No description available'}
                         </Typography>
                       </Box>
@@ -582,10 +589,10 @@ export default function ProjectsPage() {
                             width: 38,
                             height: 38,
                             borderRadius: '14px',
-                            bgcolor: '#eff6ff',
-                            color: '#1d4ed8',
+                            bgcolor: isDark ? 'rgba(37,99,235,0.15)' : '#eff6ff',
+                            color: isDark ? '#60a5fa' : '#1d4ed8',
                             transition: 'all 0.2s ease',
-                            '&:hover': { bgcolor: '#dbeafe', transform: 'translateY(-1px)' },
+                            '&:hover': { bgcolor: isDark ? 'rgba(37,99,235,0.25)' : '#dbeafe', transform: 'translateY(-1px)' },
                           }}
                         >
                           <EditRoundedIcon sx={{ fontSize: 18 }} />
@@ -607,10 +614,10 @@ export default function ProjectsPage() {
                             width: 38,
                             height: 38,
                             borderRadius: '14px',
-                            bgcolor: '#fef2f2',
-                            color: '#dc2626',
+                            bgcolor: isDark ? 'rgba(239,68,68,0.15)' : '#fef2f2',
+                            color: isDark ? '#f87171' : '#dc2626',
                             transition: 'all 0.2s ease',
-                            '&:hover': { bgcolor: '#fecaca', transform: 'translateY(-1px)' },
+                            '&:hover': { bgcolor: isDark ? 'rgba(239,68,68,0.25)' : '#fecaca', transform: 'translateY(-1px)' },
                           }}
                         >
                           <DeleteRoundedIcon sx={{ fontSize: 18 }} />
@@ -620,15 +627,15 @@ export default function ProjectsPage() {
                     </Box>
                   </Box>
 
-                  <Divider sx={{ borderColor: '#e2e8f0', my: 1.75 }} />
+                  <Divider sx={{ my: 1.75 }} />
 
                   <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: 'center', justifyContent: 'space-between' }}>
                     <Box sx={{ width: '100%', minWidth: 0 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-                        <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#475569' }}>
+                        <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.secondary' }}>
                           Progress
                         </Typography>
-                        <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>
+                        <Typography sx={{ fontSize: 13, fontWeight: 700, color: 'text.primary' }}>
                           {project.progress}%
                         </Typography>
                       </Box>
@@ -638,10 +645,9 @@ export default function ProjectsPage() {
                         sx={{
                           height: 12,
                           borderRadius: 999,
-                          bgcolor: '#e2e8f0',
+                          bgcolor: 'divider',
                           '& .MuiLinearProgress-bar': {
                             borderRadius: 999,
-                            // Case 3: bar color matches project status, not progress percentage
                             bgcolor: getProgressColorByStatus(project.status),
                             transition: 'all 1s ease',
                           },
@@ -664,7 +670,7 @@ export default function ProjectsPage() {
                           border: `1px solid ${statusStyle.border}`,
                         }}
                       />
-                      <Typography sx={{ fontSize: 13, color: '#64748b' }}>
+                      <Typography sx={{ fontSize: 13, color: 'text.secondary' }}>
                         End date {formatDate(project.endDate)}
                       </Typography>
                     </Box>
@@ -677,7 +683,7 @@ export default function ProjectsPage() {
 
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'center', justifyContent: 'space-between', gap: 2, mt: 4 }}>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
-            <Typography sx={{ color: '#64748b', fontSize: 13 }}>
+            <Typography sx={{ color: 'text.secondary', fontSize: 13 }}>
               {filteredProjects.length} project{filteredProjects.length === 1 ? '' : 's'} found
             </Typography>
             <TextField
@@ -686,7 +692,7 @@ export default function ProjectsPage() {
               value={pageSize}
               onChange={(e) => setPageSize(Number(e.target.value))}
               sx={{ width: 110, borderRadius: '16px' }}
-              InputProps={{ sx: { borderRadius: '16px', bgcolor: '#f8fafc' } }}
+              InputProps={{ sx: { borderRadius: '16px', bgcolor: 'action.hover' } }}
             >
               <MenuItem value={10}>10 rows</MenuItem>
               <MenuItem value={25}>25 rows</MenuItem>
@@ -700,11 +706,11 @@ export default function ProjectsPage() {
               startIcon={<ChevronLeftRoundedIcon />}
               onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
               disabled={page === 0}
-              sx={{ textTransform: 'none', borderRadius: '14px', minWidth: 96 }}
+              sx={{ textTransform: 'none', borderRadius: '14px', minWidth: 96, borderColor: 'divider', color: 'text.primary', bgcolor: 'background.paper', '&:hover': { bgcolor: 'action.hover', borderColor: 'text.disabled' } }}
             >
               Prev
             </Button>
-            <Typography sx={{ color: '#475569', fontSize: 13 }}>
+            <Typography sx={{ color: 'text.secondary', fontSize: 13 }}>
               Page {Math.min(page + 1, pageCount)} of {pageCount}
             </Typography>
             <Button
@@ -713,7 +719,7 @@ export default function ProjectsPage() {
               endIcon={<ChevronRightRoundedIcon />}
               onClick={() => setPage((prev) => Math.min(prev + 1, pageCount - 1))}
               disabled={page >= pageCount - 1}
-              sx={{ textTransform: 'none', borderRadius: '14px', minWidth: 96 }}
+              sx={{ textTransform: 'none', borderRadius: '14px', minWidth: 96, borderColor: 'divider', color: 'text.primary', bgcolor: 'background.paper', '&:hover': { bgcolor: 'action.hover', borderColor: 'text.disabled' } }}
             >
               Next
             </Button>
@@ -733,8 +739,8 @@ export default function ProjectsPage() {
         PaperProps={{
           sx: {
             borderRadius: '20px',
-            boxShadow: '0 20px 60px rgba(15,23,42,0.15)',
-            background: 'rgba(248,250,252,0.97)',
+            boxShadow: 24,
+            background: 'background.paper',
             overflow: 'hidden',
             maxWidth: 860,
           },
@@ -743,14 +749,14 @@ export default function ProjectsPage() {
         {/* ── Header ── */}
         <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, px: 3.5, pt: 3, pb: 1.5 }}>
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <Avatar sx={{ width: 48, height: 48, bgcolor: '#dbeafe', color: '#1d4ed8', borderRadius: '14px' }}>
+            <Avatar sx={{ width: 48, height: 48, bgcolor: isDark ? 'rgba(37,99,235,0.15)' : '#dbeafe', color: isDark ? '#60a5fa' : '#1d4ed8', borderRadius: '14px' }}>
               <FolderRoundedIcon sx={{ fontSize: 24 }} />
             </Avatar>
             <Box>
-              <Typography sx={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.2, color: '#0f172a' }}>
+              <Typography sx={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.2, color: 'text.primary' }}>
                 {editData ? 'Edit Project' : 'Add New Project'}
               </Typography>
-              <Typography sx={{ fontSize: 14, fontWeight: 400, color: '#64748b', mt: 0.4 }}>
+              <Typography sx={{ fontSize: 14, fontWeight: 400, color: 'text.secondary', mt: 0.4 }}>
                 {editData ? 'Update project details and save your changes.' : 'Create a new project and track its progress.'}
               </Typography>
             </Box>
@@ -760,10 +766,10 @@ export default function ProjectsPage() {
             sx={{
               width: 40, height: 40,
               borderRadius: '12px',
-              bgcolor: 'rgba(255,255,255,0.88)',
-              color: '#475569',
+              bgcolor: 'action.hover',
+              color: 'text.primary',
               transition: 'all 0.2s ease',
-              '&:hover': { bgcolor: '#e2e8f0', transform: 'translateY(-1px)' },
+              '&:hover': { bgcolor: 'action.selected', transform: 'translateY(-1px)' },
             }}
             aria-label="Close project dialog"
           >
@@ -771,7 +777,7 @@ export default function ProjectsPage() {
           </IconButton>
         </Box>
 
-        <Divider sx={{ borderColor: '#e2e8f0' }} />
+        <Divider />
 
         {/* ── Form Body ── */}
         <DialogContent sx={{ pt: 3, pb: 2, px: 3.5 }}>
@@ -781,8 +787,8 @@ export default function ProjectsPage() {
             <TextField
               size="small"
               label={
-                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: '#334155' }}>
-                  <BadgeRoundedIcon sx={{ fontSize: 15, color: '#2563EB' }} />
+                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: 'text.secondary' }}>
+                  <BadgeRoundedIcon sx={{ fontSize: 15, color: 'primary.main' }} />
                   <span>Project ID</span>
                 </Box>
               }
@@ -796,8 +802,8 @@ export default function ProjectsPage() {
             <TextField
               size="small"
               label={
-                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: '#334155' }}>
-                  <FolderRoundedIcon sx={{ fontSize: 15, color: '#2563EB' }} />
+                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: 'text.secondary' }}>
+                  <FolderRoundedIcon sx={{ fontSize: 15, color: 'primary.main' }} />
                   <span>Project Name</span>
                 </Box>
               }
@@ -815,8 +821,8 @@ export default function ProjectsPage() {
             <TextField
               size="small"
               label={
-                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: '#334155' }}>
-                  <CalendarMonthRoundedIcon sx={{ fontSize: 15, color: '#2563EB' }} />
+                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: 'text.secondary' }}>
+                  <CalendarMonthRoundedIcon sx={{ fontSize: 15, color: 'primary.main' }} />
                   <span>Start Date</span>
                 </Box>
               }
@@ -832,7 +838,7 @@ export default function ProjectsPage() {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <CalendarMonthRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
+                    <CalendarMonthRoundedIcon sx={{ color: 'text.secondary', fontSize: 18 }} />
                   </InputAdornment>
                 ),
               }}
@@ -843,8 +849,8 @@ export default function ProjectsPage() {
             <TextField
               size="small"
               label={
-                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: '#334155' }}>
-                  <CalendarMonthRoundedIcon sx={{ fontSize: 15, color: '#2563EB' }} />
+                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: 'text.secondary' }}>
+                  <CalendarMonthRoundedIcon sx={{ fontSize: 15, color: 'primary.main' }} />
                   <span>End Date</span>
                 </Box>
               }
@@ -860,7 +866,7 @@ export default function ProjectsPage() {
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
-                    <CalendarMonthRoundedIcon sx={{ color: '#94a3b8', fontSize: 18 }} />
+                    <CalendarMonthRoundedIcon sx={{ color: 'text.secondary', fontSize: 18 }} />
                   </InputAdornment>
                 ),
               }}
@@ -879,8 +885,8 @@ export default function ProjectsPage() {
                 size="small"
                 select
                 label={
-                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: '#334155' }}>
-                    <TrendingUpRoundedIcon sx={{ fontSize: 15, color: '#2563EB' }} />
+                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: 'text.secondary' }}>
+                    <TrendingUpRoundedIcon sx={{ fontSize: 15, color: 'primary.main' }} />
                     <span>Status</span>
                   </Box>
                 }
@@ -900,7 +906,7 @@ export default function ProjectsPage() {
                     return (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: dotMap[v] ?? '#94a3b8', flexShrink: 0 }} />
-                        <Typography sx={{ fontSize: 14.5, fontWeight: 500, color: '#0f172a' }}>{v}</Typography>
+                        <Typography sx={{ fontSize: 14.5, fontWeight: 500, color: 'text.primary' }}>{v}</Typography>
                       </Box>
                     );
                   },
@@ -925,8 +931,8 @@ export default function ProjectsPage() {
               <TextField
                 size="small"
                 label={
-                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: '#334155' }}>
-                    <DescriptionRoundedIcon sx={{ fontSize: 15, color: '#2563EB' }} />
+                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: 'text.secondary' }}>
+                    <DescriptionRoundedIcon sx={{ fontSize: 15, color: 'primary.main' }} />
                     <span>Description</span>
                   </Box>
                 }
@@ -968,19 +974,19 @@ export default function ProjectsPage() {
               '& .MuiOutlinedInput-root': {
                 borderRadius: '14px',
                 minHeight: 52,
-                backgroundColor: '#ffffff',
-                '& fieldset': { borderColor: '#cbd5e1' },
-                '&:hover fieldset': { borderColor: '#94a3b8' },
-                '&.Mui-focused fieldset': { borderColor: '#2563EB', boxShadow: '0 0 0 4px rgba(37,99,235,0.08)' },
+                backgroundColor: 'background.paper',
+                '& fieldset': { borderColor: 'divider' },
+                '&:hover fieldset': { borderColor: 'text.disabled' },
+                '&.Mui-focused fieldset': { borderColor: 'primary.main' },
               },
-              '& .MuiInputLabel-root': { color: '#334155', fontWeight: 600 },
-              '& .MuiInputBase-input': { fontSize: '15px', fontWeight: 500, color: '#111827' },
+              '& .MuiInputLabel-root': { color: 'text.secondary', fontWeight: 600 },
+              '& .MuiInputBase-input': { fontSize: '15px', fontWeight: 500, color: 'text.primary' },
             }}>
               <TextField
                 size="small"
                 label={
-                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: '#334155' }}>
-                    <TrendingUpRoundedIcon sx={{ fontSize: 15, color: '#2563EB' }} />
+                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75, fontSize: 13, fontWeight: 600, color: 'text.secondary' }}>
+                    <TrendingUpRoundedIcon sx={{ fontSize: 15, color: 'primary.main' }} />
                     <span>Progress (%)</span>
                   </Box>
                 }
@@ -1002,7 +1008,7 @@ export default function ProjectsPage() {
                 InputProps={{
                   endAdornment: (
                     <InputAdornment position="end">
-                      <Typography sx={{ fontSize: 13, color: '#64748b', fontWeight: 500 }}>%</Typography>
+                      <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 500 }}>%</Typography>
                     </InputAdornment>
                   ),
                 }}
@@ -1026,16 +1032,15 @@ export default function ProjectsPage() {
                     { value: 100, label: '100%' },
                   ]}
                   sx={{
-                    color: '#2563EB',
+                    color: 'primary.main',
                     '& .MuiSlider-thumb': {
                       width: 18, height: 18,
-                      boxShadow: '0 2px 8px rgba(37,99,235,0.35)',
-                      '&:hover': { boxShadow: '0 2px 12px rgba(37,99,235,0.50)' },
+                      boxShadow: 'none',
                     },
                     '& .MuiSlider-track': { height: 6, borderRadius: 999 },
-                    '& .MuiSlider-rail': { height: 6, borderRadius: 999, bgcolor: '#e2e8f0' },
-                    '& .MuiSlider-markLabel': { fontSize: 11, color: '#94a3b8', fontWeight: 500 },
-                    '& .MuiSlider-mark': { bgcolor: '#cbd5e1' },
+                    '& .MuiSlider-rail': { height: 6, borderRadius: 999, bgcolor: 'divider' },
+                    '& .MuiSlider-markLabel': { fontSize: 11, color: 'text.secondary', fontWeight: 500 },
+                    '& .MuiSlider-mark': { bgcolor: 'divider' },
                   }}
                 />
               </Box>
@@ -1045,7 +1050,7 @@ export default function ProjectsPage() {
 
         </DialogContent>
 
-        <Divider sx={{ borderColor: '#e2e8f0' }} />
+        <Divider />
 
         {/* ── Footer buttons ── */}
         <DialogActions sx={{ px: 3.5, py: 3, gap: 2, justifyContent: 'flex-end' }}>
@@ -1057,12 +1062,12 @@ export default function ProjectsPage() {
               borderRadius: '12px',
               textTransform: 'none',
               fontWeight: 600,
-              borderColor: '#cbd5e1',
-              color: '#475569',
+              borderColor: 'divider',
+              color: 'text.primary',
               px: 2.5,
               py: 1.25,
               transition: 'all 0.2s ease',
-              '&:hover': { borderColor: '#94a3b8', bgcolor: '#f8fafc' },
+              '&:hover': { borderColor: 'text.disabled', bgcolor: 'action.hover' },
             }}
           >
             Cancel
@@ -1079,12 +1084,12 @@ export default function ProjectsPage() {
               fontWeight: 600,
               px: 3,
               py: 1.25,
-              bgcolor: '#2563EB',
-              '&:hover': { bgcolor: '#1D4ED8', boxShadow: '0 4px 12px rgba(37,99,235,0.25)' },
+              bgcolor: 'primary.main',
+              '&:hover': { bgcolor: 'primary.dark' },
               transition: 'all 0.2s ease',
               '&.Mui-disabled': {
-                background: '#cbd5e1',
-                color: '#94a3b8',
+                background: 'action.disabledBackground',
+                color: 'action.disabled',
                 boxShadow: 'none',
               }
             }}

@@ -5,43 +5,44 @@ import {
   Avatar, InputAdornment, Fade, Grow, Chip, Popover, List, ListItemButton, ListItemText,
 } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import AddRoundedIcon       from '@mui/icons-material/AddRounded';
-import EditRoundedIcon      from '@mui/icons-material/EditRounded';
-import DeleteRoundedIcon    from '@mui/icons-material/DeleteRounded';
-import SearchRoundedIcon    from '@mui/icons-material/SearchRounded';
+import AddRoundedIcon from '@mui/icons-material/AddRounded';
+import EditRoundedIcon from '@mui/icons-material/EditRounded';
+import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
+import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import FilterListRoundedIcon from '@mui/icons-material/FilterListRounded';
 import FileDownloadRoundedIcon from '@mui/icons-material/FileDownloadRounded';
-import EmailRoundedIcon     from '@mui/icons-material/EmailRounded';
-import CodeRoundedIcon      from '@mui/icons-material/CodeRounded';
-import GroupRoundedIcon     from '@mui/icons-material/GroupRounded';
-import CloudRoundedIcon     from '@mui/icons-material/CloudRounded';
-import BusinessRoundedIcon  from '@mui/icons-material/BusinessRounded';
-import PaletteRoundedIcon   from '@mui/icons-material/PaletteRounded';
+import EmailRoundedIcon from '@mui/icons-material/EmailRounded';
+import CodeRoundedIcon from '@mui/icons-material/CodeRounded';
+import GroupRoundedIcon from '@mui/icons-material/GroupRounded';
+import CloudRoundedIcon from '@mui/icons-material/CloudRounded';
+import BusinessRoundedIcon from '@mui/icons-material/BusinessRounded';
+import PaletteRoundedIcon from '@mui/icons-material/PaletteRounded';
 import BugReportRoundedIcon from '@mui/icons-material/BugReportRounded';
-import CampaignRoundedIcon  from '@mui/icons-material/CampaignRounded';
-import BadgeRoundedIcon     from '@mui/icons-material/BadgeRounded';
-import PersonRoundedIcon    from '@mui/icons-material/PersonRounded';
-import WorkRoundedIcon      from '@mui/icons-material/WorkRounded';
-import PhoneRoundedIcon     from '@mui/icons-material/PhoneRounded';
+import CampaignRoundedIcon from '@mui/icons-material/CampaignRounded';
+import BadgeRoundedIcon from '@mui/icons-material/BadgeRounded';
+import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
+import WorkRoundedIcon from '@mui/icons-material/WorkRounded';
+import PhoneRoundedIcon from '@mui/icons-material/PhoneRounded';
 import CalendarTodayRoundedIcon from '@mui/icons-material/CalendarTodayRounded';
-import ShieldRoundedIcon    from '@mui/icons-material/ShieldRounded';
-import CloseRoundedIcon     from '@mui/icons-material/CloseRounded';
-import SaveRoundedIcon      from '@mui/icons-material/SaveRounded';
-import MonitorRoundedIcon   from '@mui/icons-material/MonitorRounded';
-import StorageRoundedIcon   from '@mui/icons-material/StorageRounded';
+import ShieldRoundedIcon from '@mui/icons-material/ShieldRounded';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
+import MonitorRoundedIcon from '@mui/icons-material/MonitorRounded';
+import StorageRoundedIcon from '@mui/icons-material/StorageRounded';
 import DeveloperBoardRoundedIcon from '@mui/icons-material/DeveloperBoardRounded';
 import FactCheckRoundedIcon from '@mui/icons-material/FactCheckRounded';
 import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
-import GroupsRoundedIcon    from '@mui/icons-material/GroupsRounded';
-import MainLayout    from '@/components/layout/MainLayout';
-import PageHeader    from '@/components/common/PageHeader';
+import GroupsRoundedIcon from '@mui/icons-material/GroupsRounded';
+import MainLayout from '@/components/layout/MainLayout';
+import PageHeader from '@/components/common/PageHeader';
 import ConfirmDialog from '@/components/common/ConfirmDialog';
+import { useTheme } from "@mui/material/styles";
 import { Employee } from '@/types';
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { capDateYear } from '@/utils/dateUtils';
 import { employeeService } from '@/services/employeeService';
 
-const DEPARTMENTS  = ['Engineering', 'Design', 'Management', 'QA', 'DevOps', 'HR', 'Marketing'];
+const DEPARTMENTS = ['Engineering', 'Design', 'Management', 'QA', 'DevOps', 'HR', 'Marketing'];
 const DESIGNATIONS = {
   Engineering: [
     'Frontend Developer',
@@ -101,13 +102,13 @@ type DeptIconCfg = { icon: React.ReactNode; bg: string; color: string };
 function getDeptIcon(dept: string): DeptIconCfg {
   switch (dept) {
     case 'Engineering': return { icon: <CodeRoundedIcon sx={{ fontSize: 16 }} />, bg: '#dbeafe', color: '#2563EB' };
-    case 'HR':          return { icon: <GroupRoundedIcon sx={{ fontSize: 16 }} />, bg: '#dcfce7', color: '#15803d' };
-    case 'DevOps':      return { icon: <CloudRoundedIcon sx={{ fontSize: 16 }} />, bg: '#cffafe', color: '#0369a1' };
-    case 'Management':  return { icon: <BusinessRoundedIcon sx={{ fontSize: 16 }} />, bg: '#e0e7ff', color: '#4338ca' };
-    case 'Design':      return { icon: <PaletteRoundedIcon sx={{ fontSize: 16 }} />, bg: '#f5f3ff', color: '#7c3aed' };
-    case 'QA':          return { icon: <BugReportRoundedIcon sx={{ fontSize: 16 }} />, bg: '#ffedd5', color: '#ea580c' };
-    case 'Marketing':   return { icon: <CampaignRoundedIcon sx={{ fontSize: 16 }} />, bg: '#fce7f3', color: '#db2777' };
-    default:            return { icon: <BusinessRoundedIcon sx={{ fontSize: 16 }} />, bg: '#f1f5f9', color: '#64748b' };
+    case 'HR': return { icon: <GroupRoundedIcon sx={{ fontSize: 16 }} />, bg: '#dcfce7', color: '#15803d' };
+    case 'DevOps': return { icon: <CloudRoundedIcon sx={{ fontSize: 16 }} />, bg: '#cffafe', color: '#0369a1' };
+    case 'Management': return { icon: <BusinessRoundedIcon sx={{ fontSize: 16 }} />, bg: '#e0e7ff', color: '#4338ca' };
+    case 'Design': return { icon: <PaletteRoundedIcon sx={{ fontSize: 16 }} />, bg: '#f5f3ff', color: '#7c3aed' };
+    case 'QA': return { icon: <BugReportRoundedIcon sx={{ fontSize: 16 }} />, bg: '#ffedd5', color: '#ea580c' };
+    case 'Marketing': return { icon: <CampaignRoundedIcon sx={{ fontSize: 16 }} />, bg: '#fce7f3', color: '#db2777' };
+    default: return { icon: <BusinessRoundedIcon sx={{ fontSize: 16 }} />, bg: '#f1f5f9', color: '#64748b' };
   }
 }
 
@@ -144,17 +145,19 @@ const isFutureDate = (dateStr: string) => {
 };
 
 export default function EmployeesPage() {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [loading, setLoading]     = useState(true);
-  const [search, setSearch]       = useState('');
-  const [filterDept, setFilterDept]       = useState('');
-  const [filterAnchor, setFilterAnchor]   = useState<HTMLElement | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [filterDept, setFilterDept] = useState('');
+  const [filterAnchor, setFilterAnchor] = useState<HTMLElement | null>(null);
 
-  const [open, setOpen]         = useState(false);
+  const [open, setOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [editData, setEditData] = useState<Employee | null>(null);
-  const [form, setForm]         = useState<Omit<Employee, 'id'>>(EMPTY);
-  const [touched, setTouched]   = useState<Record<string, boolean>>({});
+  const [form, setForm] = useState<Omit<Employee, 'id'>>(EMPTY);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   // Bug 3: prevents duplicate submissions on rapid button clicks
   const [isSaving, setIsSaving] = useState(false);
 
@@ -222,9 +225,9 @@ export default function EmployeesPage() {
   };
 
   const fieldLabel = (icon: React.ReactNode, text: string) => (
-    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, color: '#334155', fontSize: 13, fontWeight: 600 }}>
+    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, color: 'text.secondary', fontSize: 13, fontWeight: 600 }}>
       {icon}
-      <Typography component="span" sx={{ fontSize: 13, fontWeight: 600 }}>{text}</Typography>
+      <Typography component="span" sx={{ fontSize: 13, fontWeight: 600, color: 'text.secondary' }}>{text}</Typography>
     </Box>
   );
 
@@ -232,36 +235,35 @@ export default function EmployeesPage() {
     '& .MuiOutlinedInput-root': {
       borderRadius: '14px',
       minHeight: 52,
-      backgroundColor: '#ffffff',
+      backgroundColor: 'background.paper',
       '& fieldset': {
-        borderColor: '#cbd5e1',
+        borderColor: 'divider',
       },
       '&:hover fieldset': {
-        borderColor: '#94a3b8',
+        borderColor: 'text.disabled',
       },
       '&.Mui-focused fieldset': {
-        borderColor: '#2563EB',
-        boxShadow: '0 0 0 4px rgba(37,99,235,0.08)',
+        borderColor: 'primary.main',
       },
     },
     '& .MuiInputLabel-root': {
-      color: '#334155',
+      color: 'text.secondary',
       fontWeight: 600,
     },
     '& .MuiInputBase-input': {
       fontSize: '15px',
       fontWeight: 500,
-      color: '#111827',
+      color: 'text.primary',
     },
     '& .MuiOutlinedInput-input': {
       fontSize: '15px',
       fontWeight: 500,
-      color: '#111827',
+      color: 'text.primary',
     },
     '& .MuiSelect-select': {
       fontSize: '15px',
       fontWeight: 500,
-      color: '#111827',
+      color: 'text.primary',
     },
   };
 
@@ -320,7 +322,7 @@ export default function EmployeesPage() {
     setIsSaving(true);
     try {
       if (editData) { await employeeService.update(Number(editData.id), { ...form, id: editData.id }); }
-      else          { await employeeService.create(form); }
+      else { await employeeService.create(form); }
       await loadEmployees();
       setOpen(false); setEditData(null); setForm(EMPTY); setTouched({});
       // isSaving is intentionally NOT reset here — the dialog closes on success
@@ -350,9 +352,9 @@ export default function EmployeesPage() {
   }
 
   /* ── Filter popover handlers ── */
-  const openFilter  = (e: React.MouseEvent<HTMLElement>) => setFilterAnchor(e.currentTarget);
+  const openFilter = (e: React.MouseEvent<HTMLElement>) => setFilterAnchor(e.currentTarget);
   const closeFilter = () => setFilterAnchor(null);
-  const selectDept  = (dept: string) => { setFilterDept(dept); closeFilter(); };
+  const selectDept = (dept: string) => { setFilterDept(dept); closeFilter(); };
 
   /* ── CSV export ── */
   const handleExport = () => {
@@ -364,8 +366,8 @@ export default function EmployeesPage() {
       .map((row) => row.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','))
       .join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
     a.href = url; a.download = 'employees.csv'; a.click();
     URL.revokeObjectURL(url);
   };
@@ -397,10 +399,10 @@ export default function EmployeesPage() {
               {row.name?.charAt(0)?.toUpperCase()}
             </Avatar>
             <Box>
-              <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: '#0f172a', lineHeight: 1.3 }}>
+              <Typography sx={{ fontSize: 13.5, fontWeight: 700, color: 'text.primary', lineHeight: 1.3 }}>
                 {row.name}
               </Typography>
-              <Typography sx={{ fontSize: 11.5, fontWeight: 500, color: '#64748b', lineHeight: 1.2 }}>
+              <Typography sx={{ fontSize: 11.5, fontWeight: 500, color: 'text.secondary', lineHeight: 1.2 }}>
                 {row.employeeId}
               </Typography>
             </Box>
@@ -415,10 +417,10 @@ export default function EmployeesPage() {
       minWidth: 210,
       renderCell: ({ value }) => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: '100%' }}>
-          <Box sx={{ width: 28, height: 28, borderRadius: '8px', bgcolor: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <EmailRoundedIcon sx={{ fontSize: 14, color: '#64748b' }} />
+          <Box sx={{ width: 28, height: 28, borderRadius: '8px', bgcolor: 'action.hover', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <EmailRoundedIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
           </Box>
-          <Typography sx={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{value}</Typography>
+          <Typography sx={{ fontSize: 13, color: 'text.primary', fontWeight: 500 }}>{value}</Typography>
         </Box>
       ),
     },
@@ -433,7 +435,7 @@ export default function EmployeesPage() {
             <Box sx={{ width: 26, height: 26, borderRadius: '7px', bgcolor: d.bg, color: d.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
               {d.icon}
             </Box>
-            <Typography sx={{ fontSize: 13, fontWeight: 600, color: '#374151' }}>{value}</Typography>
+            <Typography sx={{ fontSize: 13, fontWeight: 600, color: 'text.primary' }}>{value}</Typography>
           </Box>
         );
       },
@@ -444,7 +446,7 @@ export default function EmployeesPage() {
       flex: 1,
       minWidth: 168,
       renderCell: ({ value }) => (
-        <Typography sx={{ fontSize: 13, color: '#374151', fontWeight: 400, height: '100%', display: 'flex', alignItems: 'center' }}>
+        <Typography sx={{ fontSize: 13, color: 'text.primary', fontWeight: 400, height: '100%', display: 'flex', alignItems: 'center' }}>
           {value}
         </Typography>
       ),
@@ -461,11 +463,12 @@ export default function EmployeesPage() {
               display: 'inline-flex', alignItems: 'center', gap: 0.65,
               px: 1.25, py: 0.45,
               borderRadius: '20px',
-              bgcolor: active ? '#dcfce7' : '#f3f4f6',
-              border: `1px solid ${active ? 'rgba(34,197,94,0.25)' : 'rgba(107,114,128,0.20)'}`,
+              bgcolor: active ? 'rgba(34,197,94,0.12)' : 'action.selected',
+              border: '1px solid',
+              borderColor: active ? 'success.light' : 'divider',
             }}>
-              <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: active ? '#22c55e' : '#9ca3af', flexShrink: 0 }} />
-              <Typography sx={{ fontSize: 12, fontWeight: 700, color: active ? '#15803d' : '#6b7280', lineHeight: 1 }}>
+              <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: active ? 'success.main' : 'text.disabled', flexShrink: 0 }} />
+              <Typography sx={{ fontSize: 12, fontWeight: 700, color: active ? 'success.main' : 'text.secondary', lineHeight: 1 }}>
                 {value}
               </Typography>
             </Box>
@@ -487,11 +490,12 @@ export default function EmployeesPage() {
               sx={{
                 width: 32, height: 32,
                 borderRadius: '9px',
-                bgcolor: '#eff6ff',
-                color: '#2563EB',
-                border: '1px solid rgba(37,99,235,0.15)',
+                bgcolor: isDark ? 'rgba(37,99,235,0.15)' : '#eff6ff',
+                color: isDark ? '#60a5fa' : '#2563EB',
+                border: '1px solid',
+                borderColor: isDark ? 'rgba(37,99,235,0.3)' : 'rgba(37,99,235,0.15)',
                 transition: 'all 0.25s ease',
-                '&:hover': { bgcolor: '#dbeafe', transform: 'translateY(-2px)', boxShadow: '0 4px 10px rgba(37,99,235,0.20)' },
+                '&:hover': { bgcolor: isDark ? 'rgba(37,99,235,0.25)' : '#dbeafe', transform: 'translateY(-2px)' },
               }}
             >
               <EditRoundedIcon sx={{ fontSize: 15 }} />
@@ -504,11 +508,12 @@ export default function EmployeesPage() {
               sx={{
                 width: 32, height: 32,
                 borderRadius: '9px',
-                bgcolor: '#fff1f2',
-                color: '#dc2626',
-                border: '1px solid rgba(220,38,38,0.15)',
+                bgcolor: isDark ? 'rgba(239,68,68,0.15)' : '#fff1f2',
+                color: isDark ? '#f87171' : '#dc2626',
+                border: '1px solid',
+                borderColor: isDark ? 'rgba(239,68,68,0.3)' : 'rgba(220,38,38,0.15)',
                 transition: 'all 0.25s ease',
-                '&:hover': { bgcolor: '#fee2e2', transform: 'translateY(-2px)', boxShadow: '0 4px 10px rgba(220,38,38,0.18)' },
+                '&:hover': { bgcolor: isDark ? 'rgba(239,68,68,0.25)' : '#fee2e2', transform: 'translateY(-2px)' },
               }}
             >
               <DeleteRoundedIcon sx={{ fontSize: 15 }} />
@@ -537,12 +542,12 @@ export default function EmployeesPage() {
               fontSize: 14,
               px: 2.5,
               py: 1.1,
-              background: 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)',
-              boxShadow: '0 4px 14px rgba(37,99,235,0.35)',
+              background: isDark ? 'linear-gradient(135deg, #7C3AED 0%, #6d28d9 100%)' : 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)',
+              boxShadow: isDark ? '0 4px 12px rgba(124,58,237,0.25)' : '0 4px 12px rgba(37,99,235,0.25)',
               transition: 'all 0.25s ease',
               '&:hover': {
-                background: 'linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%)',
-                boxShadow: '0 6px 20px rgba(37,99,235,0.45)',
+                background: isDark ? 'linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%)' : 'linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%)',
+                boxShadow: isDark ? '0 6px 18px rgba(124,58,237,0.35)' : '0 6px 18px rgba(37,99,235,0.35)',
                 transform: 'translateY(-2px)',
               },
             }}
@@ -569,17 +574,17 @@ export default function EmployeesPage() {
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchRoundedIcon sx={{ fontSize: 18, color: '#94a3b8' }} />
+                <SearchRoundedIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
               </InputAdornment>
             ),
             sx: {
               borderRadius: '12px',
               fontSize: 13.5,
               height: 44,
-              bgcolor: '#fff',
-              '& fieldset': { borderColor: '#e2e8f0' },
-              '&:hover fieldset': { borderColor: '#cbd5e1' },
-              '&.Mui-focused fieldset': { borderColor: '#2563EB' },
+              bgcolor: 'background.paper',
+              '& fieldset': { borderColor: 'divider' },
+              '&:hover fieldset': { borderColor: 'text.disabled' },
+              '&.Mui-focused fieldset': { borderColor: 'primary.main' },
             },
           }}
           sx={{ flex: 1, minWidth: 260 }}
@@ -598,11 +603,11 @@ export default function EmployeesPage() {
             fontSize: 13,
             height: 44,
             px: 2,
-            color: filterDept ? '#2563EB' : '#374151',
-            borderColor: filterDept ? '#2563EB' : '#e2e8f0',
-            bgcolor: filterDept ? '#eff6ff' : '#fff',
+            color: filterDept ? 'primary.main' : 'text.primary',
+            borderColor: filterDept ? 'primary.main' : 'divider',
+            bgcolor: filterDept ? 'action.selected' : 'background.paper',
             transition: 'all 0.25s ease',
-            '&:hover': { bgcolor: filterDept ? '#dbeafe' : '#f8fafd', borderColor: '#cbd5e1', transform: 'translateY(-1px)' },
+            '&:hover': { bgcolor: 'action.hover', borderColor: 'text.disabled', transform: 'translateY(-1px)' },
           }}
         >
           {filterDept ? filterDept : 'Filter'}
@@ -620,16 +625,17 @@ export default function EmployeesPage() {
             sx: {
               mt: 1,
               borderRadius: '14px',
-              border: '1px solid #e2e8f0',
-              boxShadow: '0 8px 30px rgba(0,0,0,0.10)',
+              border: '1px solid',
+              borderColor: 'divider',
+              boxShadow: 4,
               minWidth: 200,
               overflow: 'hidden',
             },
           }}
         >
           {/* Popover header */}
-          <Box sx={{ px: 2, pt: 1.5, pb: 1, borderBottom: '1px solid #f1f5f9' }}>
-            <Typography sx={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: 0.8 }}>
+          <Box sx={{ px: 2, pt: 1.5, pb: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
+            <Typography sx={{ fontSize: 11, fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.8 }}>
               Filter by Department
             </Typography>
           </Box>
@@ -642,9 +648,9 @@ export default function EmployeesPage() {
                 sx={{
                   px: 2, py: 0.85,
                   mx: 0.75, borderRadius: '8px',
-                  '&.Mui-selected': { bgcolor: '#eff6ff', color: '#2563EB' },
-                  '&.Mui-selected:hover': { bgcolor: '#dbeafe' },
-                  '&:hover': { bgcolor: '#f8fafd' },
+                  '&.Mui-selected': { bgcolor: 'action.selected', color: 'primary.main' },
+                  '&.Mui-selected:hover': { bgcolor: 'action.hover' },
+                  '&:hover': { bgcolor: 'action.hover' },
                 }}
               >
                 <ListItemText
@@ -652,7 +658,7 @@ export default function EmployeesPage() {
                   primaryTypographyProps={{
                     fontSize: 13,
                     fontWeight: filterDept === dept ? 700 : 400,
-                    color: filterDept === dept ? '#2563EB' : '#374151',
+                    color: filterDept === dept ? 'primary.main' : 'text.primary',
                   }}
                 />
               </ListItemButton>
@@ -673,11 +679,11 @@ export default function EmployeesPage() {
             fontSize: 13,
             height: 44,
             px: 2,
-            color: '#374151',
-            borderColor: '#e2e8f0',
-            bgcolor: '#fff',
+            color: 'text.primary',
+            borderColor: 'divider',
+            bgcolor: 'background.paper',
             transition: 'all 0.25s ease',
-            '&:hover': { bgcolor: '#f8fafd', borderColor: '#cbd5e1', transform: 'translateY(-1px)' },
+            '&:hover': { bgcolor: 'action.hover', borderColor: 'text.disabled', transform: 'translateY(-1px)' },
           }}
         >
           Export
@@ -688,13 +694,14 @@ export default function EmployeesPage() {
       <Paper
         elevation={0}
         sx={{
-          border: '1px solid #e8edf2',
-          boxShadow: '0 4px 24px rgba(0,0,0,0.06)',
+          border: '1px solid',
+          borderColor: 'divider',
+          boxShadow: 2,
           borderRadius: '20px',
           overflow: 'hidden',
-          bgcolor: '#fff',
+          bgcolor: 'background.paper',
           transition: 'box-shadow 0.3s ease',
-          '&:hover': { boxShadow: '0 8px 32px rgba(0,0,0,0.09)' },
+          '&:hover': { boxShadow: 4 },
         }}
       >
         <DataGrid
@@ -712,8 +719,9 @@ export default function EmployeesPage() {
 
             /* ── Column headers ── */
             '& .MuiDataGrid-columnHeaders': {
-              bgcolor: '#f8fafd',
-              borderBottom: '1px solid #e8edf2',
+              bgcolor: 'action.hover',
+              borderBottom: '1px solid',
+              borderColor: 'divider',
             },
             '& .MuiDataGrid-columnHeader': {
               textTransform: 'uppercase',
@@ -722,19 +730,19 @@ export default function EmployeesPage() {
             '& .MuiDataGrid-columnHeaderTitle': {
               fontSize: 11,
               fontWeight: 700,
-              color: '#94a3b8',
+              color: 'text.secondary',
             },
 
             /* ── Rows ── */
             '& .MuiDataGrid-row': {
               transition: 'all 0.2s ease',
               cursor: 'default',
-              borderBottom: '1px solid #f1f5f9',
+              borderBottom: '1px solid',
+              borderColor: 'divider',
             },
             '& .MuiDataGrid-row:hover': {
-              bgcolor: '#fafcff',
+              bgcolor: 'action.hover',
               transform: 'translateY(-1px)',
-              boxShadow: '0 4px 12px rgba(37,99,235,0.07)',
               zIndex: 1,
             },
             '& .MuiDataGrid-row:last-child': {
@@ -745,7 +753,7 @@ export default function EmployeesPage() {
             '& .MuiDataGrid-cell': {
               borderBottom: 'none',
               fontSize: 13,
-              color: '#374151',
+              color: 'text.primary',
               outline: 'none !important',
             },
             '& .MuiDataGrid-cell:focus': { outline: 'none' },
@@ -753,13 +761,14 @@ export default function EmployeesPage() {
 
             /* ── Footer / pagination ── */
             '& .MuiDataGrid-footerContainer': {
-              borderTop: '1px solid #f1f5f9',
-              bgcolor: '#fafafa',
+              borderTop: '1px solid',
+              borderColor: 'divider',
+              bgcolor: 'background.paper',
               px: 1,
             },
             '& .MuiTablePagination-root': {
               fontSize: 13,
-              color: '#6b7280',
+              color: 'text.secondary',
             },
             '& .MuiTablePagination-select': {
               borderRadius: '8px',
@@ -771,11 +780,11 @@ export default function EmployeesPage() {
             },
 
             /* ── Checkbox ── */
-            '& .MuiCheckbox-root': { color: '#cbd5e1' },
+            '& .MuiCheckbox-root': { color: 'text.disabled' },
 
             /* ── Separator lines ── */
             '& .MuiDataGrid-columnSeparator': { display: 'none' },
-            '& .MuiDataGrid-withBorderColor': { borderColor: '#f1f5f9' },
+            '& .MuiDataGrid-withBorderColor': { borderColor: 'divider' },
           }}
         />
       </Paper>
@@ -792,22 +801,22 @@ export default function EmployeesPage() {
         PaperProps={{
           sx: {
             borderRadius: '20px',
-            boxShadow: '0 20px 60px rgba(15,23,42,.15)',
-            background: 'rgba(248,250,252,0.96)',
+            boxShadow: 24,
+            background: 'background.paper',
             overflow: 'hidden',
           },
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2, px: 3.5, pt: 3, pb: 1.5 }}>
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <Avatar sx={{ width: 48, height: 48, bgcolor: '#dbeafe', color: '#1d4ed8' }}>
+            <Avatar sx={{ width: 48, height: 48, bgcolor: isDark ? 'rgba(37,99,235,0.15)' : '#dbeafe', color: isDark ? '#60a5fa' : '#1d4ed8' }}>
               <PersonRoundedIcon />
             </Avatar>
             <Box>
-              <Typography sx={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+              <Typography sx={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.2, color: 'text.primary' }}>
                 {editData ? 'Edit Employee' : 'Add New Employee'}
               </Typography>
-              <Typography sx={{ fontSize: 15, fontWeight: 400, color: '#64748B', mt: 0.5 }}>
+              <Typography sx={{ fontSize: 15, fontWeight: 400, color: 'text.secondary', mt: 0.5 }}>
                 Update employee information and save changes.
               </Typography>
             </Box>
@@ -818,10 +827,10 @@ export default function EmployeesPage() {
               width: 40,
               height: 40,
               borderRadius: '12px',
-              bgcolor: 'rgba(255,255,255,0.88)',
-              color: '#475569',
+              bgcolor: 'action.hover',
+              color: 'text.primary',
               transition: 'all 0.2s ease',
-              '&:hover': { bgcolor: '#e2e8f0', transform: 'translateY(-1px)' },
+              '&:hover': { bgcolor: 'action.selected', transform: 'translateY(-1px)' },
             }}
             aria-label="Close edit employee dialog"
           >
@@ -829,13 +838,13 @@ export default function EmployeesPage() {
           </IconButton>
         </Box>
 
-        <Divider sx={{ borderColor: '#e2e8f0' }} />
+        <Divider />
 
         <DialogContent sx={{ pt: 3, pb: 2, px: 3.5 }}>
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
             <TextField
               size="small"
-              label={fieldLabel(<BadgeRoundedIcon sx={{ color: '#2563EB' }} />, 'Employee ID')}
+              label={fieldLabel(<BadgeRoundedIcon sx={{ color: 'primary.main' }} />, 'Employee ID')}
               value={editData ? (form.employeeId ?? '') : 'Auto-generated'}
               disabled={true}
               error={Boolean(touched.employeeId && validationErrors.employeeId)}
@@ -845,7 +854,7 @@ export default function EmployeesPage() {
             />
             <TextField
               size="small"
-              label={fieldLabel(<PersonRoundedIcon sx={{ color: '#2563EB' }} />, 'Full Name')}
+              label={fieldLabel(<PersonRoundedIcon sx={{ color: 'primary.main' }} />, 'Full Name')}
               value={form.name ?? ''}
               onChange={e => handleFieldChange('name', e.target.value)}
               onBlur={() => handleBlur('name')}
@@ -856,7 +865,7 @@ export default function EmployeesPage() {
             />
             <TextField
               size="small"
-              label={fieldLabel(<EmailRoundedIcon sx={{ color: '#2563EB' }} />, 'Email')}
+              label={fieldLabel(<EmailRoundedIcon sx={{ color: 'primary.main' }} />, 'Email')}
               value={form.email ?? ''}
               onChange={e => handleFieldChange('email', e.target.value)}
               onBlur={() => handleBlur('email')}
@@ -868,7 +877,7 @@ export default function EmployeesPage() {
             <TextField
               size="small"
               select
-              label={fieldLabel(<BusinessRoundedIcon sx={{ color: '#2563EB' }} />, 'Department')}
+              label={fieldLabel(<BusinessRoundedIcon sx={{ color: 'primary.main' }} />, 'Department')}
               value={form.department ?? ''}
               onChange={e => {
                 setForm(prev => ({
@@ -896,7 +905,7 @@ export default function EmployeesPage() {
                       <Box sx={{ width: 28, height: 28, borderRadius: '10px', bgcolor: dept.bg, color: dept.color, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                         {dept.icon}
                       </Box>
-                      <Typography sx={{ fontSize: 15, fontWeight: 500, color: '#0f172a' }}>{selected}</Typography>
+                      <Typography sx={{ fontSize: 15, fontWeight: 500, color: 'text.primary' }}>{selected}</Typography>
                     </Box>
                   );
                 },
@@ -919,7 +928,7 @@ export default function EmployeesPage() {
             <TextField
               size="small"
               select
-              label={fieldLabel(<WorkRoundedIcon sx={{ color: '#2563EB' }} />, 'Designation')}
+              label={fieldLabel(<WorkRoundedIcon sx={{ color: 'primary.main' }} />, 'Designation')}
               value={form.designation ?? ''}
               onChange={e => handleFieldChange('designation', e.target.value)}
               onBlur={() => handleBlur('designation')}
@@ -933,10 +942,10 @@ export default function EmployeesPage() {
                   const icon = getDesignationIcon(selected);
                   return (
                     <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1.5 }}>
-                      <Box sx={{ width: 28, height: 28, borderRadius: '10px', bgcolor: 'rgba(37,99,235,0.12)', color: icon.color, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Box sx={{ width: 28, height: 28, borderRadius: '10px', bgcolor: 'action.selected', color: icon.color, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                         {icon.icon}
                       </Box>
-                      <Typography sx={{ fontSize: 15, fontWeight: 500, color: '#0f172a' }}>{selected}</Typography>
+                      <Typography sx={{ fontSize: 15, fontWeight: 500, color: 'text.primary' }}>{selected}</Typography>
                     </Box>
                   );
                 },
@@ -947,7 +956,7 @@ export default function EmployeesPage() {
                 return (
                   <MenuItem key={designation} value={designation} sx={{ py: 1.25, minHeight: 52 }}>
                     <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
-                      <Box sx={{ width: 30, height: 30, borderRadius: '10px', bgcolor: 'rgba(37,99,235,0.12)', color: icon.color, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <Box sx={{ width: 30, height: 30, borderRadius: '10px', bgcolor: 'action.selected', color: icon.color, display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                         {icon.icon}
                       </Box>
                       <Typography>{designation}</Typography>
@@ -958,7 +967,7 @@ export default function EmployeesPage() {
             </TextField>
             <TextField
               size="small"
-              label={fieldLabel(<PhoneRoundedIcon sx={{ color: '#2563EB' }} />, 'Phone')}
+              label={fieldLabel(<PhoneRoundedIcon sx={{ color: 'primary.main' }} />, 'Phone')}
               value={form.phone ?? ''}
               onChange={e => {
                 const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
@@ -973,7 +982,7 @@ export default function EmployeesPage() {
             />
             <TextField
               size="small"
-              label={fieldLabel(<CalendarTodayRoundedIcon sx={{ color: '#2563EB' }} />, 'Join Date')}
+              label={fieldLabel(<CalendarTodayRoundedIcon sx={{ color: 'primary.main' }} />, 'Join Date')}
               type="date"
               value={form.joinDate ?? ''}
               onChange={e => {
@@ -999,7 +1008,7 @@ export default function EmployeesPage() {
             <TextField
               size="small"
               select
-              label={fieldLabel(<ShieldRoundedIcon sx={{ color: '#2563EB' }} />, 'Status')}
+              label={fieldLabel(<ShieldRoundedIcon sx={{ color: 'primary.main' }} />, 'Status')}
               value={form.status ?? 'Active'}
               onChange={e => handleFieldChange('status', e.target.value as Employee['status'])}
               disabled={isStatusDisabled}
@@ -1029,7 +1038,7 @@ export default function EmployeesPage() {
           </Box>
         </DialogContent>
 
-        <Divider sx={{ borderColor: '#e2e8f0' }} />
+        <Divider />
 
         <DialogActions sx={{ px: 3.5, py: 3, gap: 2, justifyContent: 'flex-end' }}>
           <Button
@@ -1041,10 +1050,10 @@ export default function EmployeesPage() {
               textTransform: 'none',
               fontSize: 15,
               fontWeight: 600,
-              color: '#334155',
-              borderColor: '#cbd5e1',
+              color: 'text.primary',
+              borderColor: 'divider',
               minWidth: 130,
-              '&:hover': { bgcolor: '#f8fafc', borderColor: '#94a3b8' },
+              '&:hover': { bgcolor: 'action.hover', borderColor: 'text.disabled' },
             }}
           >
             Cancel
@@ -1061,16 +1070,16 @@ export default function EmployeesPage() {
               fontSize: 15,
               fontWeight: 600,
               minWidth: 150,
-              background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
-              boxShadow: '0 12px 26px rgba(37, 99, 235, 0.2)',
+              background: isDark ? 'linear-gradient(135deg, #7C3AED 0%, #6d28d9 100%)' : 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+              boxShadow: isDark ? '0 12px 26px rgba(124, 58, 237, 0.2)' : '0 12px 26px rgba(37, 99, 235, 0.2)',
               '&:hover': {
                 transform: 'translateY(-1px)',
-                boxShadow: '0 18px 32px rgba(37, 99, 235, 0.24)',
-                bgcolor: '#1e40af',
+                boxShadow: isDark ? '0 18px 32px rgba(124, 58, 237, 0.25)' : '0 18px 32px rgba(37, 99, 235, 0.24)',
+                bgcolor: 'primary.dark',
               },
               '&.Mui-disabled': {
-                background: '#cbd5e1',
-                color: '#94a3b8',
+                background: 'action.disabledBackground',
+                color: 'action.disabled',
                 boxShadow: 'none',
               }
             }}
