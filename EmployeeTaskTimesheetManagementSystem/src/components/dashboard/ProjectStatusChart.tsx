@@ -1,5 +1,5 @@
 'use client';
-import { Card, CardContent, Box, Typography } from '@mui/material';
+import { Card, CardContent, Box, Typography, useTheme } from '@mui/material';
 import DonutLargeRoundedIcon from '@mui/icons-material/DonutLargeRounded';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useEffect, useState } from 'react';
@@ -15,6 +15,8 @@ const COLORS: Record<string, string> = {
 
 export default function ProjectStatusChart() {
   const [projects, setProjects] = useState<Project[]>([]);
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
 
   useEffect(() => {
     const loadProjects = async () => {
@@ -37,20 +39,38 @@ export default function ProjectStatusChart() {
 
   const total = projects.length;
 
+  const tooltipStyle = {
+    backgroundColor: theme.palette.background.paper,
+    border: `1px solid ${theme.palette.divider}`,
+    borderRadius: 14,
+    fontSize: 13,
+    boxShadow: isDark
+      ? '0 8px 24px rgba(0,0,0,0.45)'
+      : '0 8px 24px rgba(0,0,0,0.10)',
+    color: theme.palette.text.primary,
+  };
+
   return (
     <Card
       elevation={0}
       sx={{
         height: '100%',
-        border: '1px solid rgba(232,237,242,0.8)',
-        boxShadow: '0 12px 30px rgba(0,0,0,0.08)',
+        border: `1px solid ${theme.palette.divider}`,
+        boxShadow: isDark
+          ? '0 12px 30px rgba(0,0,0,0.40)'
+          : '0 12px 30px rgba(0,0,0,0.08)',
         borderRadius: '24px',
-        bgcolor: '#fff',
+        bgcolor: 'background.paper',
         transition: 'all 0.3s ease',
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        '&:hover': { boxShadow: '0 20px 48px rgba(0,0,0,0.12)', transform: 'translateY(-4px)' },
+        '&:hover': {
+          boxShadow: isDark
+            ? '0 20px 48px rgba(0,0,0,0.55)'
+            : '0 20px 48px rgba(0,0,0,0.12)',
+          transform: 'translateY(-4px)',
+        },
       }}
     >
       {/* Custom header */}
@@ -65,10 +85,10 @@ export default function ProjectStatusChart() {
           <DonutLargeRoundedIcon sx={{ fontSize: 20, color: '#fff' }} />
         </Box>
         <Box>
-          <Typography sx={{ fontSize: 16, fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
+          <Typography sx={{ fontSize: 16, fontWeight: 800, color: 'text.primary', lineHeight: 1.2 }}>
             Project Status
           </Typography>
-          <Typography sx={{ fontSize: 12, color: '#94a3b8', fontWeight: 400, mt: 0.2 }}>
+          <Typography sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 400, mt: 0.2 }}>
             Distribution by status
           </Typography>
         </Box>
@@ -92,20 +112,13 @@ export default function ProjectStatusChart() {
                   <Cell key={entry.name} fill={COLORS[entry.name] ?? '#94a3b8'} />
                 ))}
               </Pie>
-              <Tooltip
-                contentStyle={{
-                  borderRadius: 14,
-                  border: '1px solid #e8edf2',
-                  fontSize: 13,
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.10)',
-                }}
-              />
+              <Tooltip contentStyle={tooltipStyle} />
               <Legend
                 iconType="circle"
                 iconSize={9}
                 wrapperStyle={{ fontSize: 12, paddingTop: 10 }}
                 formatter={(value) => (
-                  <span style={{ color: '#374151', fontWeight: 500 }}>{value}</span>
+                  <span style={{ color: theme.palette.text.secondary, fontWeight: 500 }}>{value}</span>
                 )}
               />
             </PieChart>
@@ -120,10 +133,10 @@ export default function ProjectStatusChart() {
             textAlign: 'center',
             pointerEvents: 'none',
           }}>
-            <Typography sx={{ fontSize: 30, fontWeight: 900, color: '#0f172a', lineHeight: 1, letterSpacing: -1 }}>
+            <Typography sx={{ fontSize: 30, fontWeight: 900, color: 'text.primary', lineHeight: 1, letterSpacing: -1 }}>
               {total}
             </Typography>
-            <Typography sx={{ fontSize: 11, color: '#94a3b8', fontWeight: 500, letterSpacing: 0.5, textTransform: 'uppercase' }}>
+            <Typography sx={{ fontSize: 11, color: 'text.secondary', fontWeight: 500, letterSpacing: 0.5, textTransform: 'uppercase' }}>
               Projects
             </Typography>
           </Box>

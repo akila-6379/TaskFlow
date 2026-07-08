@@ -1,5 +1,241 @@
-/* Hide the native password reveal button in Edge and IE */
+/* ── Hide native password reveal button in Edge/IE ── */
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear {
   display: none;
+}
+
+/* ── Native date/time inputs follow OS color-scheme ── */
+:root {
+  color-scheme: light dark;
+}
+
+/* ── Global Scrollbars ── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-track {
+    background: #0f1623 !important;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2a3448 !important;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3b4b68 !important;
+  }
+
+  /* ── Force theme variables on native HTML elements ── */
+  :root {
+    --background-default: #0f1623;
+    --background-paper: #1a2236;
+    --border-color: #2a3448;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+  }
+
+  /* ── DataGrid Dark Mode Overrides ── */
+  .MuiDataGrid-root {
+    --DataGrid-containerBackground: #1a2236 !important;
+    --unstable_DataGrid-radius: 0 !important;
+    background-color: #1a2236 !important;
+    border-color: #2a3448 !important;
+  }
+  
+  .MuiDataGrid-columnHeaders {
+    background-color: #151e2e !important;
+    border-bottom: 1px solid #2a3448 !important;
+  }
+  
+  .MuiDataGrid-columnHeader {
+    background-color: #151e2e !important;
+  }
+  
+  .MuiDataGrid-columnHeaderTitle {
+    color: #94a3b8 !important;
+  }
+  
+  .MuiDataGrid-row {
+    background-color: #1a2236 !important;
+    border-bottom: 1px solid #2a3448 !important;
+  }
+  
+  .MuiDataGrid-row:nth-of-type(even) {
+    background-color: #151e2e !important;
+  }
+  
+  .MuiDataGrid-row:hover {
+    background-color: #1e2a3a !important;
+  }
+  
+  .MuiDataGrid-cell {
+    color: #f1f5f9 !important;
+    border-bottom: 1px solid #2a3448 !important;
+  }
+  
+  .MuiDataGrid-footerContainer {
+    background-color: #151e2e !important;
+    border-top: 1px solid #2a3448 !important;
+    color: #f1f5f9 !important;
+  }
+
+  .MuiTablePagination-root,
+  .MuiTablePagination-select,
+  .MuiTablePagination-displayedRows,
+  .MuiTablePagination-actions {
+    color: #94a3b8 !important;
+  }
+
+  .MuiDataGrid-columnSeparator {
+    display: none !important;
+  }
+  
+  .MuiDataGrid-withBorderColor {
+    border-color: #2a3448 !important;
+  }
+
+  .MuiCheckbox-root {
+    color: #475569 !important;
+  }
+  
+  .MuiCheckbox-root.Mui-checked {
+    color: #2563EB !important;
+  }
+
+  /* ── Paper Containers Dark Mode Override (for inline bgcolor: #fff) ── */
+  .MuiPaper-root[style*="background-color: rgb(255, 255, 255)"],
+  .MuiPaper-root[style*="background-color: #fff"],
+  .MuiPaper-root[style*="background-color: #ffffff"],
+  .MuiPaper-root.bgcolor-white {
+    background-color: #1a2236 !important;
+    border-color: #2a3448 !important;
+    color: #f1f5f9 !important;
+  }
+
+  /* Form/Search input paper wrappers */
+  form.MuiPaper-root, 
+  .MuiPaper-root[component="form"] {
+    background-color: #1a2236 !important;
+    border-color: #2a3448 !important;
+  }
+
+  /* InputBase inside search wrappers */
+  .MuiInputBase-input {
+    color: #f1f5f9 !important;
+  }
+  
+  .MuiInputBase-input::placeholder {
+    color: #64748b !important;
+    opacity: 1 !important;
+  }
+
+  /* Outlined buttons and filter buttons */
+  .MuiButton-outlined {
+    border-color: #2a3448 !important;
+    color: #f1f5f9 !important;
+  }
+  
+  .MuiButton-outlined:hover {
+    border-color: #475569 !important;
+    background-color: #1e2a3a !important;
+  }
+
+  /* Project page elements: paper card wrappers */
+  .MuiPaper-root.MuiPaper-rounded {
+    background-color: #1a2236 !important;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.3) !important;
+  }
+  
+  .MuiPaper-root.MuiPaper-rounded:hover {
+    background-color: #1e2a3a !important;
+    box-shadow: 0 22px 42px rgba(37,99,235,0.15) !important;
+  }
+
+  /* Typography inside cards if hardcoded */
+  .MuiTypography-root[style*="color: rgb(15, 23, 42)"],
+  .MuiTypography-root[style*="color: #0f172a"],
+  .MuiTypography-root[style*="color: #111827"],
+  .MuiTypography-root[style*="color: #374151"] {
+    color: #f1f5f9 !important;
+  }
+  
+  .MuiTypography-root[style*="color: rgb(100, 116, 139)"],
+  .MuiTypography-root[style*="color: #64748b"],
+  .MuiTypography-root[style*="color: #6b7280"] {
+    color: #94a3b8 !important;
+  }
+
+  /* Specific buttons / avatars */
+  .MuiIconButton-root[style*="background-color: rgb(239, 246, 255)"],
+  .MuiIconButton-root[style*="background-color: #eff6ff"] {
+    background-color: rgba(37,99,235,0.15) !important;
+    color: #3b82f6 !important;
+  }
+  
+  .MuiIconButton-root[style*="background-color: rgb(254, 226, 226)"],
+  .MuiIconButton-root[style*="background-color: #fee2e2"] {
+    background-color: rgba(239,68,68,0.15) !important;
+    color: #f87171 !important;
+  }
+
+  /* Popovers and Menus */
+  .MuiPopover-paper, .MuiMenu-paper {
+    background-color: #1a2236 !important;
+    border: 1px solid #2a3448 !important;
+    color: #f1f5f9 !important;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.5) !important;
+  }
+  
+  .MuiPopover-paper .MuiBox-root {
+    border-bottom-color: #2a3448 !important;
+  }
+
+  .MuiListItemButton-root:hover {
+    background-color: #1e2a3a !important;
+  }
+  
+  .MuiListItemButton-root.Mui-selected {
+    background-color: rgba(37,99,235,0.15) !important;
+    color: #3b82f6 !important;
+  }
+  
+  .MuiListItemButton-root.Mui-selected:hover {
+    background-color: rgba(37,99,235,0.25) !important;
+  }
+
+  .MuiListItemText-primary {
+    color: inherit !important;
+  }
+
+  /* Divider color */
+  .MuiDivider-root {
+    border-color: #2a3448 !important;
+  }
+
+  /* Warning/alert box overrides */
+  .MuiBox-root[style*="background-color: rgb(254, 242, 242)"],
+  .MuiBox-root[style*="background-color: #fef2f2"] {
+    background-color: rgba(239,68,68,0.1) !important;
+    border-color: rgba(239,68,68,0.2) !important;
+    color: #fca5a5 !important;
+  }
+
+  /* Tasks status dot or card background if it overrides */
+  .MuiBox-root[style*="background-color: rgb(241, 245, 249)"],
+  .MuiBox-root[style*="background-color: #f1f5f9"] {
+    background-color: #1e2a3a !important;
+    color: #94a3b8 !important;
+  }
 }

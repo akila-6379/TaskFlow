@@ -75,10 +75,10 @@ export default function DashboardPage() {
 
   return (
     <MainLayout>
-      {/* Page wrapper with gradient background */}
+      {/* Page wrapper */}
       <Box sx={{
         minHeight: '100%',
-        background: 'linear-gradient(180deg, #F8FAFD 0%, #F4F8FF 100%)',
+        bgcolor: 'background.default',
         mx: -3,
         mt: -3,
         px: 3,
@@ -111,11 +111,11 @@ export default function DashboardPage() {
             }} />
             <Box>
               <Typography sx={{
-                fontSize: 22, fontWeight: 800, color: '#0f172a', lineHeight: 1.2, letterSpacing: -0.5,
+                fontSize: 22, fontWeight: 800, color: 'text.primary', lineHeight: 1.2, letterSpacing: -0.5,
               }}>
                 Welcome back, Admin 👋
               </Typography>
-              <Typography sx={{ fontSize: 13.5, color: '#94a3b8', fontWeight: 400, mt: 0.3 }}>
+              <Typography sx={{ fontSize: 13.5, color: 'text.secondary', fontWeight: 400, mt: 0.3 }}>
                 Here&apos;s your project overview for today.
               </Typography>
             </Box>

@@ -21,7 +21,7 @@ export default function PageHeader({ title, subtitle, action }: PageHeaderProps)
       }}
     >
       <Box>
-        <Typography variant="h5" fontWeight={700} color="#111827" lineHeight={1.3}>
+        <Typography variant="h5" fontWeight={700} color="text.primary" lineHeight={1.3}>
           {title}
         </Typography>
         {subtitle && (

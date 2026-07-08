@@ -1,7 +1,7 @@
 'use client';
 import {
   Card, CardContent, Table, TableBody, TableCell,
-  TableHead, TableRow, Chip, LinearProgress, Typography, Box, Divider,
+  TableHead, TableRow, LinearProgress, Typography, Box, Divider, useTheme,
 } from '@mui/material';
 import TableChartRoundedIcon from '@mui/icons-material/TableChartRounded';
 import LocalHospitalRoundedIcon from '@mui/icons-material/LocalHospitalRounded';
@@ -13,24 +13,20 @@ import { projectService } from '@/services/projectService';
 import { taskService } from '@/services/taskService';
 import { Project, Task } from '@/types';
 
-const STATUS_COLOR: Record<string, 'info' | 'success' | 'warning' | 'error'> = {
-  Active: 'info', 'In Progress': 'info', Completed: 'success', 'On Hold': 'warning', Cancelled: 'error',
-};
-
 const STATUS_STYLE: Record<string, { bg: string; color: string; border: string }> = {
-  Active:    { bg: 'rgba(37,99,235,0.10)',  color: '#2563EB', border: 'rgba(37,99,235,0.20)'  },
+  Active:        { bg: 'rgba(37,99,235,0.10)',  color: '#2563EB', border: 'rgba(37,99,235,0.20)'  },
   'In Progress': { bg: 'rgba(37,99,235,0.10)',  color: '#2563EB', border: 'rgba(37,99,235,0.20)'  },
-  Completed: { bg: 'rgba(34,197,94,0.10)',  color: '#16a34a', border: 'rgba(34,197,94,0.20)'  },
-  'On Hold': { bg: 'rgba(245,158,11,0.10)', color: '#d97706', border: 'rgba(245,158,11,0.20)' },
-  Cancelled: { bg: 'rgba(239,68,68,0.10)',  color: '#dc2626', border: 'rgba(239,68,68,0.20)'  },
+  Completed:     { bg: 'rgba(34,197,94,0.10)',  color: '#16a34a', border: 'rgba(34,197,94,0.20)'  },
+  'On Hold':     { bg: 'rgba(245,158,11,0.10)', color: '#d97706', border: 'rgba(245,158,11,0.20)' },
+  Cancelled:     { bg: 'rgba(239,68,68,0.10)',  color: '#dc2626', border: 'rgba(239,68,68,0.20)'  },
 };
 
 const PROGRESS_GRADIENTS: Record<string, string> = {
-  Active:    'linear-gradient(90deg, #2563EB 0%, #60a5fa 100%)',
+  Active:        'linear-gradient(90deg, #2563EB 0%, #60a5fa 100%)',
   'In Progress': 'linear-gradient(90deg, #2563EB 0%, #60a5fa 100%)',
-  Completed: 'linear-gradient(90deg, #16a34a 0%, #4ade80 100%)',
-  'On Hold': 'linear-gradient(90deg, #d97706 0%, #fbbf24 100%)',
-  Cancelled: 'linear-gradient(90deg, #dc2626 0%, #f87171 100%)',
+  Completed:     'linear-gradient(90deg, #16a34a 0%, #4ade80 100%)',
+  'On Hold':     'linear-gradient(90deg, #d97706 0%, #fbbf24 100%)',
+  Cancelled:     'linear-gradient(90deg, #dc2626 0%, #f87171 100%)',
 };
 
 type ProjectIconCfg = { icon: React.ReactNode; gradient: string; shadow: string };
@@ -68,6 +64,8 @@ function getProjectIcon(name: string): ProjectIconCfg {
 export default function ProjectProgress() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
 
   useEffect(() => {
     const loadData = async () => {
@@ -83,18 +81,31 @@ export default function ProjectProgress() {
     loadData();
   }, []);
 
+  // Suppress unused warning — tasks kept for future use
+  void tasks;
+
+  const headerBg   = isDark ? theme.palette.background.default : '#f8fafd';
+  const rowHoverBg = isDark ? 'rgba(255,255,255,0.04)' : '#f8fafd';
+
   return (
     <Card
       elevation={0}
       sx={{
         width: '100%',
-        border: '1px solid rgba(232,237,242,0.8)',
-        boxShadow: '0 12px 30px rgba(0,0,0,0.08)',
+        border: `1px solid ${theme.palette.divider}`,
+        boxShadow: isDark
+          ? '0 12px 30px rgba(0,0,0,0.40)'
+          : '0 12px 30px rgba(0,0,0,0.08)',
         borderRadius: '24px',
         transition: 'all 0.3s ease',
-        bgcolor: '#fff',
+        bgcolor: 'background.paper',
         overflow: 'hidden',
-        '&:hover': { boxShadow: '0 20px 48px rgba(0,0,0,0.12)', transform: 'translateY(-4px)' },
+        '&:hover': {
+          boxShadow: isDark
+            ? '0 20px 48px rgba(0,0,0,0.55)'
+            : '0 20px 48px rgba(0,0,0,0.12)',
+          transform: 'translateY(-4px)',
+        },
       }}
     >
       {/* Header */}
@@ -113,10 +124,10 @@ export default function ProjectProgress() {
             <TableChartRoundedIcon sx={{ fontSize: 20, color: '#fff' }} />
           </Box>
           <Box>
-            <Typography sx={{ fontSize: 16, fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
+            <Typography sx={{ fontSize: 16, fontWeight: 800, color: 'text.primary', lineHeight: 1.2 }}>
               Project Progress
             </Typography>
-            <Typography sx={{ fontSize: 12, color: '#94a3b8', fontWeight: 400, mt: 0.2 }}>
+            <Typography sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 400, mt: 0.2 }}>
               {projects.length} projects total
             </Typography>
           </Box>
@@ -142,35 +153,31 @@ export default function ProjectProgress() {
       </Box>
 
       <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
-        <Divider sx={{ borderColor: '#f1f5f9', mt: 2 }} />
+        <Divider sx={{ mt: 2 }} />
         <Table>
           <TableHead>
-            <TableRow sx={{ bgcolor: '#f8fafd' }}>
+            <TableRow sx={{ bgcolor: headerBg }}>
               <TableCell sx={{
-                fontWeight: 700, fontSize: 11, color: '#94a3b8',
+                fontWeight: 700, fontSize: 11, color: 'text.secondary',
                 py: 1.75, pl: 3.5, letterSpacing: 0.8, textTransform: 'uppercase',
-                borderBottom: '1px solid #f1f5f9',
               }}>
                 Project
               </TableCell>
               <TableCell sx={{
-                fontWeight: 700, fontSize: 11, color: '#94a3b8',
+                fontWeight: 700, fontSize: 11, color: 'text.secondary',
                 py: 1.75, width: 260, letterSpacing: 0.8, textTransform: 'uppercase',
-                borderBottom: '1px solid #f1f5f9',
               }}>
                 Progress
               </TableCell>
               <TableCell sx={{
-                fontWeight: 700, fontSize: 11, color: '#94a3b8',
+                fontWeight: 700, fontSize: 11, color: 'text.secondary',
                 py: 1.75, letterSpacing: 0.8, textTransform: 'uppercase',
-                borderBottom: '1px solid #f1f5f9',
               }}>
                 Status
               </TableCell>
               <TableCell sx={{
-                fontWeight: 700, fontSize: 11, color: '#94a3b8',
+                fontWeight: 700, fontSize: 11, color: 'text.secondary',
                 py: 1.75, pr: 3.5, letterSpacing: 0.8, textTransform: 'uppercase',
-                borderBottom: '1px solid #f1f5f9',
               }}>
                 End Date
               </TableCell>
@@ -190,13 +197,13 @@ export default function ProjectProgress() {
                     transition: 'all 0.2s ease',
                     cursor: 'default',
                     '&:hover': {
-                      bgcolor: '#f8fafd',
+                      bgcolor: rowHoverBg,
                       '& .project-name': { color: '#2563EB' },
                     },
                   }}
                 >
                   {/* Project name + icon */}
-                  <TableCell sx={{ py: 2.5, pl: 3.5, borderColor: '#f1f5f9' }}>
+                  <TableCell sx={{ py: 2.5, pl: 3.5 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.75 }}>
                       <Box sx={{
                         width: 38, height: 38,
@@ -211,7 +218,7 @@ export default function ProjectProgress() {
                       </Box>
                       <Typography
                         className="project-name"
-                        sx={{ fontWeight: 700, color: '#111827', fontSize: 13.5, transition: 'color 0.2s ease' }}
+                        sx={{ fontWeight: 700, color: 'text.primary', fontSize: 13.5, transition: 'color 0.2s ease' }}
                       >
                         {p.projectName}
                       </Typography>
@@ -219,7 +226,7 @@ export default function ProjectProgress() {
                   </TableCell>
 
                   {/* Progress bar */}
-                  <TableCell sx={{ borderColor: '#f1f5f9' }}>
+                  <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.75 }}>
                       <LinearProgress
                         variant="determinate"
@@ -228,7 +235,6 @@ export default function ProjectProgress() {
                           flex: 1,
                           height: 9,
                           borderRadius: 10,
-                          bgcolor: '#f1f5f9',
                           '& .MuiLinearProgress-bar': {
                             borderRadius: 10,
                             background: progressGradient,
@@ -238,7 +244,7 @@ export default function ProjectProgress() {
                       />
                       <Typography sx={{
                         minWidth: 36, fontWeight: 800,
-                        color: '#374151', fontSize: 13,
+                        color: 'text.primary', fontSize: 13,
                         textAlign: 'right',
                       }}>
                         {Number(p.progress ?? 0)}%
@@ -247,7 +253,7 @@ export default function ProjectProgress() {
                   </TableCell>
 
                   {/* Status chip */}
-                  <TableCell sx={{ borderColor: '#f1f5f9' }}>
+                  <TableCell>
                     <Box sx={{
                       display: 'inline-flex',
                       alignItems: 'center',
@@ -268,8 +274,8 @@ export default function ProjectProgress() {
                   </TableCell>
 
                   {/* End date */}
-                  <TableCell sx={{ py: 2.5, pr: 3.5, borderColor: '#f1f5f9' }}>
-                    <Typography sx={{ fontSize: 13, color: '#6b7280', fontWeight: 500 }}>
+                  <TableCell sx={{ py: 2.5, pr: 3.5 }}>
+                    <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 500 }}>
                       {new Date(p.endDate).toLocaleDateString('en-GB', {
                         day: '2-digit',
                         month: 'short',

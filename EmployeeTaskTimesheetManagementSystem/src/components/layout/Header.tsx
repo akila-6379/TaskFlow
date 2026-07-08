@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   AppBar, Toolbar, Typography, IconButton, Badge, Avatar,
-  Menu, MenuItem, Box, Divider, Tooltip,
+  Menu, MenuItem, Box, Divider, Tooltip, useTheme,
 } from '@mui/material';
 import MenuRoundedIcon from '@mui/icons-material/MenuRounded';
 import NotificationsNoneRoundedIcon from '@mui/icons-material/NotificationsNoneRounded';
@@ -28,39 +28,39 @@ export default function Header() {
   const { toggleMobile } = useLayout();
   const pathname = usePathname();
   const router = useRouter();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const title = Object.entries(PAGE_TITLES).find(([k]) => pathname.startsWith(k))?.[1] ?? 'Dashboard';
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
+  const controlBg    = isDark ? 'rgba(255,255,255,0.06)' : '#f8fafd';
+  const controlBorder= isDark ? 'rgba(255,255,255,0.10)' : '#e8edf2';
+  const controlHover = isDark ? 'rgba(255,255,255,0.10)' : '#f1f5f9';
+  const borderHover  = isDark ? 'rgba(255,255,255,0.18)' : '#cbd5e1';
+
   return (
     <AppBar
       position="sticky"
       elevation={0}
-      sx={{
-        bgcolor: '#ffffff',
-        borderBottom: '1px solid #e8edf2',
-        color: 'text.primary',
-        zIndex: (t) => t.zIndex.drawer - 1,
-        boxShadow: '0 1px 8px rgba(0,0,0,0.05)',
-      }}
     >
       <Toolbar sx={{ gap: 1.5, minHeight: { xs: 60, sm: 70 }, px: { xs: 2, sm: 3 } }}>
         {/* Mobile hamburger */}
         <IconButton
           onClick={toggleMobile}
           edge="start"
-          sx={{ display: { md: 'none' }, color: '#374151' }}
+          sx={{ display: { md: 'none' }, color: 'text.secondary' }}
         >
           <MenuRoundedIcon />
         </IconButton>
 
         {/* Page title */}
         <Box sx={{ flex: 1 }}>
-          <Typography variant="h6" fontWeight={800} color="#0f172a" lineHeight={1.2} fontSize={{ xs: 16, sm: 18 }}>
+          <Typography variant="h6" fontWeight={800} color="text.primary" lineHeight={1.2} fontSize={{ xs: 16, sm: 18 }}>
             {title}
           </Typography>
-          <Typography variant="caption" color="#94a3b8" sx={{ display: { xs: 'none', sm: 'block' }, fontSize: 12, fontWeight: 400 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ display: { xs: 'none', sm: 'block' }, fontSize: 12, fontWeight: 400 }}>
             {today}
           </Typography>
         </Box>
@@ -69,13 +69,13 @@ export default function Header() {
         <Tooltip title="Notifications">
           <IconButton
             sx={{
-              color: '#6b7280',
-              bgcolor: '#f8fafd',
-              border: '1px solid #e8edf2',
+              color: 'text.secondary',
+              bgcolor: controlBg,
+              border: `1px solid ${controlBorder}`,
               borderRadius: '10px',
               width: 38,
               height: 38,
-              '&:hover': { bgcolor: '#f1f5f9', borderColor: '#cbd5e1' },
+              '&:hover': { bgcolor: controlHover, borderColor: borderHover },
               transition: 'all 0.2s ease',
             }}
           >
@@ -96,9 +96,9 @@ export default function Header() {
             borderRadius: '12px',
             px: 1.5,
             py: 0.75,
-            border: '1px solid #e8edf2',
-            bgcolor: '#f8fafd',
-            '&:hover': { bgcolor: '#f1f5f9', borderColor: '#cbd5e1' },
+            border: `1px solid ${controlBorder}`,
+            bgcolor: controlBg,
+            '&:hover': { bgcolor: controlHover, borderColor: borderHover },
             transition: 'all 0.2s ease',
           }}
         >
@@ -114,14 +114,14 @@ export default function Header() {
             {user?.name?.charAt(0)}
           </Avatar>
           <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-            <Typography variant="body2" fontWeight={700} lineHeight={1.2} color="#111827" fontSize={13}>
+            <Typography variant="body2" fontWeight={700} lineHeight={1.2} color="text.primary" fontSize={13}>
               {user?.name}
             </Typography>
-            <Typography variant="caption" color="#94a3b8" fontSize={11}>
+            <Typography variant="caption" color="text.secondary" fontSize={11}>
               {user?.role}
             </Typography>
           </Box>
-          <KeyboardArrowDownRoundedIcon sx={{ fontSize: 18, color: '#9ca3af', display: { xs: 'none', sm: 'block' } }} />
+          <KeyboardArrowDownRoundedIcon sx={{ fontSize: 18, color: 'text.secondary', display: { xs: 'none', sm: 'block' } }} />
         </Box>
 
         <Menu
@@ -136,13 +136,11 @@ export default function Header() {
               mt: 1,
               minWidth: 200,
               borderRadius: '10px',
-              border: '1px solid #e8edf2',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.10)',
             },
           }}
         >
           <Box sx={{ px: 2, py: 1.5 }}>
-            <Typography variant="subtitle2" fontWeight={700}>{user?.name}</Typography>
+            <Typography variant="subtitle2" fontWeight={700} color="text.primary">{user?.name}</Typography>
             <Typography variant="caption" color="text.secondary">{user?.email}</Typography>
           </Box>
           <Divider />
@@ -150,7 +148,7 @@ export default function Header() {
             onClick={() => { setAnchorEl(null); router.push('/settings'); }}
             sx={{ gap: 1.5, fontSize: 14, py: 1.2 }}
           >
-            <AccountCircleOutlinedIcon fontSize="small" sx={{ color: '#6b7280' }} />
+            <AccountCircleOutlinedIcon fontSize="small" sx={{ color: 'text.secondary' }} />
             Profile & Settings
           </MenuItem>
           <MenuItem

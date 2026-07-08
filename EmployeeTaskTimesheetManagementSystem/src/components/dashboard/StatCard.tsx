@@ -1,4 +1,4 @@
-import { Card, CardContent, Box, Typography } from '@mui/material';
+import { Card, CardContent, Box, Typography, useTheme } from '@mui/material';
 import { ReactNode } from 'react';
 
 interface StatCardProps {
@@ -11,74 +11,68 @@ interface StatCardProps {
   trendColor?: string;
 }
 
-const CARD_GRADIENTS: Record<string, { card: string; icon: string; glow: string; wave: string }> = {
-  '#2563EB': {
-    card: 'linear-gradient(145deg, #ffffff 0%, #f0f6ff 100%)',
-    icon: 'linear-gradient(135deg, #2563EB 0%, #60a5fa 100%)',
-    glow: 'rgba(37,99,235,0.18)',
-    wave: '#2563EB',
-  },
-  '#1976d2': {
-    card: 'linear-gradient(145deg, #ffffff 0%, #f0f6ff 100%)',
-    icon: 'linear-gradient(135deg, #2563EB 0%, #60a5fa 100%)',
-    glow: 'rgba(37,99,235,0.18)',
-    wave: '#2563EB',
-  },
-  '#7C3AED': {
-    card: 'linear-gradient(145deg, #ffffff 0%, #f5f0ff 100%)',
-    icon: 'linear-gradient(135deg, #7C3AED 0%, #c084fc 100%)',
-    glow: 'rgba(124,58,237,0.18)',
-    wave: '#7C3AED',
-  },
-  '#7c3aed': {
-    card: 'linear-gradient(145deg, #ffffff 0%, #f5f0ff 100%)',
-    icon: 'linear-gradient(135deg, #7C3AED 0%, #c084fc 100%)',
-    glow: 'rgba(124,58,237,0.18)',
-    wave: '#7C3AED',
-  },
-  '#F59E0B': {
-    card: 'linear-gradient(145deg, #ffffff 0%, #fffbf0 100%)',
-    icon: 'linear-gradient(135deg, #F59E0B 0%, #fcd34d 100%)',
-    glow: 'rgba(245,158,11,0.18)',
-    wave: '#F59E0B',
-  },
-  '#d97706': {
-    card: 'linear-gradient(145deg, #ffffff 0%, #fffbf0 100%)',
-    icon: 'linear-gradient(135deg, #F59E0B 0%, #fcd34d 100%)',
-    glow: 'rgba(245,158,11,0.18)',
-    wave: '#F59E0B',
-  },
-  '#0891b2': {
-    card: 'linear-gradient(145deg, #ffffff 0%, #f0fbff 100%)',
-    icon: 'linear-gradient(135deg, #0891b2 0%, #38bdf8 100%)',
-    glow: 'rgba(8,145,178,0.18)',
-    wave: '#0891b2',
-  },
-};
-
 export default function StatCard({ title, value, icon, color, subtitle, trend, trendColor }: StatCardProps) {
-  const cfg = CARD_GRADIENTS[color] ?? {
-    card: 'linear-gradient(145deg, #ffffff 0%, #f8fafd 100%)',
-    icon: `linear-gradient(135deg, ${color} 0%, ${color}cc 100%)`,
-    glow: `${color}30`,
-    wave: color,
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+
+  // Glow mapped per brand color
+  const glowMap: Record<string, string> = {
+    '#2563EB': 'rgba(37,99,235,0.22)',
+    '#1976d2': 'rgba(37,99,235,0.22)',
+    '#7C3AED': 'rgba(124,58,237,0.22)',
+    '#7c3aed': 'rgba(124,58,237,0.22)',
+    '#F59E0B': 'rgba(245,158,11,0.22)',
+    '#d97706': 'rgba(245,158,11,0.22)',
+    '#0891b2': 'rgba(8,145,178,0.22)',
   };
+
+  const iconGradMap: Record<string, string> = {
+    '#2563EB': 'linear-gradient(135deg, #2563EB 0%, #60a5fa 100%)',
+    '#1976d2': 'linear-gradient(135deg, #2563EB 0%, #60a5fa 100%)',
+    '#7C3AED': 'linear-gradient(135deg, #7C3AED 0%, #c084fc 100%)',
+    '#7c3aed': 'linear-gradient(135deg, #7C3AED 0%, #c084fc 100%)',
+    '#F59E0B': 'linear-gradient(135deg, #F59E0B 0%, #fcd34d 100%)',
+    '#d97706': 'linear-gradient(135deg, #F59E0B 0%, #fcd34d 100%)',
+    '#0891b2': 'linear-gradient(135deg, #0891b2 0%, #38bdf8 100%)',
+  };
+
+  const glow = glowMap[color] ?? `${color}30`;
+  const iconGrad = iconGradMap[color] ?? `linear-gradient(135deg, ${color} 0%, ${color}cc 100%)`;
+
+  const cardBg = isDark
+    ? `linear-gradient(145deg, ${theme.palette.background.paper} 0%, ${theme.palette.background.paper} 100%)`
+    : (() => {
+      const lightGradMap: Record<string, string> = {
+        '#2563EB': 'linear-gradient(145deg, #ffffff 0%, #f0f6ff 100%)',
+        '#1976d2': 'linear-gradient(145deg, #ffffff 0%, #f0f6ff 100%)',
+        '#7C3AED': 'linear-gradient(145deg, #ffffff 0%, #f5f0ff 100%)',
+        '#7c3aed': 'linear-gradient(145deg, #ffffff 0%, #f5f0ff 100%)',
+        '#F59E0B': 'linear-gradient(145deg, #ffffff 0%, #fffbf0 100%)',
+        '#d97706': 'linear-gradient(145deg, #ffffff 0%, #fffbf0 100%)',
+        '#0891b2': 'linear-gradient(145deg, #ffffff 0%, #f0fbff 100%)',
+      };
+      return lightGradMap[color] ?? 'linear-gradient(145deg, #ffffff 0%, #f8fafd 100%)';
+    })();
 
   return (
     <Card
       elevation={0}
       sx={{
         height: '100%',
-        background: cfg.card,
-        border: '1px solid rgba(255,255,255,0.9)',
-        boxShadow: `0 12px 30px rgba(0,0,0,0.08), 0 0 0 1px rgba(255,255,255,0.6)`,
+        background: cardBg,
+        border: `1px solid ${isDark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.9)'}`,
+        boxShadow: isDark
+          ? `0 12px 30px rgba(0,0,0,0.40), 0 0 0 1px rgba(255,255,255,0.05)`
+          : `0 12px 30px rgba(0,0,0,0.08), 0 0 0 1px rgba(255,255,255,0.6)`,
         borderRadius: '24px',
         transition: 'all 0.3s ease',
         overflow: 'hidden',
         position: 'relative',
         backdropFilter: 'blur(12px)',
         '&:hover': {
-          boxShadow: `0 20px 48px rgba(0,0,0,0.13), 0 0 0 1px rgba(255,255,255,0.8)`,
+          boxShadow: isDark
+            ? `0 20px 48px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.09)`
+            : `0 20px 48px rgba(0,0,0,0.13), 0 0 0 1px rgba(255,255,255,0.8)`,
           transform: 'translateY(-6px)',
         },
         /* Top-right decorative glow blob */
@@ -90,7 +84,7 @@ export default function StatCard({ title, value, icon, color, subtitle, trend, t
           width: 120,
           height: 120,
           borderRadius: '50%',
-          background: `radial-gradient(circle, ${cfg.glow} 0%, transparent 70%)`,
+          background: `radial-gradient(circle, ${glow} 0%, transparent 70%)`,
           pointerEvents: 'none',
         },
       }}
@@ -100,7 +94,7 @@ export default function StatCard({ title, value, icon, color, subtitle, trend, t
         {/* Top row: label + icon */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2.5 }}>
           <Typography sx={{
-            fontSize: 11, fontWeight: 700, color: '#94a3b8',
+            fontSize: 11, fontWeight: 700, color: 'text.secondary',
             textTransform: 'uppercase', letterSpacing: 1,
           }}>
             {title}
@@ -111,12 +105,12 @@ export default function StatCard({ title, value, icon, color, subtitle, trend, t
             width: 54,
             height: 54,
             borderRadius: '16px',
-            background: cfg.icon,
+            background: iconGrad,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
-            boxShadow: `0 8px 20px ${cfg.glow}`,
+            boxShadow: `0 8px 20px ${glow}`,
             '& svg': { fontSize: 28, color: '#fff' },
           }}>
             {icon}
@@ -125,7 +119,7 @@ export default function StatCard({ title, value, icon, color, subtitle, trend, t
 
         {/* Value */}
         <Typography sx={{
-          fontSize: 38, fontWeight: 900, color: '#0f172a',
+          fontSize: 38, fontWeight: 900, color: 'text.primary',
           lineHeight: 1, mb: 1, letterSpacing: -1.5,
         }}>
           {value}
@@ -134,7 +128,7 @@ export default function StatCard({ title, value, icon, color, subtitle, trend, t
         {/* Subtitle + trend badge */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
           {subtitle && (
-            <Typography sx={{ fontSize: 12, color: '#94a3b8', fontWeight: 400 }}>
+            <Typography sx={{ fontSize: 12, color: 'text.secondary', fontWeight: 400 }}>
               {subtitle}
             </Typography>
           )}
@@ -170,13 +164,13 @@ export default function StatCard({ title, value, icon, color, subtitle, trend, t
         >
           <path
             d="M0,25 C60,45 120,5 200,25 C280,45 360,10 440,22 C470,28 490,20 500,25 L500,50 L0,50 Z"
-            fill={cfg.wave}
-            fillOpacity="0.07"
+            fill={color}
+            fillOpacity={isDark ? '0.10' : '0.07'}
           />
           <path
             d="M0,35 C80,20 160,42 260,32 C340,24 420,38 500,30 L500,50 L0,50 Z"
-            fill={cfg.wave}
-            fillOpacity="0.05"
+            fill={color}
+            fillOpacity={isDark ? '0.07' : '0.05'}
           />
         </svg>
       </Box>

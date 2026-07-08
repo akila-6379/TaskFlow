@@ -14,6 +14,7 @@ import {
   CircularProgress,
   InputAdornment,
   IconButton,
+  useTheme,
 } from '@mui/material';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
@@ -22,6 +23,8 @@ import { useAuth } from '@/contexts/AuthContext';
 export default function LoginPage() {
   const { login } = useAuth();
   const router = useRouter();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -43,11 +46,22 @@ export default function LoginPage() {
     }
   };
 
+  // Theme-derived tokens
+  const pageBg = isDark
+    ? 'linear-gradient(180deg, #0d1525 0%, #0f1a2e 100%)'
+    : 'linear-gradient(180deg, #F8FBFF 0%, #EEF5FF 100%)';
+
+  const cardBg = theme.palette.background.paper;
+  const cardBorder = isDark ? 'rgba(255,255,255,0.08)' : '#E8EEF8';
+  const cardShadow = isDark
+    ? '0 15px 40px rgba(0,0,0,0.45)'
+    : '0 15px 40px rgba(0,0,0,0.08)';
+
   return (
     <Box
       sx={{
         height: '100vh',
-        backgroundColor: '#F7FAFF',
+        background: pageBg,
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
@@ -62,7 +76,6 @@ export default function LoginPage() {
           justifyContent: 'center',
           px: 4,
           py: 3,
-          background: 'linear-gradient(180deg, #F8FBFF 0%, #EEF5FF 100%)',
         }}
       >
         <Box
@@ -75,7 +88,7 @@ export default function LoginPage() {
             alignItems: 'center',
           }}
         >
-          {/* Left side */}
+          {/* Left side — illustration + branding */}
           <Box
             sx={{
               display: { xs: 'none', md: 'flex' },
@@ -91,7 +104,7 @@ export default function LoginPage() {
 
             <Typography
               variant="h3"
-              sx={{ fontWeight: 700, color: '#0f172a', lineHeight: 1.2, mb: 1.5 }}
+              sx={{ fontWeight: 700, color: 'text.primary', lineHeight: 1.2, mb: 1.5 }}
             >
               Employee Task &amp;
               <br />
@@ -101,36 +114,44 @@ export default function LoginPage() {
             </Typography>
 
             <Typography
-              sx={{ color: '#64748b', fontSize: 17, maxWidth: 500, lineHeight: 1.8, mb: 3 }}
+              sx={{ color: 'text.secondary', fontSize: 17, maxWidth: 500, lineHeight: 1.8, mb: 3 }}
             >
               Manage employees, projects, tasks and work logs from one modern platform.
               Built for productivity, collaboration and efficient project tracking.
             </Typography>
 
-            <Image
-              src="/image/login-team.png"
-              alt="Team"
-              width={510}
-              height={382}
-              style={{ width: '100%', maxWidth: 510, height: 'auto' }}
-              priority
-            />
+            {/* New login illustration — never modified by theme */}
+            <Box sx={{ position: 'relative', width: '100%', maxWidth: 520 }}>
+              <Image
+                src="/image/login-illustration.png"
+                alt="TaskFlow Enterprise Illustration"
+                width={520}
+                height={390}
+                style={{
+                  width: '100%',
+                  height: 'auto',
+                  maxWidth: 520,
+                  objectFit: 'contain',
+                }}
+                priority
+              />
+            </Box>
           </Box>
 
           {/* Right side — form card */}
           <Box
             sx={{
-              background: '#ffffff',
+              background: cardBg,
               borderRadius: '20px',
               p: 5,
-              boxShadow: '0 15px 40px rgba(0,0,0,0.08)',
-              border: '1px solid #E8EEF8',
+              boxShadow: cardShadow,
+              border: `1px solid ${cardBorder}`,
             }}
           >
-            <Typography variant="h4" sx={{ fontWeight: 700, mb: 1, color: '#111827' }}>
+            <Typography variant="h4" sx={{ fontWeight: 700, mb: 1, color: 'text.primary' }}>
               Welcome Back 👋
             </Typography>
-            <Typography sx={{ color: '#6b7280', mb: 4 }}>
+            <Typography sx={{ color: 'text.secondary', mb: 4 }}>
               Sign in to continue to TaskFlow Enterprise.
             </Typography>
 
@@ -144,7 +165,7 @@ export default function LoginPage() {
               {/* Email */}
               <Typography
                 variant="body2"
-                sx={{ fontWeight: 500, color: '#374151', mb: 0.75, fontSize: 13 }}
+                sx={{ fontWeight: 500, color: 'text.secondary', mb: 0.75, fontSize: 13 }}
               >
                 Email Address
               </Typography>
@@ -158,13 +179,13 @@ export default function LoginPage() {
                 size="small"
                 sx={{ mb: 2.5 }}
                 InputProps={{
-                  sx: { borderRadius: '4px', fontSize: 14, backgroundColor: '#ffffff' },
+                  sx: { borderRadius: '4px', fontSize: 14 },
                 }}
               />
 
               {/* Password */}
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.75 }}>
-                <Typography variant="body2" sx={{ fontWeight: 500, color: '#374151', fontSize: 13 }}>
+                <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary', fontSize: 13 }}>
                   Password
                 </Typography>
                 <Link
@@ -185,7 +206,7 @@ export default function LoginPage() {
                 size="small"
                 sx={{ mb: 2 }}
                 InputProps={{
-                  sx: { borderRadius: '4px', fontSize: 14, backgroundColor: '#ffffff' },
+                  sx: { borderRadius: '4px', fontSize: 14 },
                   endAdornment: (
                     <InputAdornment position="end">
                       <IconButton
@@ -193,7 +214,7 @@ export default function LoginPage() {
                         onClick={() => setShowPassword(!showPassword)}
                         edge="end"
                         tabIndex={-1}
-                        sx={{ color: '#9ca3af' }}
+                        sx={{ color: 'text.secondary' }}
                       >
                         {showPassword
                           ? <VisibilityOffOutlinedIcon sx={{ fontSize: 18 }} />
@@ -211,11 +232,11 @@ export default function LoginPage() {
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
                     size="small"
-                    sx={{ color: '#9ca3af', '&.Mui-checked': { color: '#2563EB' } }}
+                    sx={{ color: 'text.secondary', '&.Mui-checked': { color: '#2563EB' } }}
                   />
                 }
                 label={
-                  <Typography variant="body2" sx={{ fontSize: 13, color: '#374151' }}>
+                  <Typography variant="body2" sx={{ fontSize: 13, color: 'text.secondary' }}>
                     Remember me
                   </Typography>
                 }
@@ -237,7 +258,7 @@ export default function LoginPage() {
                   textTransform: 'none',
                   backgroundColor: '#2563EB',
                   '&:hover': { backgroundColor: '#1D4ED8' },
-                  '&:disabled': { backgroundColor: '#93c5fd' },
+                  '&:disabled': { backgroundColor: isDark ? '#1d4ed8' : '#93c5fd', color: '#fff' },
                 }}
               >
                 {loading
@@ -253,8 +274,8 @@ export default function LoginPage() {
       <Box
         sx={{
           width: '100%',
-          borderTop: '1px solid #d1d5db',
-          backgroundColor: '#ffffff',
+          borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#d1d5db'}`,
+          bgcolor: 'background.paper',
           py: 1.5,
         }}
       >
@@ -262,7 +283,7 @@ export default function LoginPage() {
           variant="caption"
           display="block"
           textAlign="center"
-          sx={{ color: '#9ca3af', fontSize: 12 }}
+          sx={{ color: 'text.secondary', fontSize: 12 }}
         >
           © 2026 Employee Task &amp; Timesheet Management System. All rights reserved.
         </Typography>

@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from 'react';
 import {
   Box, Card, CardContent, Grid, Typography, TextField, Button,
   Switch, Avatar, Tab, Tabs, Stack, Chip, IconButton, Snackbar, Alert,
+  useTheme,
 } from '@mui/material';
 import MainLayout from '@/components/layout/MainLayout';
 import { useAuth } from '@/contexts/AuthContext';
@@ -59,6 +60,8 @@ function TabPanel({ children, value, index }: TabPanelProps) {
 // ─── Component ───────────────────────────────────────────────────────────────
 export default function SettingsPage() {
   const { user, updateUser } = useAuth();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const [tab, setTab] = useState(0);
 
   // ── Profile state ──────────────────────────────────────────────────────────
@@ -180,7 +183,7 @@ export default function SettingsPage() {
         {/* ── Page header ── */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
           <Box>
-            <Typography variant="h5" fontWeight={800} color="#0f172a">Settings</Typography>
+            <Typography variant="h5" fontWeight={800} color="text.primary">Settings</Typography>
             <Typography variant="body2" color="text.secondary">Manage your account preferences and workspace experience.</Typography>
           </Box>
           <Stack direction="row" spacing={1.25}>
@@ -213,8 +216,8 @@ export default function SettingsPage() {
         </Box>
 
         {/* ── Tabs ── */}
-        <Card sx={{ mb: 3, borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 18px 48px rgba(15, 23, 42, 0.06)' }}>
-          <Box sx={{ borderBottom: '1px solid #e2e8f0', px: { xs: 2, md: 3 }, py: 1.25 }}>
+        <Card sx={{ mb: 3, borderRadius: '24px', border: `1px solid ${theme.palette.divider}`, boxShadow: isDark ? '0 18px 48px rgba(0,0,0,0.35)' : '0 18px 48px rgba(15, 23, 42, 0.06)' }}>
+          <Box sx={{ borderBottom: `1px solid ${theme.palette.divider}`, px: { xs: 2, md: 3 }, py: 1.25 }}>
             <Tabs
               value={tab} onChange={(_, v) => setTab(v)} variant="fullWidth"
               sx={{
@@ -234,7 +237,7 @@ export default function SettingsPage() {
               <Grid container spacing={3}>
                 {/* Profile Summary Card */}
                 <Grid item xs={12} lg={4}>
-                  <Card sx={{ borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 14px 36px rgba(15, 23, 42, 0.06)', overflow: 'hidden' }}>
+                  <Card sx={{ borderRadius: '20px', border: `1px solid ${theme.palette.divider}`, boxShadow: isDark ? '0 14px 36px rgba(0,0,0,0.35)' : '0 14px 36px rgba(15, 23, 42, 0.06)', overflow: 'hidden' }}>
                     <Box sx={{ background: 'linear-gradient(135deg, #2563EB 0%, #6D5DF6 100%)', p: 3, color: '#fff' }}>
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <Box>
@@ -254,8 +257,8 @@ export default function SettingsPage() {
                     <CardContent sx={{ p: 2.5 }}>
                       <Stack spacing={1.5}>
                         <Box>
-                          <Typography variant="subtitle1" fontWeight={700} color="#0f172a">{profile.name || user?.name}</Typography>
-                          <Chip label={user?.role ?? 'Manager'} size="small" sx={{ mt: 0.75, bgcolor: '#eff6ff', color: '#2563EB', fontWeight: 700, borderRadius: '999px' }} />
+                          <Typography variant="subtitle1" fontWeight={700} color="text.primary">{profile.name || user?.name}</Typography>
+                          <Chip label={user?.role ?? 'Manager'} size="small" sx={{ mt: 0.75, bgcolor: isDark ? 'rgba(37,99,235,0.15)' : '#eff6ff', color: '#2563EB', fontWeight: 700, borderRadius: '999px' }} />
                         </Box>
                         <Box sx={{ display: 'grid', gap: 1 }}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#64748b' }}><EmailRoundedIcon sx={{ fontSize: 18 }} /><Typography variant="body2">{profile.email || user?.email}</Typography></Box>
@@ -269,9 +272,9 @@ export default function SettingsPage() {
 
                 {/* Personal Details + Change Password */}
                 <Grid item xs={12} lg={8}>
-                  <Card sx={{ borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 14px 36px rgba(15, 23, 42, 0.06)' }}>
+                  <Card sx={{ borderRadius: '20px', border: `1px solid ${theme.palette.divider}`, boxShadow: isDark ? '0 14px 36px rgba(0,0,0,0.35)' : '0 14px 36px rgba(15, 23, 42, 0.06)' }}>
                     <CardContent sx={{ p: { xs: 2, md: 3 } }}>
-                      <Typography variant="subtitle1" fontWeight={700} color="#0f172a" mb={2}>Personal Details</Typography>
+                      <Typography variant="subtitle1" fontWeight={700} color="text.primary" mb={2}>Personal Details</Typography>
                       <Grid container spacing={2}>
                         <Grid item xs={12} md={6}>
                           <TextField
@@ -320,9 +323,9 @@ export default function SettingsPage() {
                       </Grid>
 
                       {/* Change Password */}
-                      <Box sx={{ mt: 3, p: 2.5, borderRadius: '18px', border: '1px solid #e2e8f0', bgcolor: '#f8fafc' }}>
+                      <Box sx={{ mt: 3, p: 2.5, borderRadius: '18px', border: `1px solid ${theme.palette.divider}`, bgcolor: 'background.default' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 1 }}>
-                          <Typography variant="subtitle2" fontWeight={700} color="#0f172a">Change Password</Typography>
+                          <Typography variant="subtitle2" fontWeight={700} color="text.primary">Change Password</Typography>
                           <Button
                             size="small"
                             variant="contained"
@@ -385,19 +388,19 @@ export default function SettingsPage() {
           {/* ── Notifications tab ── */}
           <TabPanel value={tab} index={1}>
             <CardContent sx={{ p: { xs: 2, md: 3 } }}>
-              <Typography variant="subtitle1" fontWeight={700} color="#0f172a" mb={2}>Notification Preferences</Typography>
+              <Typography variant="subtitle1" fontWeight={700} color="text.primary" mb={2}>Notification Preferences</Typography>
               <Stack spacing={1.5}>
                 {notificationItems.map((item) => (
                   <Box
                     key={item.key}
                     sx={{
                       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      p: 2, borderRadius: '16px', border: '1px solid #e2e8f0', bgcolor: '#fff',
-                      transition: 'all 0.2s ease', '&:hover': { boxShadow: '0 10px 24px rgba(15,23,42,0.04)' },
+                      p: 2, borderRadius: '16px', border: `1px solid ${theme.palette.divider}`, bgcolor: 'background.paper',
+                      transition: 'all 0.2s ease', '&:hover': { boxShadow: isDark ? '0 10px 24px rgba(0,0,0,0.25)' : '0 10px 24px rgba(15,23,42,0.04)' },
                     }}
                   >
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                      <Box sx={{ width: 44, height: 44, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#f8fafc', color: '#2563EB' }}>{item.icon}</Box>
+                      <Box sx={{ width: 44, height: 44, borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'background.default', color: '#2563EB' }}>{item.icon}</Box>
                       <Box>
                         <Typography variant="subtitle2" fontWeight={700}>{item.title}</Typography>
                         <Typography variant="body2" color="text.secondary">{item.description}</Typography>

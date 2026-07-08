@@ -33,7 +33,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   if (loading || !isAuthenticated) {
     return (
-      <Box sx={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', bgcolor: '#F8FAFD' }}>
+      <Box sx={{ display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', bgcolor: 'background.default' }}>
         <CircularProgress />
       </Box>
     );
@@ -65,7 +65,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               p: { xs: 2, sm: 3 },
               overflow: 'auto',
               maxWidth: '100%',
-              bgcolor: '#F8FAFD',
+              bgcolor: 'background.default',
             }}
           >
             {children}
