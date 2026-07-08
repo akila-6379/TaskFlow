@@ -25,217 +25,356 @@ input[type="password"]::-ms-clear {
   background: #94a3b8;
 }
 
-@media (prefers-color-scheme: dark) {
-  ::-webkit-scrollbar-track {
-    background: #0f1623 !important;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #2a3448 !important;
-    border-radius: 4px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #3b4b68 !important;
-  }
+/* ── Smooth Theme Transitions ── */
+body,
+.MuiDrawer-paper,
+.MuiDrawer-paper > div,
+.MuiPaper-root,
+.MuiCard-root,
+.MuiAppBar-root,
+.MuiButton-root,
+.MuiTable-root,
+.MuiTableCell-root,
+.MuiTableRow-root,
+.MuiInputBase-root,
+.MuiOutlinedInput-root,
+.MuiDialog-paper,
+.MuiTypography-root,
+.MuiSvgIcon-root {
+  transition: background 250ms ease, background-color 250ms ease, border-color 250ms ease, color 250ms ease, box-shadow 250ms ease !important;
+}
 
-  /* ── Force theme variables on native HTML elements ── */
-  :root {
-    --background-default: #0f1623;
-    --background-paper: #1a2236;
-    --border-color: #2a3448;
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
-  }
+/* ── LIGHT THEME SIDEBAR STYLE OVERRIDES ── */
+.theme-light .MuiDrawer-paper {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  color: #334155 !important;
+  border-right: 1px solid #e2e8f0 !important;
+}
 
-  /* ── DataGrid Dark Mode Overrides ── */
-  .MuiDataGrid-root {
-    --DataGrid-containerBackground: #1a2236 !important;
-    --unstable_DataGrid-radius: 0 !important;
-    background-color: #1a2236 !important;
-    border-color: #2a3448 !important;
-  }
-  
-  .MuiDataGrid-columnHeaders {
-    background-color: #151e2e !important;
-    border-bottom: 1px solid #2a3448 !important;
-  }
-  
-  .MuiDataGrid-columnHeader {
-    background-color: #151e2e !important;
-  }
-  
-  .MuiDataGrid-columnHeaderTitle {
-    color: #94a3b8 !important;
-  }
-  
-  .MuiDataGrid-row {
-    background-color: #1a2236 !important;
-    border-bottom: 1px solid #2a3448 !important;
-  }
-  
-  .MuiDataGrid-row:nth-of-type(even) {
-    background-color: #151e2e !important;
-  }
-  
-  .MuiDataGrid-row:hover {
-    background-color: #1e2a3a !important;
-  }
-  
-  .MuiDataGrid-cell {
-    color: #f1f5f9 !important;
-    border-bottom: 1px solid #2a3448 !important;
-  }
-  
-  .MuiDataGrid-footerContainer {
-    background-color: #151e2e !important;
-    border-top: 1px solid #2a3448 !important;
-    color: #f1f5f9 !important;
-  }
+.theme-light .MuiDrawer-paper > div {
+  background: #ffffff !important;
+  color: #334155 !important;
+}
 
-  .MuiTablePagination-root,
-  .MuiTablePagination-select,
-  .MuiTablePagination-displayedRows,
-  .MuiTablePagination-actions {
-    color: #94a3b8 !important;
-  }
+/* Hide dark pulsing glow orbs in light sidebar */
+.theme-light .MuiDrawer-paper > div::before,
+.theme-light .MuiDrawer-paper > div::after,
+.theme-light .MuiDrawer-paper .MuiBox-root[style*="radial-gradient"] {
+  display: none !important;
+}
 
-  .MuiDataGrid-columnSeparator {
-    display: none !important;
-  }
-  
-  .MuiDataGrid-withBorderColor {
-    border-color: #2a3448 !important;
-  }
+/* Sidebar navigation items styling in light theme */
+.theme-light .MuiDrawer-paper .MuiListItemButton-root {
+  color: #475569 !important;
+}
 
-  .MuiCheckbox-root {
-    color: #475569 !important;
-  }
-  
-  .MuiCheckbox-root.Mui-checked {
-    color: #2563EB !important;
-  }
+.theme-light .MuiDrawer-paper .MuiListItemIcon-root {
+  color: #64748b !important;
+}
 
-  /* ── Paper Containers Dark Mode Override (for inline bgcolor: #fff) ── */
-  .MuiPaper-root[style*="background-color: rgb(255, 255, 255)"],
-  .MuiPaper-root[style*="background-color: #fff"],
-  .MuiPaper-root[style*="background-color: #ffffff"],
-  .MuiPaper-root.bgcolor-white {
-    background-color: #1a2236 !important;
-    border-color: #2a3448 !important;
-    color: #f1f5f9 !important;
-  }
+.theme-light .MuiDrawer-paper .MuiTypography-root {
+  color: #475569 !important;
+}
 
-  /* Form/Search input paper wrappers */
-  form.MuiPaper-root, 
-  .MuiPaper-root[component="form"] {
-    background-color: #1a2236 !important;
-    border-color: #2a3448 !important;
-  }
+/* Brand logo text in sidebar (needs to be dark gray in light mode) */
+.theme-light .MuiDrawer-paper .MuiBox-root .MuiTypography-root[style*="color: #fff"],
+.theme-light .MuiDrawer-paper .MuiBox-root .MuiTypography-root[style*="color: rgb(255, 255, 255)"],
+.theme-light .MuiDrawer-paper .MuiBox-root .MuiTypography-root {
+  color: #0f172a !important;
+}
 
-  /* InputBase inside search wrappers */
-  .MuiInputBase-input {
-    color: #f1f5f9 !important;
-  }
-  
-  .MuiInputBase-input::placeholder {
-    color: #64748b !important;
-    opacity: 1 !important;
-  }
+/* Keep user profile name in sidebar dark gray in light mode */
+.theme-light .MuiDrawer-paper .MuiBox-root .MuiTypography-root:first-of-type {
+  color: #0f172a !important;
+}
 
-  /* Outlined buttons and filter buttons */
-  .MuiButton-outlined {
-    border-color: #2a3448 !important;
-    color: #f1f5f9 !important;
-  }
-  
-  .MuiButton-outlined:hover {
-    border-color: #475569 !important;
-    background-color: #1e2a3a !important;
-  }
+/* Profile container background in light sidebar */
+.theme-light .MuiDrawer-paper .MuiBox-root[style*="rgba(255,255,255,0.05)"],
+.theme-light .MuiDrawer-paper .MuiBox-root[style*="background-color: rgba(255,255,255,0.05)"] {
+  background-color: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+}
 
-  /* Project page elements: paper card wrappers */
-  .MuiPaper-root.MuiPaper-rounded {
-    background-color: #1a2236 !important;
-    box-shadow: 0 15px 30px rgba(0,0,0,0.3) !important;
-  }
-  
-  .MuiPaper-root.MuiPaper-rounded:hover {
-    background-color: #1e2a3a !important;
-    box-shadow: 0 22px 42px rgba(37,99,235,0.15) !important;
-  }
+/* Active menu item in light sidebar: Blue -> Purple gradient */
+.theme-light .MuiDrawer-paper .MuiListItemButton-root[style*="linear-gradient"],
+.theme-light .MuiDrawer-paper .MuiListItemButton-root.Mui-selected {
+  background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  box-shadow: 0 4px 14px rgba(37,99,235,0.25) !important;
+}
 
-  /* Typography inside cards if hardcoded */
-  .MuiTypography-root[style*="color: rgb(15, 23, 42)"],
-  .MuiTypography-root[style*="color: #0f172a"],
-  .MuiTypography-root[style*="color: #111827"],
-  .MuiTypography-root[style*="color: #374151"] {
-    color: #f1f5f9 !important;
-  }
-  
-  .MuiTypography-root[style*="color: rgb(100, 116, 139)"],
-  .MuiTypography-root[style*="color: #64748b"],
-  .MuiTypography-root[style*="color: #6b7280"] {
-    color: #94a3b8 !important;
-  }
+.theme-light .MuiDrawer-paper .MuiListItemButton-root[style*="linear-gradient"] .MuiListItemIcon-root,
+.theme-light .MuiDrawer-paper .MuiListItemButton-root.Mui-selected .MuiListItemIcon-root {
+  color: #ffffff !important;
+}
 
-  /* Specific buttons / avatars */
-  .MuiIconButton-root[style*="background-color: rgb(239, 246, 255)"],
-  .MuiIconButton-root[style*="background-color: #eff6ff"] {
-    background-color: rgba(37,99,235,0.15) !important;
-    color: #3b82f6 !important;
-  }
-  
-  .MuiIconButton-root[style*="background-color: rgb(254, 226, 226)"],
-  .MuiIconButton-root[style*="background-color: #fee2e2"] {
-    background-color: rgba(239,68,68,0.15) !important;
-    color: #f87171 !important;
-  }
+.theme-light .MuiDrawer-paper .MuiListItemButton-root[style*="linear-gradient"] .MuiTypography-root,
+.theme-light .MuiDrawer-paper .MuiListItemButton-root.Mui-selected .MuiTypography-root {
+  color: #ffffff !important;
+}
 
-  /* Popovers and Menus */
-  .MuiPopover-paper, .MuiMenu-paper {
-    background-color: #1a2236 !important;
-    border: 1px solid #2a3448 !important;
-    color: #f1f5f9 !important;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.5) !important;
-  }
-  
-  .MuiPopover-paper .MuiBox-root {
-    border-bottom-color: #2a3448 !important;
-  }
+/* Hover for non-selected items in light sidebar */
+.theme-light .MuiDrawer-paper .MuiListItemButton-root:not(.Mui-selected):hover {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+  transform: translateX(3px);
+}
 
-  .MuiListItemButton-root:hover {
-    background-color: #1e2a3a !important;
-  }
-  
-  .MuiListItemButton-root.Mui-selected {
-    background-color: rgba(37,99,235,0.15) !important;
-    color: #3b82f6 !important;
-  }
-  
-  .MuiListItemButton-root.Mui-selected:hover {
-    background-color: rgba(37,99,235,0.25) !important;
-  }
+.theme-light .MuiDrawer-paper .MuiListItemButton-root:not(.Mui-selected):hover .MuiListItemIcon-root {
+  color: #0f172a !important;
+}
 
-  .MuiListItemText-primary {
-    color: inherit !important;
-  }
+.theme-light .MuiDrawer-paper .MuiListItemButton-root:not(.Mui-selected):hover .MuiTypography-root {
+  color: #0f172a !important;
+}
 
-  /* Divider color */
-  .MuiDivider-root {
-    border-color: #2a3448 !important;
-  }
+/* Divider inside light sidebar */
+.theme-light .MuiDrawer-paper .MuiDivider-root {
+  border-color: #e2e8f0 !important;
+}
 
-  /* Warning/alert box overrides */
-  .MuiBox-root[style*="background-color: rgb(254, 242, 242)"],
-  .MuiBox-root[style*="background-color: #fef2f2"] {
-    background-color: rgba(239,68,68,0.1) !important;
-    border-color: rgba(239,68,68,0.2) !important;
-    color: #fca5a5 !important;
-  }
 
-  /* Tasks status dot or card background if it overrides */
-  .MuiBox-root[style*="background-color: rgb(241, 245, 249)"],
-  .MuiBox-root[style*="background-color: #f1f5f9"] {
-    background-color: #1e2a3a !important;
-    color: #94a3b8 !important;
-  }
+/* ── DARK THEME GENERAL OVERRIDES (#0F172A) ── */
+.theme-dark {
+  background-color: #0F172A !important;
+}
+
+.theme-dark ::-webkit-scrollbar-track {
+  background: #0f1623 !important;
+}
+.theme-dark ::-webkit-scrollbar-thumb {
+  background: #2a3448 !important;
+}
+.theme-dark ::-webkit-scrollbar-thumb:hover {
+  background: #3b4b68 !important;
+}
+
+/* ── DARK THEME SIDEBAR OVERRIDES (#111827) ── */
+.theme-dark .MuiDrawer-paper {
+  background-color: #111827 !important;
+  background-image: none !important;
+  color: #F8FAFC !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.theme-dark .MuiDrawer-paper > div {
+  background: #111827 !important;
+  color: #F8FAFC !important;
+}
+
+.theme-dark .MuiDrawer-paper > div::before,
+.theme-dark .MuiDrawer-paper > div::after,
+.theme-dark .MuiDrawer-paper .MuiBox-root[style*="radial-gradient"] {
+  display: none !important;
+}
+
+/* Profile box inside dark sidebar */
+.theme-dark .MuiDrawer-paper .MuiBox-root[style*="rgba(255,255,255,0.05)"],
+.theme-dark .MuiDrawer-paper .MuiBox-root[style*="background-color: rgba(255,255,255,0.05)"] {
+  background-color: #1e293b !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+/* ── DataGrid Dark Mode Overrides ── */
+.theme-dark .MuiDataGrid-root {
+  --DataGrid-containerBackground: #1E293B !important;
+  --unstable_DataGrid-radius: 0 !important;
+  background-color: #1E293B !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.theme-dark .MuiDataGrid-columnHeaders {
+  background-color: #243244 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.theme-dark .MuiDataGrid-columnHeader {
+  background-color: #243244 !important;
+}
+
+.theme-dark .MuiDataGrid-columnHeaderTitle {
+  color: #CBD5E1 !important;
+}
+
+.theme-dark .MuiDataGrid-row {
+  background-color: #1E293B !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.theme-dark .MuiDataGrid-row:nth-of-type(even) {
+  background-color: #1a2436 !important;
+}
+
+.theme-dark .MuiDataGrid-row:hover {
+  background-color: #2A3A4F !important;
+}
+
+.theme-dark .MuiDataGrid-cell {
+  color: #F8FAFC !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.theme-dark .MuiDataGrid-footerContainer {
+  background-color: #1A2236 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #F8FAFC !important;
+}
+
+.theme-dark .MuiTablePagination-root,
+.theme-dark .MuiTablePagination-select,
+.theme-dark .MuiTablePagination-displayedRows,
+.theme-dark .MuiTablePagination-actions {
+  color: #CBD5E1 !important;
+}
+
+.theme-dark .MuiDataGrid-columnSeparator {
+  display: none !important;
+}
+
+.theme-dark .MuiDataGrid-withBorderColor {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.theme-dark .MuiCheckbox-root {
+  color: #94A3B8 !important;
+}
+
+.theme-dark .MuiCheckbox-root.Mui-checked {
+  color: #3B82F6 !important;
+}
+
+/* ── Paper Containers Dark Mode Override (for inline bgcolor: #fff) ── */
+.theme-dark .MuiPaper-root[style*="background-color: rgb(255, 255, 255)"],
+.theme-dark .MuiPaper-root[style*="background-color: #fff"],
+.theme-dark .MuiPaper-root[style*="background-color: #ffffff"],
+.theme-dark .MuiPaper-root.bgcolor-white,
+.theme-dark .MuiPaper-root:not(.MuiDrawer-paper) {
+  background-color: #1E293B !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: #F8FAFC !important;
+}
+
+/* Form/Search input paper wrappers in dark mode */
+.theme-dark form.MuiPaper-root, 
+.theme-dark .MuiPaper-root[component="form"] {
+  background-color: #1E293B !important;
+  border: 1px solid #334155 !important;
+}
+
+/* InputBase inside search wrappers in dark mode */
+.theme-dark .MuiInputBase-input {
+  color: #F8FAFC !important;
+}
+
+.theme-dark .MuiInputBase-input::placeholder {
+  color: #94A3B8 !important;
+  opacity: 1 !important;
+}
+
+/* ── Outlined and Secondary Buttons in Dark Mode ── */
+.theme-dark .MuiButton-outlined:not(.MuiButton-colorError):not(.MuiButton-colorSuccess) {
+  background-color: #1E293B !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: #F8FAFC !important;
+}
+
+.theme-dark .MuiButton-outlined:not(.MuiButton-colorError):not(.MuiButton-colorSuccess):hover {
+  background-color: #2A3A4F !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* ── Project Card List in Dark Theme ── */
+.theme-dark .MuiPaper-root.MuiPaper-rounded {
+  background-color: #1E293B !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.theme-dark .MuiPaper-root.MuiPaper-rounded:hover {
+  background-color: #2A3A4F !important;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.45) !important;
+}
+
+/* Typography contrast adjustments in dark theme */
+.theme-dark .MuiTypography-root[style*="color: rgb(15, 23, 42)"],
+.theme-dark .MuiTypography-root[style*="color: #0f172a"],
+.theme-dark .MuiTypography-root[style*="color: #111827"],
+.theme-dark .MuiTypography-root[style*="color: #374151"] {
+  color: #F8FAFC !important;
+}
+
+.theme-dark .MuiTypography-root[style*="color: rgb(100, 116, 139)"],
+.theme-dark .MuiTypography-root[style*="color: #64748b"],
+.theme-dark .MuiTypography-root[style*="color: #6b7280"] {
+  color: #CBD5E1 !important;
+}
+
+.theme-dark .MuiTypography-root[style*="color: rgb(148, 163, 184)"],
+.theme-dark .MuiTypography-root[style*="color: #94a3b8"] {
+  color: #94A3B8 !important;
+}
+
+/* Edit / Delete / Link Buttons on Grid/List in Dark Mode */
+.theme-dark .MuiIconButton-root[style*="background-color: rgb(239, 246, 255)"],
+.theme-dark .MuiIconButton-root[style*="background-color: #eff6ff"] {
+  background-color: rgba(59, 130, 246, 0.15) !important;
+  color: #60a5fa !important;
+}
+
+.theme-dark .MuiIconButton-root[style*="background-color: rgb(254, 226, 226)"],
+.theme-dark .MuiIconButton-root[style*="background-color: #fee2e2"] {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  color: #f87171 !important;
+}
+
+/* Popovers and Menus in Dark Mode */
+.theme-dark .MuiPopover-paper, 
+.theme-dark .MuiMenu-paper {
+  background-color: #1E293B !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #F8FAFC !important;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5) !important;
+}
+
+.theme-dark .MuiPopover-paper .MuiBox-root {
+  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.theme-dark .MuiListItemButton-root:hover {
+  background-color: #2A3A4F !important;
+}
+
+.theme-dark .MuiListItemButton-root.Mui-selected {
+  background-color: rgba(124, 58, 237, 0.15) !important;
+  color: #a78bfa !important;
+}
+
+.theme-dark .MuiListItemButton-root.Mui-selected:hover {
+  background-color: rgba(124, 58, 237, 0.25) !important;
+}
+
+.theme-dark .MuiListItemText-primary {
+  color: inherit !important;
+}
+
+/* Divider color in dark mode */
+.theme-dark .MuiDivider-root {
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Warning/alert box overrides in dark mode */
+.theme-dark .MuiBox-root[style*="background-color: rgb(254, 242, 242)"],
+.theme-dark .MuiBox-root[style*="background-color: #fef2f2"] {
+  background-color: rgba(239, 68, 68, 0.1) !important;
+  border-color: rgba(239, 68, 68, 0.2) !important;
+  color: #fca5a5 !important;
+}
+
+/* Tasks status dot or card background if it overrides in dark mode */
+.theme-dark .MuiBox-root[style*="background-color: rgb(241, 245, 249)"],
+.theme-dark .MuiBox-root[style*="background-color: #f1f5f9"] {
+  background-color: #1e293b !important;
+  color: #CBD5E1 !important;
 }

@@ -10,8 +10,12 @@ import NotificationsNoneRoundedIcon from '@mui/icons-material/NotificationsNoneR
 import KeyboardArrowDownRoundedIcon from '@mui/icons-material/KeyboardArrowDownRounded';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
+import LightModeRoundedIcon from '@mui/icons-material/LightModeRounded';
+import DarkModeRoundedIcon from '@mui/icons-material/DarkModeRounded';
+import SettingsBrightnessRoundedIcon from '@mui/icons-material/SettingsBrightnessRounded';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLayout } from './MainLayout';
+import { useAppTheme } from '@/app/ThemeRegistry';
 
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard':  'Dashboard',
@@ -30,7 +34,9 @@ export default function Header() {
   const router = useRouter();
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
+  const { mode, setMode } = useAppTheme();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [themeAnchorEl, setThemeAnchorEl] = useState<null | HTMLElement>(null);
 
   const title = Object.entries(PAGE_TITLES).find(([k]) => pathname.startsWith(k))?.[1] ?? 'Dashboard';
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -84,6 +90,69 @@ export default function Header() {
             </Badge>
           </IconButton>
         </Tooltip>
+
+        {/* Theme Toggle */}
+        <Tooltip title={`Theme Mode: ${mode.charAt(0).toUpperCase() + mode.slice(1)}`}>
+          <IconButton
+            onClick={(e) => setThemeAnchorEl(e.currentTarget)}
+            sx={{
+              color: 'text.secondary',
+              bgcolor: controlBg,
+              border: `1px solid ${controlBorder}`,
+              borderRadius: '10px',
+              width: 38,
+              height: 38,
+              '&:hover': { bgcolor: controlHover, borderColor: borderHover },
+              transition: 'all 0.2s ease',
+            }}
+          >
+            {mode === 'light' && <LightModeRoundedIcon sx={{ fontSize: 19 }} />}
+            {mode === 'dark' && <DarkModeRoundedIcon sx={{ fontSize: 19 }} />}
+            {mode === 'system' && <SettingsBrightnessRoundedIcon sx={{ fontSize: 19 }} />}
+          </IconButton>
+        </Tooltip>
+
+        {/* Theme Selection Menu */}
+        <Menu
+          anchorEl={themeAnchorEl}
+          open={Boolean(themeAnchorEl)}
+          onClose={() => setThemeAnchorEl(null)}
+          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+          disableRestoreFocus
+          PaperProps={{
+            sx: {
+              mt: 1,
+              minWidth: 130,
+              borderRadius: '10px',
+            },
+          }}
+        >
+          <MenuItem
+            selected={mode === 'light'}
+            onClick={() => { setMode('light'); setThemeAnchorEl(null); }}
+            sx={{ gap: 1.5, fontSize: 13, py: 1 }}
+          >
+            <LightModeRoundedIcon fontSize="small" />
+            Light
+          </MenuItem>
+          <MenuItem
+            selected={mode === 'dark'}
+            onClick={() => { setMode('dark'); setThemeAnchorEl(null); }}
+            sx={{ gap: 1.5, fontSize: 13, py: 1 }}
+          >
+            <DarkModeRoundedIcon fontSize="small" />
+            Dark
+          </MenuItem>
+          <MenuItem
+            selected={mode === 'system'}
+            onClick={() => { setMode('system'); setThemeAnchorEl(null); }}
+            sx={{ gap: 1.5, fontSize: 13, py: 1 }}
+          >
+            <SettingsBrightnessRoundedIcon fontSize="small" />
+            System
+          </MenuItem>
+        </Menu>
 
         {/* User menu trigger */}
         <Box
