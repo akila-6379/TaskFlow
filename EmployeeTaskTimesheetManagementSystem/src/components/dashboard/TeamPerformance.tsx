@@ -11,8 +11,8 @@ export default function TeamPerformance() {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
-  const gridStroke  = isDark ? 'rgba(255,255,255,0.06)' : '#f0f2f5';
-  const tickFill    = theme.palette.text.secondary;
+  const gridStroke = isDark ? 'rgba(255,255,255,0.06)' : '#f0f2f5';
+  const tickFill = theme.palette.text.secondary;
   const tooltipStyle = {
     backgroundColor: theme.palette.background.paper,
     border: `1px solid ${theme.palette.divider}`,
@@ -73,7 +73,7 @@ export default function TeamPerformance() {
 
         {/* Pill year badge */}
         <Chip
-          label="2025"
+          label="2026"
           size="small"
           sx={{
             fontWeight: 700,
@@ -123,7 +123,7 @@ export default function TeamPerformance() {
                 )}
               />
               <Bar dataKey="completed" name="Completed" fill="#2563EB" radius={[6, 6, 0, 0]} maxBarSize={36} />
-              <Bar dataKey="pending"   name="Pending"   fill="#F59E0B" radius={[6, 6, 0, 0]} maxBarSize={36} />
+              <Bar dataKey="pending" name="Pending" fill="#F59E0B" radius={[6, 6, 0, 0]} maxBarSize={36} />
             </BarChart>
           </ResponsiveContainer>
         </Box>
