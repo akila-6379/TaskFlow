@@ -509,13 +509,25 @@ export default function ProjectsPage() {
 
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, justifyContent: 'flex-end', width: { xs: '100%', md: 'auto' } }}>
             <Button
-              variant="outlined"
+              variant="contained"
               startIcon={<FileDownloadRoundedIcon />}
               onClick={handleExport}
+              disableElevation
               sx={{
-                borderRadius: '20px', textTransform: 'none', borderColor: 'divider', color: 'text.primary', fontWeight: 600,
-                bgcolor: 'background.paper',
-                '&:hover': { bgcolor: 'action.hover', borderColor: 'text.disabled' },
+                borderRadius: '12px',
+                textTransform: 'none',
+                fontWeight: 700,
+                fontSize: 14,
+                height: 44,
+                px: 2.5,
+                background: isDark ? 'linear-gradient(135deg, #7C3AED 0%, #6d28d9 100%)' : 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)',
+                boxShadow: isDark ? '0 4px 12px rgba(124,58,237,0.25)' : '0 4px 12px rgba(37,99,235,0.18)',
+                '&:hover': {
+                  background: isDark ? 'linear-gradient(135deg, #6d28d9 0%, #5b21b6 100%)' : 'linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%)',
+                  boxShadow: isDark ? '0 6px 18px rgba(124,58,237,0.35)' : '0 6px 16px rgba(37,99,235,0.28)',
+                  transform: 'translateY(-1px)',
+                },
+                transition: 'all 0.2s ease',
               }}
             >
               Export
