@@ -96,9 +96,10 @@ export function createAppTheme(mode: 'light' | 'dark' = 'light') {
             backgroundColor: t.paper,
             color: t.textPri,
             borderBottom: `1px solid ${t.divider}`,
+            borderRadius: 0,  // always rectangular — no rounded corners
             boxShadow: isDark
-              ? '0 1px 8px rgba(0,0,0,0.35)'
-              : '0 1px 8px rgba(0,0,0,0.05)',
+              ? '0 1px 0 rgba(255,255,255,0.06)'
+              : '0 1px 0 rgba(0,0,0,0.08)',
           },
         },
       },

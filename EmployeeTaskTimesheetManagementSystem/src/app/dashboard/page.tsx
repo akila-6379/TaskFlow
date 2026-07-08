@@ -5,6 +5,7 @@ import FolderRoundedIcon from '@mui/icons-material/FolderRounded';
 import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded';
 import AccessTimeRoundedIcon from '@mui/icons-material/AccessTimeRounded';
 import { Box, Typography } from '@mui/material';
+import { useRouter } from 'next/navigation';
 import MainLayout from '@/components/layout/MainLayout';
 import StatCard from '@/components/dashboard/StatCard';
 import ProjectProgress from '@/components/dashboard/ProjectProgress';
@@ -14,6 +15,7 @@ import { useEffect, useState } from 'react';
 import { dashboardService } from '@/services/dashboardService';
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [stats, setStats] = useState({
     totalEmployees: 0,
     activeProjects: 0,
@@ -43,6 +45,7 @@ export default function DashboardPage() {
       subtitle: 'Unique employees logged today',
       trend: '↑ 8%',
       trendColor: '#22C55E',
+      href: '/employees',
     },
     {
       title: 'Total Projects',
@@ -52,6 +55,7 @@ export default function DashboardPage() {
       subtitle: 'Currently in progress',
       trend: '↑ 12%',
       trendColor: '#22C55E',
+      href: '/projects',
     },
     {
       title: 'Total Tasks',
@@ -61,6 +65,7 @@ export default function DashboardPage() {
       subtitle: 'All tasks',
       trend: '↑ 5%',
       trendColor: '#22C55E',
+      href: '/tasks',
     },
     {
       title: 'Hours Logged',
@@ -70,85 +75,58 @@ export default function DashboardPage() {
       subtitle: 'Total hours across all entries',
       trend: '↑ 3%',
       trendColor: '#22C55E',
+      href: '/timesheets',
     },
   ];
 
   return (
     <MainLayout>
-      {/* Page wrapper */}
-      <Box sx={{
-        minHeight: '100%',
-        bgcolor: 'background.default',
-        mx: -3,
-        mt: -3,
-        px: 3,
-        pt: 3,
-        pb: 4,
-        position: 'relative',
-        overflow: 'hidden',
-        /* Subtle radial blue glow behind charts */
-        '&::after': {
-          content: '""',
-          position: 'absolute',
-          top: '30%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '70%',
-          height: 500,
-          background: 'radial-gradient(ellipse at center, rgba(37,99,235,0.045) 0%, transparent 70%)',
-          pointerEvents: 'none',
-          zIndex: 0,
-        },
-      }}>
-
-        {/* Welcome banner */}
-        <Box sx={{ mb: 3.5, position: 'relative', zIndex: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
-            <Box sx={{
-              width: 5, height: 32, borderRadius: 4,
-              background: 'linear-gradient(180deg, #2563EB 0%, #7C3AED 100%)',
-              flexShrink: 0,
-            }} />
-            <Box>
-              <Typography sx={{
-                fontSize: 22, fontWeight: 800, color: 'text.primary', lineHeight: 1.2, letterSpacing: -0.5,
-              }}>
-                Welcome back, Admin 👋
-              </Typography>
-              <Typography sx={{ fontSize: 13.5, color: 'text.secondary', fontWeight: 400, mt: 0.3 }}>
-                Here&apos;s your project overview for today.
-              </Typography>
-            </Box>
+      {/* Welcome banner */}
+      <Box sx={{ mb: 3.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
+          <Box sx={{
+            width: 5, height: 32, borderRadius: 4,
+            background: 'linear-gradient(180deg, #2563EB 0%, #7C3AED 100%)',
+            flexShrink: 0,
+          }} />
+          <Box>
+            <Typography sx={{
+              fontSize: 22, fontWeight: 800, color: 'text.primary', lineHeight: 1.2, letterSpacing: -0.5,
+            }}>
+              Welcome back, Admin 👋
+            </Typography>
+            <Typography sx={{ fontSize: 13.5, color: 'text.secondary', fontWeight: 400, mt: 0.3 }}>
+              Here&apos;s your project overview for today.
+            </Typography>
           </Box>
         </Box>
-
-        {/* Row 1 — 4 KPI cards */}
-        <Grid container spacing={2.5} sx={{ mb: 3, position: 'relative', zIndex: 1 }}>
-          {STAT_CARDS.map((s) => (
-            <Grid key={s.title} size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard {...s} />
-            </Grid>
-          ))}
-        </Grid>
-
-        {/* Row 2 — trend chart + project donut */}
-        <Grid container spacing={2.5} sx={{ mb: 3, position: 'relative', zIndex: 1 }} alignItems="stretch">
-          <Grid size={{ xs: 12, md: 8 }}>
-            <TeamPerformance />
-          </Grid>
-          <Grid size={{ xs: 12, md: 4 }}>
-            <ProjectStatusChart />
-          </Grid>
-        </Grid>
-
-        {/* Row 3 — project progress full width */}
-        <Grid container spacing={2.5} sx={{ position: 'relative', zIndex: 1 }}>
-          <Grid size={{ xs: 12 }}>
-            <ProjectProgress />
-          </Grid>
-        </Grid>
-
       </Box>
+
+      {/* Row 1 — 4 KPI cards */}
+      <Grid container spacing={2.5} sx={{ mb: 3 }}>
+        {STAT_CARDS.map((s) => (
+          <Grid key={s.title} size={{ xs: 12, sm: 6, lg: 3 }}>
+            <StatCard {...s} onClick={() => router.push(s.href)} />
+          </Grid>
+        ))}
+      </Grid>
+
+      {/* Row 2 — trend chart + project donut */}
+      <Grid container spacing={2.5} sx={{ mb: 3 }} alignItems="stretch">
+        <Grid size={{ xs: 12, md: 8 }}>
+          <TeamPerformance />
+        </Grid>
+        <Grid size={{ xs: 12, md: 4 }}>
+          <ProjectStatusChart />
+        </Grid>
+      </Grid>
+
+      {/* Row 3 — project progress full width */}
+      <Grid container spacing={2.5}>
+        <Grid size={{ xs: 12 }}>
+          <ProjectProgress />
+        </Grid>
+      </Grid>
     </MainLayout>
   );
 }

@@ -41,11 +41,12 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <LayoutContext.Provider value={{ mobileOpen, toggleMobile }}>
-      <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default' }}>
+      {/* Outermost shell — full viewport, no gap, no padding */}
+      <Box sx={{ display: 'flex', minHeight: '100vh', bgcolor: 'background.default', overflow: 'hidden' }}>
         {/* Sidebar — permanent on desktop, temporary drawer on mobile */}
         <Sidebar />
 
-        {/* Main content area — flex:1 fills remaining space after sidebar */}
+        {/* Right column: Header + scrollable page content */}
         <Box
           component="main"
           sx={{
@@ -53,18 +54,20 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
             display: 'flex',
             flexDirection: 'column',
             minWidth: 0,
-            // On desktop the permanent Drawer naturally pushes content; no margin needed.
-            // On mobile the Drawer is temporary (absolute), so no offset.
             width: { md: `calc(100% - ${SIDEBAR_WIDTH}px)` },
+            overflow: 'hidden',
           }}
         >
+          {/* Sticky header — sits flush at the top, full width of this column */}
           <Header />
+
+          {/* Scrollable page content with consistent internal padding */}
           <Box
             sx={{
               flex: 1,
               p: { xs: 2, sm: 3 },
-              overflow: 'auto',
-              maxWidth: '100%',
+              overflowY: 'auto',
+              overflowX: 'hidden',
               bgcolor: 'background.default',
             }}
           >

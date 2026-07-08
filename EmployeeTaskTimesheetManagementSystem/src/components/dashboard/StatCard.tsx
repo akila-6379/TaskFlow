@@ -9,9 +9,10 @@ interface StatCardProps {
   subtitle?: string;
   trend?: string;
   trendColor?: string;
+  onClick?: () => void;
 }
 
-export default function StatCard({ title, value, icon, color, subtitle, trend, trendColor }: StatCardProps) {
+export default function StatCard({ title, value, icon, color, subtitle, trend, trendColor, onClick }: StatCardProps) {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
@@ -57,6 +58,7 @@ export default function StatCard({ title, value, icon, color, subtitle, trend, t
   return (
     <Card
       elevation={0}
+      onClick={onClick}
       sx={{
         height: '100%',
         background: cardBg,
@@ -65,11 +67,17 @@ export default function StatCard({ title, value, icon, color, subtitle, trend, t
           ? `0 12px 30px rgba(0,0,0,0.40), 0 0 0 1px rgba(255,255,255,0.05)`
           : `0 12px 30px rgba(0,0,0,0.08), 0 0 0 1px rgba(255,255,255,0.6)`,
         borderRadius: '24px',
-        transition: 'all 0.3s ease',
+        transition: 'all 0.25s ease',
         overflow: 'hidden',
         position: 'relative',
         backdropFilter: 'blur(12px)',
-        '&:hover': {
+        cursor: onClick ? 'pointer' : 'default',
+        '&:hover': onClick ? {
+          boxShadow: isDark
+            ? `0 20px 48px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.09)`
+            : `0 20px 48px rgba(0,0,0,0.13), 0 0 0 1px rgba(255,255,255,0.8)`,
+          transform: 'translateY(-4px) scale(1.012)',
+        } : {
           boxShadow: isDark
             ? `0 20px 48px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.09)`
             : `0 20px 48px rgba(0,0,0,0.13), 0 0 0 1px rgba(255,255,255,0.8)`,
