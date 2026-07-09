@@ -17,5 +17,9 @@
         public string? Department { get; set; }
 
         public string? Bio { get; set; }
+
+        public string? ResetPasswordToken { get; set; }
+
+        public DateTime? ResetPasswordTokenExpiry { get; set; }
     }
 }

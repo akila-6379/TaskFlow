@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ProjectManagementSystem.API.Data;
 using ProjectManagementSystem.API.DTOs;
 using ProjectManagementSystem.API.Models;
+using ProjectManagementSystem.API.Services;
 
 namespace ProjectManagementSystem.API.Controllers
 {
@@ -11,10 +12,14 @@ namespace ProjectManagementSystem.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IEmailService _email;
+        private readonly IConfiguration _config;
 
-        public AuthController(ApplicationDbContext context)
+        public AuthController(ApplicationDbContext context, IEmailService email, IConfiguration config)
         {
             _context = context;
+            _email = email;
+            _config = config;
         }
 
         [HttpPost("login")]
@@ -103,6 +108,60 @@ namespace ProjectManagementSystem.API.Controllers
                 Department = user.Department ?? "",
                 Bio = user.Bio ?? ""
             });
+        }
+
+        // POST /api/Auth/forgot-password
+        // Generates a reset token, stores it on the user, and emails a reset link.
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordDto dto)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+
+            // Always return OK to avoid email enumeration
+            if (user == null)
+                return Ok(new { Message = "If that email exists, a reset link has been sent." });
+
+            var token = Guid.NewGuid().ToString("N");
+            user.ResetPasswordToken = token;
+            user.ResetPasswordTokenExpiry = DateTime.UtcNow.AddHours(1);
+            await _context.SaveChangesAsync();
+
+            var frontendUrl = _config["AppSettings:FrontendUrl"] ?? "http://localhost:3000";
+            var resetLink = $"{frontendUrl}/reset-password?token={token}";
+
+            var body = $"""
+                <p>Hi {user.FullName},</p>
+                <p>You requested a password reset for your TaskFlow account.</p>
+                <p><a href="{resetLink}">Click here to reset your password</a></p>
+                <p>This link expires in 1 hour. If you did not request this, ignore this email.</p>
+                """;
+
+            await _email.SendAsync(user.Email, "TaskFlow — Reset Your Password", body);
+
+            return Ok(new { Message = "If that email exists, a reset link has been sent." });
+        }
+
+        // POST /api/Auth/reset-password
+        // Validates the token and sets the new password.
+        [HttpPost("reset-password")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordDto dto)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u =>
+                u.ResetPasswordToken == dto.Token &&
+                u.ResetPasswordTokenExpiry > DateTime.UtcNow);
+
+            if (user == null)
+                return BadRequest("Invalid or expired reset token.");
+
+            if (string.IsNullOrWhiteSpace(dto.NewPassword))
+                return BadRequest("New password cannot be empty.");
+
+            user.Password = dto.NewPassword;
+            user.ResetPasswordToken = null;
+            user.ResetPasswordTokenExpiry = null;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { Message = "Password reset successfully." });
         }
 
         // PUT /api/Auth/change-password/{id}

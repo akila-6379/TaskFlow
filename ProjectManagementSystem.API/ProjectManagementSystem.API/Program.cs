@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using ProjectManagementSystem.API.Data;
+using ProjectManagementSystem.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +9,8 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
         options.JsonSerializerOptions.PropertyNamingPolicy =
             System.Text.Json.JsonNamingPolicy.CamelCase);
+
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // CORS
 builder.Services.AddCors(options =>
