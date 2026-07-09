@@ -77,8 +77,9 @@ export default function SettingsPage() {
   const [pwErrors, setPwErrors] = useState({ current: '', newPw: '', confirm: '' });
   const [pwSaving, setPwSaving] = useState(false);
   const [showPw, setShowPw] = useState({ current: false, newPw: false, confirm: false });
-  // Tracks whether the backend rejected the current password — cleared only when the user changes the current field
-  const [pwCurrentRejected, setPwCurrentRejected] = useState(false);
+  // True only after the backend confirms the current password is correct on blur
+  const [pwCurrentVerified, setPwCurrentVerified] = useState(false);
+  const [pwCurrentChecking, setPwCurrentChecking] = useState(false);
 
   // ── Validation errors ──────────────────────────────────────────────────────
   const [profileErrors, setProfileErrors] = useState({ name: '', email: '', phone: '', department: '' });
@@ -171,6 +172,33 @@ export default function SettingsPage() {
     setProfileErrors({ name: '', email: '', phone: '', department: '' });
   };
 
+  // ── Verify current password on blur ────────────────────────────────────────
+  const handleCurrentPwBlur = async () => {
+    if (!pwForm.current || !user?.userId) return;
+    setPwCurrentChecking(true);
+    try {
+      await api.put(`/Auth/change-password/${user.userId}`, {
+        currentPassword: pwForm.current,
+        newPassword: pwForm.current, // dummy — backend rejects wrong current before checking new
+      });
+      // If it didn't throw, current password is correct
+      setPwCurrentVerified(true);
+      setPwErrors(prev => ({ ...prev, current: '' }));
+    } catch (err: any) {
+      const msg: string = err?.response?.data?.message ?? err?.response?.data ?? '';
+      if (typeof msg === 'string' && msg.toLowerCase().includes('current')) {
+        setPwErrors(prev => ({ ...prev, current: 'Current password is incorrect.' }));
+        setPwCurrentVerified(false);
+      } else {
+        // Any other error (network, etc.) — don't block the user
+        setPwCurrentVerified(true);
+        setPwErrors(prev => ({ ...prev, current: '' }));
+      }
+    } finally {
+      setPwCurrentChecking(false);
+    }
+  };
+
   // ── Password validation & save ─────────────────────────────────────────────
   const handlePasswordSave = async () => {
     if (!user?.userId) { showSnack('Session error — please log in again.', 'error'); return; }
@@ -182,7 +210,7 @@ export default function SettingsPage() {
       });
       setPwForm({ current: '', newPw: '', confirm: '' });
       setPwErrors({ current: '', newPw: '', confirm: '' });
-      setPwCurrentRejected(false);
+      setPwCurrentVerified(false);
       showSnack('Password updated successfully.');
     } catch (err: any) {
       const msg: string =
@@ -190,8 +218,8 @@ export default function SettingsPage() {
         err?.response?.data ??
         'Failed to update password.';
       if (typeof msg === 'string' && msg.toLowerCase().includes('current')) {
-        setPwErrors(e => ({ ...e, current: msg }));
-        setPwCurrentRejected(true);
+        setPwErrors(e => ({ ...e, current: 'Current password is incorrect.' }));
+        setPwCurrentVerified(false);
       } else {
         showSnack(typeof msg === 'string' ? msg : 'Failed to update password.', 'error');
       }
@@ -370,7 +398,7 @@ export default function SettingsPage() {
                             disableElevation
                             startIcon={<LockRoundedIcon />}
                             onClick={handlePasswordSave}
-                            disabled={pwSaving || !pwForm.current || !pwForm.newPw || !pwForm.confirm || pwForm.newPw !== pwForm.confirm || pwCurrentRejected}
+                            disabled={pwSaving || pwCurrentChecking || !pwCurrentVerified || !pwForm.newPw || !pwForm.confirm || pwForm.newPw !== pwForm.confirm}
                             sx={{
                               borderRadius: '999px', textTransform: 'none', fontWeight: 600,
                               background: isDark ? 'linear-gradient(135deg, #7C3AED 0%, #6d28d9 100%)' : 'linear-gradient(135deg, #2563EB 0%, #6D5DF6 100%)',
@@ -386,7 +414,8 @@ export default function SettingsPage() {
                               label="Current Password"
                               type={showPw.current ? 'text' : 'password'}
                               value={pwForm.current}
-                              onChange={e => { setPwForm({ ...pwForm, current: e.target.value }); setPwErrors(prev => ({ ...prev, current: '' })); setPwCurrentRejected(false); }}
+                              onChange={e => { setPwForm({ ...pwForm, current: e.target.value }); setPwErrors(prev => ({ ...prev, current: '' })); setPwCurrentVerified(false); }}
+                              onBlur={handleCurrentPwBlur}
                               error={!!pwErrors.current} helperText={pwErrors.current}
                               fullWidth
                               InputProps={{
