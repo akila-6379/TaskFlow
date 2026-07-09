@@ -77,6 +77,8 @@ export default function SettingsPage() {
   const [pwErrors, setPwErrors] = useState({ current: '', newPw: '', confirm: '' });
   const [pwSaving, setPwSaving] = useState(false);
   const [showPw, setShowPw] = useState({ current: false, newPw: false, confirm: false });
+  // Tracks whether the backend rejected the current password — cleared only when the user changes the current field
+  const [pwCurrentRejected, setPwCurrentRejected] = useState(false);
 
   // ── Validation errors ──────────────────────────────────────────────────────
   const [profileErrors, setProfileErrors] = useState({ name: '', email: '', phone: '', department: '' });
@@ -171,24 +173,7 @@ export default function SettingsPage() {
 
   // ── Password validation & save ─────────────────────────────────────────────
   const handlePasswordSave = async () => {
-    const errors = { current: '', newPw: '', confirm: '' };
-    let ok = true;
-
-    if (!pwForm.current) { errors.current = 'Current password is required.'; ok = false; }
-    if (!pwForm.newPw)   { errors.newPw   = 'New password is required.'; ok = false; }
-    if (!pwForm.confirm) { errors.confirm  = 'Please confirm your new password.'; ok = false; }
-    if (ok && pwForm.newPw !== pwForm.confirm) {
-      errors.confirm = 'Passwords do not match.'; ok = false;
-    }
-
-    setPwErrors(errors);
-    if (!ok) return;
-
-    if (!user?.userId) {
-      showSnack('Session error — please log in again.', 'error');
-      return;
-    }
-
+    if (!user?.userId) { showSnack('Session error — please log in again.', 'error'); return; }
     setPwSaving(true);
     try {
       await api.put(`/Auth/change-password/${user.userId}`, {
@@ -196,15 +181,17 @@ export default function SettingsPage() {
         newPassword: pwForm.newPw,
       });
       setPwForm({ current: '', newPw: '', confirm: '' });
+      setPwErrors({ current: '', newPw: '', confirm: '' });
+      setPwCurrentRejected(false);
       showSnack('Password updated successfully.');
     } catch (err: any) {
       const msg: string =
         err?.response?.data?.message ??
         err?.response?.data ??
         'Failed to update password.';
-      // Map the backend message to the correct field
       if (typeof msg === 'string' && msg.toLowerCase().includes('current')) {
         setPwErrors(e => ({ ...e, current: msg }));
+        setPwCurrentRejected(true);
       } else {
         showSnack(typeof msg === 'string' ? msg : 'Failed to update password.', 'error');
       }
@@ -383,7 +370,7 @@ export default function SettingsPage() {
                             disableElevation
                             startIcon={<LockRoundedIcon />}
                             onClick={handlePasswordSave}
-                            disabled={pwSaving || !pwForm.current || !pwForm.newPw || !pwForm.confirm || pwForm.newPw !== pwForm.confirm}
+                            disabled={pwSaving || !pwForm.current || !pwForm.newPw || !pwForm.confirm || pwForm.newPw !== pwForm.confirm || pwCurrentRejected}
                             sx={{
                               borderRadius: '999px', textTransform: 'none', fontWeight: 600,
                               background: isDark ? 'linear-gradient(135deg, #7C3AED 0%, #6d28d9 100%)' : 'linear-gradient(135deg, #2563EB 0%, #6D5DF6 100%)',
@@ -399,7 +386,7 @@ export default function SettingsPage() {
                               label="Current Password"
                               type={showPw.current ? 'text' : 'password'}
                               value={pwForm.current}
-                              onChange={e => { setPwForm({ ...pwForm, current: e.target.value }); setPwErrors(prev => ({ ...prev, current: '' })); }}
+                              onChange={e => { setPwForm({ ...pwForm, current: e.target.value }); setPwErrors(prev => ({ ...prev, current: '' })); setPwCurrentRejected(false); }}
                               error={!!pwErrors.current} helperText={pwErrors.current}
                               fullWidth
                               InputProps={{
