@@ -16,7 +16,6 @@ import {
   Paper,
   Divider,
   Stack,
-  InputBase,
   Menu,
   Avatar,
   InputAdornment,
@@ -453,34 +452,43 @@ export default function ProjectsPage() {
       />
 
       <Paper sx={{ p: { xs: 2, md: 3 }, borderRadius: '20px', boxShadow: 2, bgcolor: 'background.paper' }}>
-        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center', width: { xs: '100%', md: 'auto' } }}>
-            <Paper
-              component="form"
-              onSubmit={(e) => e.preventDefault()}
-              sx={{
-                display: 'flex', alignItems: 'center', gap: 1, width: { xs: '100%', sm: 340 }, px: 2, py: 1.1,
-                borderRadius: '20px', boxShadow: 'none', bgcolor: 'action.hover', border: '1px solid', borderColor: 'divider',
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 1, alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center', width: { xs: '100%', md: 'auto' } }}>
+            <TextField
+              size="small"
+              placeholder="Search projects, status, or dates"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchRoundedIcon sx={{ fontSize: 18, color: 'text.secondary' }} />
+                  </InputAdornment>
+                ),
+                sx: {
+                  borderRadius: '10px',
+                  fontSize: 13,
+                  height: 40,
+                  bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
+                  '& fieldset': { borderColor: 'divider' },
+                  '&:hover fieldset': { borderColor: 'text.disabled' },
+                  '&.Mui-focused fieldset': { borderColor: 'primary.main' },
+                },
               }}
-            >
-              <SearchRoundedIcon sx={{ color: 'text.secondary' }} />
-              <InputBase
-                placeholder="Search projects, status, or dates"
-                value={searchValue}
-                onChange={(e) => setSearchValue(e.target.value)}
-                fullWidth
-                sx={{ fontSize: 14, color: 'text.primary' }}
-              />
-            </Paper>
+              sx={{ width: { xs: '100%', sm: 340 } }}
+            />
 
             <Button
               variant="outlined"
               startIcon={<FilterAltRoundedIcon />}
               onClick={handleFilterClick}
               sx={{
-                borderRadius: '20px', textTransform: 'none', borderColor: 'divider', color: 'primary.main', fontWeight: 600,
-                bgcolor: 'background.paper',
-                '&:hover': { bgcolor: 'action.hover', borderColor: 'text.disabled' },
+                borderRadius: '10px', textTransform: 'none', borderColor: filterStatus !== 'All' ? 'primary.main' : 'divider',
+                color: filterStatus !== 'All' ? 'primary.main' : 'text.primary', fontWeight: 600, fontSize: 13,
+                height: 40, px: 2,
+                bgcolor: filterStatus !== 'All' ? 'action.selected' : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'),
+                transition: 'all 0.2s ease',
+                '&:hover': { bgcolor: 'action.hover', borderColor: 'text.disabled', transform: 'translateY(-1px)' },
               }}
             >
               Filter: {filterStatus}

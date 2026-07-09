@@ -195,12 +195,25 @@ function Toolbar({
       </GridToolbarContainer>
 
       {/* ── Reserved validation strip — always 28px tall, never shifts the row above ── */}
-      <Box sx={{ height: 28, display: 'flex', alignItems: 'center', px: 2.25 }}>
-        {dateRangeError && (
-          <Typography sx={{ fontSize: 12, fontWeight: 500, color: 'error.main', lineHeight: 1 }}>
-            ⚠ {dateRangeError}
-          </Typography>
-        )}
+      {/* Mirrors the toolbar's flex layout so the message aligns under the date fields */}
+      <Box sx={{ height: 28, display: { xs: 'none', lg: 'flex' }, alignItems: 'center', px: 2.25 }}>
+        {/* Spacer matching Search flex:1 */}
+        <Box sx={{ flex: 1, minWidth: 220 }} />
+        {/* Right-side strip mirrors spacing={1} (8px gap) between controls */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {/* Spacer: Employee 170px */}
+          <Box sx={{ width: 170 }} />
+          {/* Spacer: Project 170px */}
+          <Box sx={{ width: 170 }} />
+          {/* Error text spans From (148px) + gap (8px) + To (148px) = 304px */}
+          <Box sx={{ width: 304, display: 'flex', alignItems: 'center' }}>
+            {dateRangeError && (
+              <Typography sx={{ fontSize: 12, fontWeight: 500, color: 'error.main', lineHeight: 1, whiteSpace: 'nowrap' }}>
+                ⚠ {dateRangeError}
+              </Typography>
+            )}
+          </Box>
+        </Box>
       </Box>
     </Box>
   );

@@ -62,20 +62,44 @@ function Toolbar({ filterStatus, onStatusChange }: { filterStatus: string; onSta
   const isDark = theme.palette.mode === 'dark';
 
   return (
-    <GridToolbarContainer sx={{ px: 2.25, py: 1.75, borderBottom: '1px solid', borderColor: 'divider', background: 'background.paper' }}>
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.25} sx={{ width: '100%', alignItems: { xs: 'stretch', md: 'center' } }}>
+    <GridToolbarContainer sx={{ px: 2.25, py: 1.5, borderBottom: '1px solid', borderColor: 'divider', background: 'background.paper' }}>
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={1} sx={{ width: '100%', alignItems: { xs: 'stretch', md: 'center' } }}>
         <GridToolbarQuickFilter
           placeholder="Search task title, task ID, project ID or project name..."
-          sx={{ flex: 1, '& .MuiInputBase-root': { fontSize: 13, borderRadius: '999px', background: 'action.hover', border: '1px solid', borderColor: 'divider', minHeight: 42 } }}
+          sx={{
+            flex: 1,
+            '& .MuiInputBase-root': {
+              fontSize: 13,
+              borderRadius: '10px',
+              background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
+              border: '1px solid',
+              borderColor: 'divider',
+              height: 40,
+              '&:hover': { borderColor: 'text.disabled' },
+              '&.Mui-focused': { borderColor: 'primary.main' },
+            },
+            '& .MuiInputBase-input': { fontSize: 13, py: 0, height: 40, boxSizing: 'border-box' },
+          }}
         />
-        <Stack direction='row' spacing={1} sx={{ flexWrap: 'wrap' }}>
+        <Stack direction='row' spacing={1} sx={{ flexWrap: 'nowrap', alignItems: 'center' }}>
           <TextField
             select
             size="small"
-            label="Task Status"
             value={filterStatus}
             onChange={(e) => onStatusChange(e.target.value)}
-            sx={{ minWidth: 150, '& .MuiOutlinedInput-root': { borderRadius: '999px', background: 'action.hover' } }}
+            sx={{
+              minWidth: 150,
+              '& .MuiOutlinedInput-root': {
+                height: 40,
+                borderRadius: '10px',
+                background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
+                '& fieldset': { borderColor: 'divider' },
+                '&:hover fieldset': { borderColor: 'text.disabled' },
+                '&.Mui-focused fieldset': { borderColor: 'primary.main' },
+              },
+              '& .MuiInputBase-input': { fontSize: 13 },
+              '& .MuiInputLabel-root': { display: 'none' },
+            }}
           >
             <MenuItem value="">All Status</MenuItem>
             <MenuItem value="Pending">Pending</MenuItem>

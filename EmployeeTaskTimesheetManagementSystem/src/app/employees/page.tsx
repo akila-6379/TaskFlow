@@ -561,7 +561,7 @@ export default function EmployeesPage() {
       <Box sx={{
         display: 'flex',
         alignItems: 'center',
-        gap: 1.5,
+        gap: 1,
         mb: 2.5,
         flexWrap: 'wrap',
       }}>
@@ -578,10 +578,10 @@ export default function EmployeesPage() {
               </InputAdornment>
             ),
             sx: {
-              borderRadius: '12px',
-              fontSize: 13.5,
-              height: 44,
-              bgcolor: 'background.paper',
+              borderRadius: '10px',
+              fontSize: 13,
+              height: 40,
+              bgcolor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
               '& fieldset': { borderColor: 'divider' },
               '&:hover fieldset': { borderColor: 'text.disabled' },
               '&.Mui-focused fieldset': { borderColor: 'primary.main' },
@@ -597,16 +597,16 @@ export default function EmployeesPage() {
           onClick={openFilter}
           disableElevation
           sx={{
-            borderRadius: '12px',
+            borderRadius: '10px',
             textTransform: 'none',
             fontWeight: 600,
             fontSize: 13,
-            height: 44,
+            height: 40,
             px: 2,
             color: filterDept ? 'primary.main' : 'text.primary',
             borderColor: filterDept ? 'primary.main' : 'divider',
-            bgcolor: filterDept ? 'action.selected' : 'background.paper',
-            transition: 'all 0.25s ease',
+            bgcolor: filterDept ? 'action.selected' : (isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)'),
+            transition: 'all 0.2s ease',
             '&:hover': { bgcolor: 'action.hover', borderColor: 'text.disabled', transform: 'translateY(-1px)' },
           }}
         >
