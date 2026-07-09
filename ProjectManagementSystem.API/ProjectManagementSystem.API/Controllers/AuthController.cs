@@ -25,10 +25,11 @@ namespace ProjectManagementSystem.API.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDto loginDto)
         {
+            Console.WriteLine("LOGIN API HIT");
             var user = await _context.Users.FirstOrDefaultAsync(x =>
                 x.Email == loginDto.Email &&
                 x.Password == loginDto.Password);
-
+            Console.WriteLine(user == null ? "User not found" : "User found");
             if (user == null)
                 return Unauthorized("Invalid Email or Password");
 
