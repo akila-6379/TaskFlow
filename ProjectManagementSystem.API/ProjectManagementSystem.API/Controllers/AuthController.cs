@@ -30,6 +30,7 @@ namespace ProjectManagementSystem.API.Controllers
                 x.Email == loginDto.Email &&
                 x.Password == loginDto.Password);
             Console.WriteLine(user == null ? "User not found" : "User found");
+
             if (user == null)
                 return Unauthorized("Invalid Email or Password");
 
@@ -137,9 +138,27 @@ namespace ProjectManagementSystem.API.Controllers
                 <p>This link expires in 1 hour. If you did not request this, ignore this email.</p>
                 """;
 
-            await _email.SendAsync(user.Email, "TaskFlow — Reset Your Password", body);
+            try
+            {
+                await _email.SendAsync(
+                user.Email,
+                "TaskFlow — Reset Your Password",
+                body);
 
-            return Ok(new { Message = "If that email exists, a reset link has been sent." });
+                return Ok(new
+            
+                {
+                Message = "If that email exists, a reset link has been sent."
+                });
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+
+                return StatusCode(500, ex.Message);
+            }
+
+            
         }
 
         // POST /api/Auth/reset-password
