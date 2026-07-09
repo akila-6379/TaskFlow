@@ -96,103 +96,113 @@ function Toolbar({
   };
 
   return (
-    <GridToolbarContainer sx={{ px: 2.25, py: 1.5, borderBottom: '1px solid', borderColor: 'divider', background: 'background.paper' }}>
-      <Stack direction={{ xs: 'column', lg: 'row' }} spacing={1} sx={{ width: '100%', alignItems: { xs: 'stretch', lg: 'center' } }}>
-        {/* Search */}
-        <TextField
-          value={searchValue}
-          onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search timesheets…"
-          size="small"
-          InputProps={{ startAdornment: <SearchRoundedIcon sx={{ color: 'text.secondary', mr: 0.75, fontSize: 18 }} /> }}
-          sx={{ flex: 1, minWidth: { xs: '100%', lg: 220 }, ...ctrlSx }}
-        />
-
-        {/* Right-side controls — single row, no wrap */}
-        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'nowrap' }}>
-          {/* Employee */}
-          <Autocomplete
-            size="small"
-            options={employeeOptions}
-            value={employeeOptions.find((o) => o.id === employeeValue) ?? null}
-            onChange={(_, v) => onEmployeeChange(v ? v.id : null)}
-            isOptionEqualToValue={(o, v) => o.id === v.id}
-            sx={{ width: 170 }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                placeholder="Employee"
-                size="small"
-                sx={ctrlSx}
-                InputProps={{
-                  ...params.InputProps,
-                  sx: { height: 40, borderRadius: '10px', background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', fontSize: 13 },
-                }}
-              />
-            )}
-            noOptionsText="No employees found"
-          />
-
-          {/* Project */}
-          <Autocomplete
-            size="small"
-            options={projectOptions}
-            value={projectOptions.find((o) => o.id === projectValue) ?? null}
-            onChange={(_, v) => onProjectChange(v ? v.id : null)}
-            isOptionEqualToValue={(o, v) => o.id === v.id}
-            sx={{ width: 170 }}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                placeholder="Project"
-                size="small"
-                sx={ctrlSx}
-                InputProps={{
-                  ...params.InputProps,
-                  sx: { height: 40, borderRadius: '10px', background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', fontSize: 13 },
-                }}
-              />
-            )}
-            noOptionsText="No projects found"
-          />
-
-          {/* From date */}
+    <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', background: 'background.paper' }}>
+      {/* ── Controls row — height is fixed, never affected by validation ── */}
+      <GridToolbarContainer sx={{ px: 2.25, py: 1.5, borderBottom: 'none' }}>
+        <Stack direction={{ xs: 'column', lg: 'row' }} spacing={1} sx={{ width: '100%', alignItems: { xs: 'stretch', lg: 'center' } }}>
+          {/* Search */}
           <TextField
-            type="date"
+            value={searchValue}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="Search timesheets…"
             size="small"
-            value={dateFrom}
-            onChange={(e) => onDateFromChange(capDateYear(e.target.value))}
-            inputProps={{ max: '9999-12-31', placeholder: 'From Date' }}
-            error={Boolean(dateRangeError)}
-            title={dateRangeError || 'From Date'}
-            sx={{ width: 148, ...ctrlSx, '& .MuiOutlinedInput-root': { ...ctrlSx['& .MuiOutlinedInput-root'], ...(dateRangeError ? { '& fieldset': { borderColor: 'error.main' } } : {}) } }}
+            InputProps={{ startAdornment: <SearchRoundedIcon sx={{ color: 'text.secondary', mr: 0.75, fontSize: 18 }} /> }}
+            sx={{ flex: 1, minWidth: { xs: '100%', lg: 220 }, ...ctrlSx }}
           />
 
-          {/* To date */}
-          <TextField
-            type="date"
-            size="small"
-            value={dateTo}
-            onChange={(e) => onDateToChange(capDateYear(e.target.value))}
-            inputProps={{ max: '9999-12-31', placeholder: 'To Date' }}
-            error={Boolean(dateRangeError)}
-            title={dateRangeError || 'To Date'}
-            sx={{ width: 148, ...ctrlSx, '& .MuiOutlinedInput-root': { ...ctrlSx['& .MuiOutlinedInput-root'], ...(dateRangeError ? { '& fieldset': { borderColor: 'error.main' } } : {}) } }}
-          />
+          {/* Right-side controls — single row, no wrap */}
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'nowrap' }}>
+            {/* Employee */}
+            <Autocomplete
+              size="small"
+              options={employeeOptions}
+              value={employeeOptions.find((o) => o.id === employeeValue) ?? null}
+              onChange={(_, v) => onEmployeeChange(v ? v.id : null)}
+              isOptionEqualToValue={(o, v) => o.id === v.id}
+              sx={{ width: 170 }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder="Employee"
+                  size="small"
+                  sx={ctrlSx}
+                  InputProps={{
+                    ...params.InputProps,
+                    sx: { height: 40, borderRadius: '10px', background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', fontSize: 13 },
+                  }}
+                />
+              )}
+              noOptionsText="No employees found"
+            />
 
-          {/* Export */}
-          <Button
-            variant="contained"
-            startIcon={<DownloadRoundedIcon />}
-            onClick={onExport}
-            disableElevation
-            sx={exportButtonSx(isDark)}
-          >
-            Export
-          </Button>
+            {/* Project */}
+            <Autocomplete
+              size="small"
+              options={projectOptions}
+              value={projectOptions.find((o) => o.id === projectValue) ?? null}
+              onChange={(_, v) => onProjectChange(v ? v.id : null)}
+              isOptionEqualToValue={(o, v) => o.id === v.id}
+              sx={{ width: 170 }}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder="Project"
+                  size="small"
+                  sx={ctrlSx}
+                  InputProps={{
+                    ...params.InputProps,
+                    sx: { height: 40, borderRadius: '10px', background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', fontSize: 13 },
+                  }}
+                />
+              )}
+              noOptionsText="No projects found"
+            />
+
+            {/* From date */}
+            <TextField
+              type="date"
+              size="small"
+              value={dateFrom}
+              onChange={(e) => onDateFromChange(capDateYear(e.target.value))}
+              inputProps={{ max: '9999-12-31', placeholder: 'From Date' }}
+              error={Boolean(dateRangeError)}
+              sx={{ width: 148, ...ctrlSx, '& .MuiOutlinedInput-root': { ...ctrlSx['& .MuiOutlinedInput-root'], ...(dateRangeError ? { '& fieldset': { borderColor: 'error.main' } } : {}) } }}
+            />
+
+            {/* To date */}
+            <TextField
+              type="date"
+              size="small"
+              value={dateTo}
+              onChange={(e) => onDateToChange(capDateYear(e.target.value))}
+              inputProps={{ max: '9999-12-31', placeholder: 'To Date' }}
+              error={Boolean(dateRangeError)}
+              sx={{ width: 148, ...ctrlSx, '& .MuiOutlinedInput-root': { ...ctrlSx['& .MuiOutlinedInput-root'], ...(dateRangeError ? { '& fieldset': { borderColor: 'error.main' } } : {}) } }}
+            />
+
+            {/* Export */}
+            <Button
+              variant="contained"
+              startIcon={<DownloadRoundedIcon />}
+              onClick={onExport}
+              disableElevation
+              sx={exportButtonSx(isDark)}
+            >
+              Export
+            </Button>
+          </Stack>
         </Stack>
-      </Stack>
-    </GridToolbarContainer>
+      </GridToolbarContainer>
+
+      {/* ── Reserved validation strip — always 28px tall, never shifts the row above ── */}
+      <Box sx={{ height: 28, display: 'flex', alignItems: 'center', px: 2.25 }}>
+        {dateRangeError && (
+          <Typography sx={{ fontSize: 12, fontWeight: 500, color: 'error.main', lineHeight: 1 }}>
+            ⚠ {dateRangeError}
+          </Typography>
+        )}
+      </Box>
+    </Box>
   );
 }
 
