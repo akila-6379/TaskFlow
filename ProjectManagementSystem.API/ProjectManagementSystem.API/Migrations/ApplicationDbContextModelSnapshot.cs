@@ -191,15 +191,15 @@ namespace ProjectManagementSystem.API.Migrations
                     b.Property<string>("Phone")
                         .HasColumnType("text");
 
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("ResetPasswordToken")
                         .HasColumnType("text");
 
                     b.Property<DateTime?>("ResetPasswordTokenExpiry")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
