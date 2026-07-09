@@ -79,80 +79,108 @@ function Toolbar({
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
 
+  // Shared style for every toolbar control — identical height, radius, bg
+  const ctrlSx = {
+    height: 40,
+    '& .MuiOutlinedInput-root': {
+      height: 40,
+      borderRadius: '10px',
+      background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
+      '& fieldset': { borderColor: 'divider' },
+      '&:hover fieldset': { borderColor: 'text.disabled' },
+      '&.Mui-focused fieldset': { borderColor: 'primary.main' },
+    },
+    '& .MuiInputBase-input': { fontSize: 13, py: 0, height: 40, boxSizing: 'border-box' as const },
+    '& .MuiInputLabel-root': { display: 'none' },
+    '& .MuiInputLabel-shrink': { display: 'none' },
+  };
+
   return (
-    <GridToolbarContainer sx={{ px: 2.25, py: 1.75, borderBottom: '1px solid', borderColor: 'divider', background: 'background.paper' }}>
-      <Stack direction={{ xs: 'column', lg: 'row' }} spacing={1.25} sx={{ width: '100%', alignItems: { xs: 'stretch', lg: 'center' } }}>
+    <GridToolbarContainer sx={{ px: 2.25, py: 1.5, borderBottom: '1px solid', borderColor: 'divider', background: 'background.paper' }}>
+      <Stack direction={{ xs: 'column', lg: 'row' }} spacing={1} sx={{ width: '100%', alignItems: { xs: 'stretch', lg: 'center' } }}>
+        {/* Search */}
         <TextField
           value={searchValue}
           onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search timesheets"
+          placeholder="Search timesheets…"
           size="small"
-          InputProps={{ startAdornment: <SearchRoundedIcon sx={{ color: 'text.secondary', mr: 1 }} /> }}
-          sx={{ flex: 1, minWidth: { xs: '100%', lg: 260 }, '& .MuiOutlinedInput-root': { borderRadius: '999px', background: 'action.hover' } }}
+          InputProps={{ startAdornment: <SearchRoundedIcon sx={{ color: 'text.secondary', mr: 0.75, fontSize: 18 }} /> }}
+          sx={{ flex: 1, minWidth: { xs: '100%', lg: 220 }, ...ctrlSx }}
         />
 
-        {/* Right-side controls — always in a row, never wrap due to date error */}
+        {/* Right-side controls — single row, no wrap */}
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'nowrap' }}>
+          {/* Employee */}
           <Autocomplete
             size="small"
             options={employeeOptions}
             value={employeeOptions.find((o) => o.id === employeeValue) ?? null}
             onChange={(_, v) => onEmployeeChange(v ? v.id : null)}
             isOptionEqualToValue={(o, v) => o.id === v.id}
+            sx={{ width: 170 }}
             renderInput={(params) => (
-              <TextField {...params} label="Employee"
-                sx={{ minWidth: 170, '& .MuiOutlinedInput-root': { borderRadius: '999px', background: 'action.hover' } }} />
+              <TextField
+                {...params}
+                placeholder="Employee"
+                size="small"
+                sx={ctrlSx}
+                InputProps={{
+                  ...params.InputProps,
+                  sx: { height: 40, borderRadius: '10px', background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', fontSize: 13 },
+                }}
+              />
             )}
             noOptionsText="No employees found"
           />
+
+          {/* Project */}
           <Autocomplete
             size="small"
             options={projectOptions}
             value={projectOptions.find((o) => o.id === projectValue) ?? null}
             onChange={(_, v) => onProjectChange(v ? v.id : null)}
             isOptionEqualToValue={(o, v) => o.id === v.id}
+            sx={{ width: 170 }}
             renderInput={(params) => (
-              <TextField {...params} label="Project"
-                sx={{ minWidth: 170, '& .MuiOutlinedInput-root': { borderRadius: '999px', background: 'action.hover' } }} />
+              <TextField
+                {...params}
+                placeholder="Project"
+                size="small"
+                sx={ctrlSx}
+                InputProps={{
+                  ...params.InputProps,
+                  sx: { height: 40, borderRadius: '10px', background: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)', fontSize: 13 },
+                }}
+              />
             )}
             noOptionsText="No projects found"
           />
-          {/* Date range — fixed height container so error text never shifts adjacent controls */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-              <TextField
-                label="From"
-                type="date"
-                size="small"
-                value={dateFrom}
-                onChange={(e) => onDateFromChange(capDateYear(e.target.value))}
-                InputLabelProps={{ shrink: true }}
-                inputProps={{ max: '9999-12-31' }}
-                error={Boolean(dateRangeError)}
-                sx={{ minWidth: 145, '& .MuiOutlinedInput-root': { borderRadius: '999px', background: 'action.hover' } }}
-              />
-              <TextField
-                label="To"
-                type="date"
-                size="small"
-                value={dateTo}
-                onChange={(e) => onDateToChange(capDateYear(e.target.value))}
-                InputLabelProps={{ shrink: true }}
-                inputProps={{ max: '9999-12-31' }}
-                error={Boolean(dateRangeError)}
-                sx={{ minWidth: 145, '& .MuiOutlinedInput-root': { borderRadius: '999px', background: 'action.hover' } }}
-              />
-            </Box>
-            {/* Reserve 18px for the error so the row height is stable */}
-            <Box sx={{ height: 18, display: 'flex', alignItems: 'center', pl: 1, mt: 0.25 }}>
-              {dateRangeError && (
-                <Typography sx={{ fontSize: 11, color: 'error.main', whiteSpace: 'nowrap', lineHeight: 1 }}>
-                  {dateRangeError}
-                </Typography>
-              )}
-            </Box>
-          </Box>
 
+          {/* From date */}
+          <TextField
+            type="date"
+            size="small"
+            value={dateFrom}
+            onChange={(e) => onDateFromChange(capDateYear(e.target.value))}
+            inputProps={{ max: '9999-12-31', placeholder: 'From Date' }}
+            error={Boolean(dateRangeError)}
+            title={dateRangeError || 'From Date'}
+            sx={{ width: 148, ...ctrlSx, '& .MuiOutlinedInput-root': { ...ctrlSx['& .MuiOutlinedInput-root'], ...(dateRangeError ? { '& fieldset': { borderColor: 'error.main' } } : {}) } }}
+          />
+
+          {/* To date */}
+          <TextField
+            type="date"
+            size="small"
+            value={dateTo}
+            onChange={(e) => onDateToChange(capDateYear(e.target.value))}
+            inputProps={{ max: '9999-12-31', placeholder: 'To Date' }}
+            error={Boolean(dateRangeError)}
+            title={dateRangeError || 'To Date'}
+            sx={{ width: 148, ...ctrlSx, '& .MuiOutlinedInput-root': { ...ctrlSx['& .MuiOutlinedInput-root'], ...(dateRangeError ? { '& fieldset': { borderColor: 'error.main' } } : {}) } }}
+          />
+
+          {/* Export */}
           <Button
             variant="contained"
             startIcon={<DownloadRoundedIcon />}
@@ -700,7 +728,7 @@ export default function TimesheetsPage() {
         TransitionComponent={Fade}
         TransitionProps={{ timeout: 180 }}
         PaperProps={{
-          sx: { borderRadius: '20px', boxShadow: 24, background: 'background.paper', overflow: 'hidden', maxWidth: 700 },
+          sx: { borderRadius: '20px', boxShadow: 24, background: 'background.paper', overflow: 'hidden', maxWidth: 780 },
         }}
       >
         {/* Header */}
@@ -731,18 +759,16 @@ export default function TimesheetsPage() {
 
         {/* Form */}
         <DialogContent sx={{ pt: 3, pb: 2, px: 3.5 }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2.5 }}>
 
-            {/* ── 1. Employee ── */}
+            {/* Row 1 — Employee | Project */}
             <Autocomplete
               size="small"
               options={employeeOptions}
               value={employeeOptions.find(o => o.id === form.employeeId) ?? null}
               onChange={(_, val) => {
-                // Clear all dependent fields when employee changes
                 setForm(f => ({ ...f, employeeId: val ? val.id : 0, projectId: 0 }));
                 setSelectedTaskId(null);
-                // Auto-focus Project after selection
                 setTimeout(() => projectInputRef.current?.focus(), 80);
               }}
               isOptionEqualToValue={(o, v) => o.id === v.id}
@@ -786,17 +812,14 @@ export default function TimesheetsPage() {
               noOptionsText="No employees found"
             />
 
-            {/* ── 2. Project ── */}
             <Autocomplete
               size="small"
               options={dialogProjectOptions}
               value={dialogProjectOptions.find(o => o.id === form.projectId) ?? null}
               disabled={!form.employeeId}
               onChange={(_, val) => {
-                // Clear task-related fields when project changes
                 setForm(f => ({ ...f, projectId: val ? val.id : 0 }));
                 setSelectedTaskId(null);
-                // Auto-focus Task ID after selection
                 setTimeout(() => taskIdInputRef.current?.focus(), 80);
               }}
               isOptionEqualToValue={(o, v) => o.id === v.id}
@@ -822,7 +845,7 @@ export default function TimesheetsPage() {
               noOptionsText={form.employeeId ? 'No projects assigned to this employee.' : 'Select an employee first'}
             />
 
-            {/* ── 3. Project ID (auto-filled, read-only) ── */}
+            {/* Row 2 — Project ID (read-only) | Task Name */}
             <TextField
               size="small"
               label="Project ID"
@@ -837,152 +860,134 @@ export default function TimesheetsPage() {
               sx={readonlySx}
             />
 
-            {/* ── Task ID & Task Name in a 2-column row ── */}
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2.5 }}>
+            <Autocomplete
+              size="small"
+              options={taskOptions}
+              value={taskOptions.find(o => o.id === selectedTaskId) ?? null}
+              disabled={!form.projectId}
+              onChange={(_, val) => { setSelectedTaskId(val ? val.id : null); }}
+              isOptionEqualToValue={(o, v) => o.id === v.id}
+              getOptionLabel={(o) => o.title}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="Task Name"
+                  placeholder={form.projectId ? 'Select Task Name' : 'Select project first'}
+                  fullWidth
+                  InputProps={{
+                    ...params.InputProps,
+                    startAdornment: (
+                      <>
+                        {fieldIcon(<AssignmentRoundedIcon sx={{ color: 'text.secondary', fontSize: 18 }} />)}
+                        {params.InputProps.startAdornment}
+                      </>
+                    ),
+                  }}
+                  sx={fieldSx}
+                />
+              )}
+              noOptionsText={form.projectId ? 'No tasks for this employee + project.' : 'Select a project first'}
+            />
 
-              {/* ── 4. Task ID ── */}
-              <Autocomplete
-                size="small"
-                options={taskOptions}
-                value={taskOptions.find(o => o.id === selectedTaskId) ?? null}
-                disabled={!form.projectId}
-                onChange={(_, val) => {
-                  setSelectedTaskId(val ? val.id : null);
-                }}
-                isOptionEqualToValue={(o, v) => o.id === v.id}
-                getOptionLabel={(o) => o.label}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    inputRef={taskIdInputRef}
-                    label="Task ID"
-                    placeholder={form.projectId ? 'Select Task ID' : 'Select project first'}
-                    fullWidth
-                    InputProps={{
-                      ...params.InputProps,
-                      startAdornment: (
-                        <>
-                          {fieldIcon(<AssignmentRoundedIcon sx={{ color: 'text.secondary', fontSize: 18 }} />)}
-                          {params.InputProps.startAdornment}
-                        </>
-                      ),
-                    }}
-                    sx={fieldSx}
-                  />
-                )}
-                noOptionsText={form.projectId ? 'No tasks for this employee + project.' : 'Select a project first'}
-              />
+            {/* Row 3 — Task ID | Work Date */}
+            <Autocomplete
+              size="small"
+              options={taskOptions}
+              value={taskOptions.find(o => o.id === selectedTaskId) ?? null}
+              disabled={!form.projectId}
+              onChange={(_, val) => { setSelectedTaskId(val ? val.id : null); }}
+              isOptionEqualToValue={(o, v) => o.id === v.id}
+              getOptionLabel={(o) => o.label}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  inputRef={taskIdInputRef}
+                  label="Task ID"
+                  placeholder={form.projectId ? 'Select Task ID' : 'Select project first'}
+                  fullWidth
+                  InputProps={{
+                    ...params.InputProps,
+                    startAdornment: (
+                      <>
+                        {fieldIcon(<AssignmentRoundedIcon sx={{ color: 'text.secondary', fontSize: 18 }} />)}
+                        {params.InputProps.startAdornment}
+                      </>
+                    ),
+                  }}
+                  sx={fieldSx}
+                />
+              )}
+              noOptionsText={form.projectId ? 'No tasks for this employee + project.' : 'Select a project first'}
+            />
 
-              {/* ── 5. Task Name (synced autocomplete) ── */}
-              <Autocomplete
-                size="small"
-                options={taskOptions}
-                value={taskOptions.find(o => o.id === selectedTaskId) ?? null}
-                disabled={!form.projectId}
-                onChange={(_, val) => {
-                  setSelectedTaskId(val ? val.id : null);
-                }}
-                isOptionEqualToValue={(o, v) => o.id === v.id}
-                getOptionLabel={(o) => o.title}
-                renderInput={(params) => (
-                  <TextField
-                    {...params}
-                    label="Task Name"
-                    placeholder={form.projectId ? 'Select Task Name' : 'Select project first'}
-                    fullWidth
-                    InputProps={{
-                      ...params.InputProps,
-                      startAdornment: (
-                        <>
-                          {fieldIcon(<AssignmentRoundedIcon sx={{ color: 'text.secondary', fontSize: 18 }} />)}
-                          {params.InputProps.startAdornment}
-                        </>
-                      ),
-                    }}
-                    sx={fieldSx}
-                  />
-                )}
-                noOptionsText={form.projectId ? 'No tasks for this employee + project.' : 'Select a project first'}
-              />
-            </Box>
+            <TextField
+              size="small"
+              label="Work Date"
+              type="date"
+              value={form.workDate}
+              onChange={e => {
+                const capped = capDateYear(e.target.value);
+                const today = new Date().toISOString().slice(0, 10);
+                const selectedDate = capped > today ? today : capped;
+                const todayDate = new Date(today);
+                const pickedDate = new Date(selectedDate);
+                const daysDiff = Math.round((todayDate.getTime() - pickedDate.getTime()) / 86400000);
+                const dow = pickedDate.getDay();
+                if (dow === 0 || dow === 6) {
+                  setFormError('Timesheet entries are not allowed on weekends (Saturday or Sunday).');
+                } else if (daysDiff > 2) {
+                  setFormError('You can only log time for today, yesterday, or the day before yesterday.');
+                } else {
+                  setFormError('');
+                }
+                setForm({ ...form, workDate: selectedDate });
+              }}
+              fullWidth
+              InputLabelProps={{ shrink: true }}
+              inputProps={{ max: new Date().toISOString().slice(0, 10) }}
+              InputProps={{ startAdornment: fieldIcon(<CalendarMonthRoundedIcon sx={{ color: 'text.secondary', fontSize: 18 }} />) }}
+              sx={fieldSx}
+            />
 
-            {/* ── Work Date & Hours Worked in a 2-column row ── */}
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2.5 }}>
+            {/* Row 4 — Hours Worked | Description */}
+            <TextField
+              size="small"
+              label="Hours Worked"
+              type="number"
+              value={form.hoursWorked}
+              onKeyDown={(e) => {
+                if (['-', '+', 'e', 'E'].includes(e.key)) { e.preventDefault(); return; }
+                if (e.key === '.' && String(form.hoursWorked).includes('.')) { e.preventDefault(); }
+              }}
+              onChange={e => {
+                const raw = e.target.value;
+                if (raw === '') return;
+                let parsed = parseFloat(raw);
+                if (isNaN(parsed) || parsed < 0) return;
+                if (parsed > 10) parsed = 10;
+                parsed = Math.round(parsed * 2) / 2;
+                setForm({ ...form, hoursWorked: parsed });
+              }}
+              onPaste={(e) => {
+                const pasted = e.clipboardData.getData('text');
+                const num = parseFloat(pasted);
+                if (isNaN(num) || num < 0 || num > 10) e.preventDefault();
+              }}
+              fullWidth
+              error={Boolean(hoursError)}
+              helperText={hoursError || ' '}
+              inputProps={{ min: 0.5, max: 10, step: 0.5 }}
+              InputProps={{
+                startAdornment: fieldIcon(<AccessTimeRoundedIcon sx={{ color: 'text.secondary', fontSize: 18 }} />),
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 500 }}>hrs</Typography>
+                  </InputAdornment>
+                ),
+              }}
+              sx={fieldSx}
+            />
 
-              {/* ── 6. Work Date ── */}
-              <TextField
-                size="small"
-                label="Work Date"
-                type="date"
-                value={form.workDate}
-                onChange={e => {
-                  const capped = capDateYear(e.target.value);
-                  const today = new Date().toISOString().slice(0, 10);
-                  const selectedDate = capped > today ? today : capped;
-                  const todayDate = new Date(today);
-                  const pickedDate = new Date(selectedDate);
-                  const daysDiff = Math.round((todayDate.getTime() - pickedDate.getTime()) / 86400000);
-                  const dow = pickedDate.getDay();
-                  if (dow === 0 || dow === 6) {
-                    setFormError('Timesheet entries are not allowed on weekends (Saturday or Sunday).');
-                  } else if (daysDiff > 2) {
-                    setFormError('You can only log time for today, yesterday, or the day before yesterday.');
-                  } else {
-                    setFormError('');
-                  }
-                  setForm({ ...form, workDate: selectedDate });
-                }}
-                fullWidth
-                InputLabelProps={{ shrink: true }}
-                inputProps={{ max: new Date().toISOString().slice(0, 10) }}
-                InputProps={{ startAdornment: fieldIcon(<CalendarMonthRoundedIcon sx={{ color: 'text.secondary', fontSize: 18 }} />) }}
-                sx={fieldSx}
-              />
-
-              {/* ── 7. Hours Worked ── */}
-              <TextField
-                size="small"
-                label="Hours Worked"
-                type="number"
-                value={form.hoursWorked}
-                onKeyDown={(e) => {
-                  // Block: minus, plus, e/E (scientific), and multiple dots
-                  if (['-', '+', 'e', 'E'].includes(e.key)) { e.preventDefault(); return; }
-                  if (e.key === '.' && String(form.hoursWorked).includes('.')) { e.preventDefault(); }
-                }}
-                onChange={e => {
-                  const raw = e.target.value;
-                  if (raw === '') return;
-                  let parsed = parseFloat(raw);
-                  if (isNaN(parsed) || parsed < 0) return;
-                  if (parsed > 10) parsed = 10;
-                  // Snap to nearest 0.5
-                  parsed = Math.round(parsed * 2) / 2;
-                  setForm({ ...form, hoursWorked: parsed });
-                }}
-                onPaste={(e) => {
-                  // Block pasted values that would result in invalid numbers
-                  const pasted = e.clipboardData.getData('text');
-                  const num = parseFloat(pasted);
-                  if (isNaN(num) || num < 0 || num > 10) e.preventDefault();
-                }}
-                fullWidth
-                error={Boolean(hoursError)}
-                helperText={hoursError || ' '}
-                inputProps={{ min: 0.5, max: 10, step: 0.5 }}
-                InputProps={{
-                  startAdornment: fieldIcon(<AccessTimeRoundedIcon sx={{ color: 'text.secondary', fontSize: 18 }} />),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <Typography sx={{ fontSize: 13, color: 'text.secondary', fontWeight: 500 }}>hrs</Typography>
-                    </InputAdornment>
-                  ),
-                }}
-                sx={fieldSx}
-              />
-            </Box>
-
-            {/* ── 8. Description ── */}
             <TextField
               size="small"
               label="Description"
