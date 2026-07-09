@@ -18,6 +18,9 @@ import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded';
 import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
+import InputAdornment from '@mui/material/InputAdornment';
 
 // ─── Default values ──────────────────────────────────────────────────────────
 const DEFAULT_NOTIF = {
@@ -48,7 +51,7 @@ function loadProfile(user: { name?: string; email?: string; phone?: string; depa
 // ─── Types ───────────────────────────────────────────────────────────────────
 interface TabPanelProps { children: React.ReactNode; value: number; index: number; }
 function TabPanel({ children, value, index }: TabPanelProps) {
-  return value === index ? <Box sx={{ pt: 3 }}>{children}</Box> : null;
+  return value === index ? <Box sx={{ pt: 3, flex: 1, overflowY: 'auto' }}>{children}</Box> : null;
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -73,6 +76,7 @@ export default function SettingsPage() {
   const [pwForm, setPwForm] = useState({ current: '', newPw: '', confirm: '' });
   const [pwErrors, setPwErrors] = useState({ current: '', newPw: '', confirm: '' });
   const [pwSaving, setPwSaving] = useState(false);
+  const [showPw, setShowPw] = useState({ current: false, newPw: false, confirm: false });
 
   // ── Validation errors ──────────────────────────────────────────────────────
   const [profileErrors, setProfileErrors] = useState({ name: '', email: '', phone: '', department: '' });
@@ -221,7 +225,7 @@ export default function SettingsPage() {
 
   return (
     <MainLayout>
-      <Box sx={{ px: { xs: 1, md: 2 }, py: 1 }}>
+      <Box sx={{ px: { xs: 1, md: 2 }, py: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
         {/* ── Page header ── */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
           <Box>
@@ -258,7 +262,7 @@ export default function SettingsPage() {
         </Box>
 
         {/* ── Tabs ── */}
-        <Card sx={{ mb: 3, borderRadius: '24px', border: `1px solid ${theme.palette.divider}`, boxShadow: isDark ? '0 18px 48px rgba(0,0,0,0.35)' : '0 18px 48px rgba(15, 23, 42, 0.06)' }}>
+        <Card sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', mb: 2, borderRadius: '24px', border: `1px solid ${theme.palette.divider}`, boxShadow: isDark ? '0 18px 48px rgba(0,0,0,0.35)' : '0 18px 48px rgba(15, 23, 42, 0.06)' }}>
           <Box sx={{ borderBottom: `1px solid ${theme.palette.divider}`, px: { xs: 2, md: 3 }, py: 1.25 }}>
             <Tabs
               value={tab} onChange={(_, v) => setTab(v)} variant="fullWidth"
@@ -379,7 +383,7 @@ export default function SettingsPage() {
                             disableElevation
                             startIcon={<LockRoundedIcon />}
                             onClick={handlePasswordSave}
-                            disabled={pwSaving || (!pwForm.current && !pwForm.newPw && !pwForm.confirm)}
+                            disabled={pwSaving || !pwForm.current || !pwForm.newPw || !pwForm.confirm || pwForm.newPw !== pwForm.confirm}
                             sx={{
                               borderRadius: '999px', textTransform: 'none', fontWeight: 600,
                               background: isDark ? 'linear-gradient(135deg, #7C3AED 0%, #6d28d9 100%)' : 'linear-gradient(135deg, #2563EB 0%, #6D5DF6 100%)',
@@ -392,35 +396,64 @@ export default function SettingsPage() {
                         <Grid container spacing={2}>
                           <Grid item xs={12} md={4}>
                             <TextField
-                              label="Current Password" type="password"
+                              label="Current Password"
+                              type={showPw.current ? 'text' : 'password'}
                               value={pwForm.current}
-                              onChange={e => setPwForm({ ...pwForm, current: e.target.value })}
+                              onChange={e => { setPwForm({ ...pwForm, current: e.target.value }); setPwErrors(prev => ({ ...prev, current: '' })); }}
                               error={!!pwErrors.current} helperText={pwErrors.current}
                               fullWidth
-                              InputProps={{ startAdornment: <LockRoundedIcon sx={{ color: 'text.secondary', mr: 1 }} /> }}
+                              InputProps={{
+                                startAdornment: <LockRoundedIcon sx={{ color: 'text.secondary', mr: 1 }} />,
+                                endAdornment: (
+                                  <InputAdornment position="end">
+                                    <IconButton size="small" tabIndex={-1} onClick={() => setShowPw(p => ({ ...p, current: !p.current }))} sx={{ color: 'text.secondary' }}>
+                                      {showPw.current ? <VisibilityOffOutlinedIcon sx={{ fontSize: 18 }} /> : <VisibilityOutlinedIcon sx={{ fontSize: 18 }} />}
+                                    </IconButton>
+                                  </InputAdornment>
+                                ),
+                              }}
                               sx={fieldSx}
                             />
                           </Grid>
                           <Grid item xs={12} md={4}>
                             <TextField
-                              label="New Password" type="password"
+                              label="New Password"
+                              type={showPw.newPw ? 'text' : 'password'}
                               value={pwForm.newPw}
-                              onChange={e => setPwForm({ ...pwForm, newPw: e.target.value })}
+                              onChange={e => { setPwForm({ ...pwForm, newPw: e.target.value }); setPwErrors(prev => ({ ...prev, newPw: '', confirm: pwForm.confirm && e.target.value !== pwForm.confirm ? 'Passwords do not match.' : '' })); }}
                               error={!!pwErrors.newPw} helperText={pwErrors.newPw}
                               fullWidth
-                              InputProps={{ startAdornment: <LockRoundedIcon sx={{ color: 'text.secondary', mr: 1 }} /> }}
+                              InputProps={{
+                                startAdornment: <LockRoundedIcon sx={{ color: 'text.secondary', mr: 1 }} />,
+                                endAdornment: (
+                                  <InputAdornment position="end">
+                                    <IconButton size="small" tabIndex={-1} onClick={() => setShowPw(p => ({ ...p, newPw: !p.newPw }))} sx={{ color: 'text.secondary' }}>
+                                      {showPw.newPw ? <VisibilityOffOutlinedIcon sx={{ fontSize: 18 }} /> : <VisibilityOutlinedIcon sx={{ fontSize: 18 }} />}
+                                    </IconButton>
+                                  </InputAdornment>
+                                ),
+                              }}
                               sx={fieldSx}
                             />
                           </Grid>
                           <Grid item xs={12} md={4}>
-                            <Typography sx={{ display: 'none' }} />
                             <TextField
-                              label="Confirm Password" type="password"
+                              label="Confirm Password"
+                              type={showPw.confirm ? 'text' : 'password'}
                               value={pwForm.confirm}
-                              onChange={e => setPwForm({ ...pwForm, confirm: e.target.value })}
+                              onChange={e => { const v = e.target.value; setPwForm({ ...pwForm, confirm: v }); setPwErrors(prev => ({ ...prev, confirm: v && pwForm.newPw !== v ? 'Passwords do not match.' : '' })); }}
                               error={!!pwErrors.confirm} helperText={pwErrors.confirm}
                               fullWidth
-                              InputProps={{ startAdornment: <LockRoundedIcon sx={{ color: 'text.secondary', mr: 1 }} /> }}
+                              InputProps={{
+                                startAdornment: <LockRoundedIcon sx={{ color: 'text.secondary', mr: 1 }} />,
+                                endAdornment: (
+                                  <InputAdornment position="end">
+                                    <IconButton size="small" tabIndex={-1} onClick={() => setShowPw(p => ({ ...p, confirm: !p.confirm }))} sx={{ color: 'text.secondary' }}>
+                                      {showPw.confirm ? <VisibilityOffOutlinedIcon sx={{ fontSize: 18 }} /> : <VisibilityOutlinedIcon sx={{ fontSize: 18 }} />}
+                                    </IconButton>
+                                  </InputAdornment>
+                                ),
+                              }}
                               sx={fieldSx}
                             />
                           </Grid>
