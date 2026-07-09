@@ -7,6 +7,7 @@ import {
 } from '@mui/material';
 import MainLayout from '@/components/layout/MainLayout';
 import { useAuth } from '@/contexts/AuthContext';
+import api from '@/services/api';
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded';
 import EmailRoundedIcon from '@mui/icons-material/EmailRounded';
 import PhoneRoundedIcon from '@mui/icons-material/PhoneRounded';
@@ -18,37 +19,30 @@ import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded';
 import SaveRoundedIcon from '@mui/icons-material/SaveRounded';
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 
-// ─── Persistence keys ────────────────────────────────────────────────────────
-const PROFILE_KEY       = 'settings_profile';
-const NOTIF_KEY         = 'settings_notifications';
-const PASSWORD_KEY      = 'settings_password';
-const DEFAULT_PASSWORD  = 'admin123'; // initial password for demo
-
 // ─── Default values ──────────────────────────────────────────────────────────
 const DEFAULT_NOTIF = {
   emailAlerts: true, taskUpdates: true, projectUpdates: false,
   weeklyReport: true, systemAlerts: false,
 };
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-function loadProfile(user: { name?: string; email?: string } | null) {
-  try {
-    const raw = localStorage.getItem(PROFILE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch { /* ignore */ }
-  return { name: user?.name ?? '', email: user?.email ?? '', phone: '+1-555-0100', department: 'Management', bio: '' };
-}
-
 function loadNotif() {
   try {
-    const raw = localStorage.getItem(NOTIF_KEY);
+    const raw = localStorage.getItem('settings_notifications');
     if (raw) return JSON.parse(raw);
   } catch { /* ignore */ }
   return DEFAULT_NOTIF;
 }
 
-function getStoredPassword() {
-  return localStorage.getItem(PASSWORD_KEY) ?? DEFAULT_PASSWORD;
+// Profile is loaded from the AuthContext user object (sourced from the DB via
+// the login response). localStorage is NOT used as a profile store.
+function loadProfile(user: { name?: string; email?: string; phone?: string; department?: string; bio?: string } | null) {
+  return {
+    name:       user?.name       ?? '',
+    email:      user?.email      ?? '',
+    phone:      user?.phone      ?? '',
+    department: user?.department ?? '',
+    bio:        user?.bio        ?? '',
+  };
 }
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -75,6 +69,7 @@ export default function SettingsPage() {
   // ── Password state ─────────────────────────────────────────────────────────
   const [pwForm, setPwForm] = useState({ current: '', newPw: '', confirm: '' });
   const [pwErrors, setPwErrors] = useState({ current: '', newPw: '', confirm: '' });
+  const [pwSaving, setPwSaving] = useState(false);
 
   // ── Validation errors ──────────────────────────────────────────────────────
   const [profileErrors, setProfileErrors] = useState({ name: '', email: '', phone: '', department: '' });
@@ -119,21 +114,26 @@ export default function SettingsPage() {
   }
 
   // ── Save profile ───────────────────────────────────────────────────────────
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validateProfile()) return;
-
-    // Persist extended profile
-    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
-    setSavedProfile({ ...profile });
-
-    // Persist notifications
-    localStorage.setItem(NOTIF_KEY, JSON.stringify(notifications));
-    setSavedNotif({ ...notifications });
-
-    // Update user name/email in AuthContext (propagates to top-bar avatar etc.)
-    updateUser({ name: profile.name, email: profile.email });
-
-    showSnack('Profile updated successfully.');
+    if (!user?.userId) { showSnack('Session error — please log in again.', 'error'); return; }
+    try {
+      await api.put(`/Auth/profile/${user.userId}`, {
+        fullName:   profile.name,
+        email:      profile.email,
+        phone:      profile.phone,
+        department: profile.department,
+        bio:        profile.bio,
+      });
+      setSavedProfile({ ...profile });
+      localStorage.setItem('settings_notifications', JSON.stringify(notifications));
+      setSavedNotif({ ...notifications });
+      updateUser({ name: profile.name, email: profile.email, phone: profile.phone, department: profile.department, bio: profile.bio });
+      showSnack('Profile updated successfully.');
+    } catch (err: any) {
+      const msg = err?.response?.data?.message ?? err?.response?.data ?? 'Failed to save profile.';
+      showSnack(typeof msg === 'string' ? msg : 'Failed to save profile.', 'error');
+    }
   };
 
   // ── Discard changes ────────────────────────────────────────────────────────
@@ -144,17 +144,13 @@ export default function SettingsPage() {
   };
 
   // ── Password validation & save ─────────────────────────────────────────────
-  const handlePasswordSave = () => {
+  const handlePasswordSave = async () => {
     const errors = { current: '', newPw: '', confirm: '' };
     let ok = true;
 
     if (!pwForm.current) { errors.current = 'Current password is required.'; ok = false; }
     if (!pwForm.newPw)   { errors.newPw   = 'New password is required.'; ok = false; }
     if (!pwForm.confirm) { errors.confirm  = 'Please confirm your new password.'; ok = false; }
-
-    if (ok && pwForm.current !== getStoredPassword()) {
-      errors.current = 'Current password is incorrect.'; ok = false;
-    }
     if (ok && pwForm.newPw !== pwForm.confirm) {
       errors.confirm = 'Passwords do not match.'; ok = false;
     }
@@ -162,9 +158,33 @@ export default function SettingsPage() {
     setPwErrors(errors);
     if (!ok) return;
 
-    localStorage.setItem(PASSWORD_KEY, pwForm.newPw);
-    setPwForm({ current: '', newPw: '', confirm: '' });
-    showSnack('Password updated successfully.');
+    if (!user?.userId) {
+      showSnack('Session error — please log in again.', 'error');
+      return;
+    }
+
+    setPwSaving(true);
+    try {
+      await api.put(`/Auth/change-password/${user.userId}`, {
+        currentPassword: pwForm.current,
+        newPassword: pwForm.newPw,
+      });
+      setPwForm({ current: '', newPw: '', confirm: '' });
+      showSnack('Password updated successfully.');
+    } catch (err: any) {
+      const msg: string =
+        err?.response?.data?.message ??
+        err?.response?.data ??
+        'Failed to update password.';
+      // Map the backend message to the correct field
+      if (typeof msg === 'string' && msg.toLowerCase().includes('current')) {
+        setPwErrors(e => ({ ...e, current: msg }));
+      } else {
+        showSnack(typeof msg === 'string' ? msg : 'Failed to update password.', 'error');
+      }
+    } finally {
+      setPwSaving(false);
+    }
   };
 
   const fieldSx = { '& .MuiOutlinedInput-root': { borderRadius: '14px', minHeight: 48 } };
@@ -332,7 +352,7 @@ export default function SettingsPage() {
                             disableElevation
                             startIcon={<LockRoundedIcon />}
                             onClick={handlePasswordSave}
-                            disabled={!pwForm.current && !pwForm.newPw && !pwForm.confirm}
+                            disabled={pwSaving || (!pwForm.current && !pwForm.newPw && !pwForm.confirm)}
                             sx={{
                               borderRadius: '999px', textTransform: 'none', fontWeight: 600,
                               background: isDark ? 'linear-gradient(135deg, #7C3AED 0%, #6d28d9 100%)' : 'linear-gradient(135deg, #2563EB 0%, #6D5DF6 100%)',

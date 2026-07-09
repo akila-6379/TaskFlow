@@ -189,7 +189,7 @@ export default function LoginPage() {
                   Password
                 </Typography>
                 <Link
-                  href="#"
+                  href="/forgot-password"
                   underline="hover"
                   sx={{ fontSize: 13, color: '#2563EB', fontWeight: 400, cursor: 'pointer' }}
                 >
