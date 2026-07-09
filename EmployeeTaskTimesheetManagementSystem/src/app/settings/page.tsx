@@ -66,6 +66,9 @@ export default function SettingsPage() {
   const [savedNotif, setSavedNotif]       = useState(loadNotif);
   const [notifications, setNotifications] = useState(loadNotif);
 
+  // ── Profile saving state ───────────────────────────────────────────────────
+  const [profileSaving, setProfileSaving] = useState(false);
+
   // ── Password state ─────────────────────────────────────────────────────────
   const [pwForm, setPwForm] = useState({ current: '', newPw: '', confirm: '' });
   const [pwErrors, setPwErrors] = useState({ current: '', newPw: '', confirm: '' });
@@ -99,6 +102,14 @@ export default function SettingsPage() {
   );
   const isDirty = profileDirty || notifDirty;
 
+  // ── Profile validity (real-time, mirrors validateProfile logic) ────────────
+  const profileValid = useMemo(() =>
+    !!profile.name.trim() &&
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email) &&
+    /^\d{10}$/.test(profile.phone) &&
+    !!profile.department.trim(),
+  [profile]);
+
   // ── Profile validation ─────────────────────────────────────────────────────
   function validateProfile() {
     const errors = { name: '', email: '', phone: '', department: '' };
@@ -107,7 +118,7 @@ export default function SettingsPage() {
     if (!profile.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email)) {
       errors.email = 'A valid email address is required.'; ok = false;
     }
-    if (!profile.phone.trim()) { errors.phone = 'Phone number is required.'; ok = false; }
+    if (!/^\d{10}$/.test(profile.phone)) { errors.phone = 'Phone number must contain exactly 10 digits.'; ok = false; }
     if (!profile.department.trim()) { errors.department = 'Department is required.'; ok = false; }
     setProfileErrors(errors);
     return ok;
@@ -117,22 +128,33 @@ export default function SettingsPage() {
   const handleSave = async () => {
     if (!validateProfile()) return;
     if (!user?.userId) { showSnack('Session error — please log in again.', 'error'); return; }
+    setProfileSaving(true);
     try {
-      await api.put(`/Auth/profile/${user.userId}`, {
+      const { data } = await api.put(`/Auth/profile/${user.userId}`, {
         fullName:   profile.name,
         email:      profile.email,
         phone:      profile.phone,
         department: profile.department,
         bio:        profile.bio,
       });
-      setSavedProfile({ ...profile });
+      const updated = {
+        name:       data?.fullName   ?? data?.name       ?? profile.name,
+        email:      data?.email                          ?? profile.email,
+        phone:      data?.phone                          ?? profile.phone,
+        department: data?.department                     ?? profile.department,
+        bio:        data?.bio                            ?? profile.bio,
+      };
+      setProfile(updated);
+      setSavedProfile(updated);
       localStorage.setItem('settings_notifications', JSON.stringify(notifications));
       setSavedNotif({ ...notifications });
-      updateUser({ name: profile.name, email: profile.email, phone: profile.phone, department: profile.department, bio: profile.bio });
+      updateUser({ name: updated.name, email: updated.email, phone: updated.phone, department: updated.department, bio: updated.bio });
       showSnack('Profile updated successfully.');
     } catch (err: any) {
       const msg = err?.response?.data?.message ?? err?.response?.data ?? 'Failed to save profile.';
       showSnack(typeof msg === 'string' ? msg : 'Failed to save profile.', 'error');
+    } finally {
+      setProfileSaving(false);
     }
   };
 
@@ -220,7 +242,7 @@ export default function SettingsPage() {
               variant="contained"
               startIcon={<SaveRoundedIcon />}
               onClick={handleSave}
-              disabled={!isDirty}
+              disabled={!isDirty || !profileValid || profileSaving}
               sx={{
                 borderRadius: '999px', textTransform: 'none', px: 2.25, py: 1,
                 background: isDark ? 'linear-gradient(135deg, #7C3AED 0%, #6d28d9 100%)' : 'linear-gradient(135deg, #2563EB 0%, #6D5DF6 100%)',
@@ -317,7 +339,12 @@ export default function SettingsPage() {
                         <Grid item xs={12} md={6}>
                           <TextField
                             label="Phone Number" value={profile.phone}
-                            onChange={e => setProfile({ ...profile, phone: e.target.value })}
+                            onChange={e => {
+                              const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
+                              setProfile({ ...profile, phone: digits });
+                              setProfileErrors(prev => ({ ...prev, phone: digits.length > 0 && digits.length < 10 ? 'Phone number must contain exactly 10 digits.' : '' }));
+                            }}
+                            inputProps={{ inputMode: 'numeric' }}
                             fullWidth error={!!profileErrors.phone} helperText={profileErrors.phone}
                             InputProps={{ startAdornment: <PhoneRoundedIcon sx={{ color: 'text.secondary', mr: 1 }} /> }}
                             sx={fieldSx}
