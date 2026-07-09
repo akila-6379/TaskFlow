@@ -88,10 +88,12 @@ function Toolbar({ filterStatus, onStatusChange }: { filterStatus: string; onSta
             startIcon={<DownloadRoundedIcon />}
             disableElevation
             sx={{
-              borderRadius: '999px',
+              borderRadius: '12px',
               textTransform: 'none',
               fontWeight: 700,
-              px: 2,
+              fontSize: 14,
+              height: 44,
+              px: 2.5,
               background: isDark ? 'linear-gradient(135deg, #7C3AED 0%, #6d28d9 100%)' : 'linear-gradient(135deg, #2563EB 0%, #7C3AED 100%)',
               boxShadow: isDark ? '0 4px 12px rgba(124,58,237,0.25)' : '0 4px 12px rgba(37,99,235,0.18)',
               '&:hover': {

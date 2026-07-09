@@ -945,18 +945,26 @@ export default function TimesheetsPage() {
                 label="Hours Worked"
                 type="number"
                 value={form.hoursWorked}
+                onKeyDown={(e) => {
+                  // Block: minus, plus, e/E (scientific), and multiple dots
+                  if (['-', '+', 'e', 'E'].includes(e.key)) { e.preventDefault(); return; }
+                  if (e.key === '.' && String(form.hoursWorked).includes('.')) { e.preventDefault(); }
+                }}
                 onChange={e => {
                   const raw = e.target.value;
-                  // Prevent alphabetic / empty input from becoming NaN
-                  if (raw === '' || raw === '-') return;
-                  // Parse and clamp at input time: never allow > 10 to be typed
+                  if (raw === '') return;
                   let parsed = parseFloat(raw);
-                  if (isNaN(parsed)) return;
+                  if (isNaN(parsed) || parsed < 0) return;
                   if (parsed > 10) parsed = 10;
-                  if (parsed < 0) return; // prevent negative values silently
-                  // Round to nearest 0.5
+                  // Snap to nearest 0.5
                   parsed = Math.round(parsed * 2) / 2;
                   setForm({ ...form, hoursWorked: parsed });
+                }}
+                onPaste={(e) => {
+                  // Block pasted values that would result in invalid numbers
+                  const pasted = e.clipboardData.getData('text');
+                  const num = parseFloat(pasted);
+                  if (isNaN(num) || num < 0 || num > 10) e.preventDefault();
                 }}
                 fullWidth
                 error={Boolean(hoursError)}
