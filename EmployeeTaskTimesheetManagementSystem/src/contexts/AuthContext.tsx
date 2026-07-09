@@ -29,9 +29,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const user: User = {
         id: '1',
+        userId: data.userId,
         name: data.user,
         email,
         role: data.role,
+        phone: data.phone ?? '',
+        department: data.department ?? '',
+        bio: data.bio ?? '',
       };
 
       setUser(user);

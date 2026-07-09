@@ -1,9 +1,13 @@
 export interface User {
   id: string;
+  userId?: number;   // numeric DB primary key — used for profile/password API calls
   name: string;
   email: string;
   role: string;
   avatar?: string;
+  phone?: string;
+  department?: string;
+  bio?: string;
 }
 
 export interface Employee {
